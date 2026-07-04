@@ -1,0 +1,57 @@
+# # create
+# list=[1,2,3,4,5,6,7,]
+# list.append(10)
+# #Read
+# print(list[2])
+
+# #Update
+# list.insert(len(list),"End")
+# print(list)
+# #Delete
+# list.remove("End")
+# print(list)
+# list.clear()
+# print(list)
+# #Reverse()
+# list.reverse()
+# print(list)
+list=[]
+
+while True:
+    print("1. Add")
+    print("2. Remove")
+    print("3. Update")
+    print("4. Insert")
+    print("5. Delete")
+    print("7. for exit ")
+    ch=input("Enter your choice :")
+
+    if ch=="7":
+         print("Thanks for using this ")
+         break
+    elif ch == "1":
+
+        value=input("What do you want to add: ")
+        list.append(value)
+        print("Added successfully.....")
+    elif ch == '2':
+        value=input("What do you want to remove: ")
+        if value in list:
+            list.remove(value)
+            print("Remove successfully.....")
+        else:
+             print("This input not in list")
+    elif ch == '3':
+        value=input("What do you want to update: ")
+        list.insert(len(list), value)
+        print("Update successfully.....")
+    elif ch == '4':
+        value=input("What do you want to update: ")
+        list.insert(len(list), value)
+        print("Insert successfully.....")
+    elif ch == '5':
+            list.clear()
+            print("Delete successfully.....")
+    else:
+         print("Invalid Choice")
+    print(list)

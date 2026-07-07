@@ -1,0 +1,36 @@
+"""info = {
+    "name" : "Papun",
+    "subject" : ["python", "c", "java"],
+    "topic" : ("dict", "set"),
+    "age" : 35,
+    "is_adult" : True
+
+}
+print(info["name"])
+print(info["topic"])
+print(info["subject"])
+print(info["age"])
+"""
+"""info = {
+    "name" : "Papun",
+    "subject" : ["python", "c", "java"],
+    "topic" : ("dict", "set"),
+    "age" : 35,
+    "is_adult" : True
+
+}
+info["name"] = "Papun kumar bhola"
+print(info)
+"""
+student = {
+    "name" : "Papun Kumar",
+    "mark" : {
+        "chem" : 99,
+        "phy" : 96,
+        "math" : 97
+    }
+
+}
+print(student)
+print(student["name"])
+print(student["mark"]["chem"])

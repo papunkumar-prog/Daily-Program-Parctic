@@ -1,0 +1,40 @@
+"""Student Information"""
+tup = (101, "Rahul", 20, "Python")
+print("Student name : ",tup[1])
+print("Student subject : ",tup[-1])
+"""Find the Largest Number in a Tuple"""
+num = (15, 8, 25, 10, 18)
+largest = num[0]
+for i in num:
+    if i > largest:
+        largest = i
+print("The largest number : ", largest)
+"""Count Even and Odd Numbers"""
+num1 = (2, 7, 10, 5, 12, 9)
+Even_count = 0
+odd_count = 0
+for i in num1:
+    if i % 2 == 0:
+        Even_count += 1
+    else:
+        odd_count +=1
+print("The even number count is", Even_count, "and odd number count is", odd_count)
+"""Count Positive and Negative Numbers in a Tuple"""
+
+num = (5, -2, 8, -7, 0, 3, -1)
+positive = 0
+negative = 0
+for i in num:
+    if i >= 0:
+        positive += 1
+    else:
+        negative += 1
+print("Positive numbers:", positive)
+print("Negative numbers:", negative)
+"""Find the Smallest Number in a Tuple"""
+numbers = (15, 8, 23, 4, 19)
+Smallest = numbers[0]
+for i in numbers:
+    if i < Smallest:
+        Smallest = i
+print("The smallest number :", Smallest)

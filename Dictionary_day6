@@ -1,0 +1,168 @@
+"""Student Management System"""
+students = {}
+
+while True:
+    print("\n====== students Management ======")
+    print("1. Add students")
+    print("2. View All students")
+    print("3. Search students")
+    print("4. Update students")
+    print("5. Delete students")
+    print("6. Count studentss")
+    print("7. Highest Marks")
+    print("8. Lowest Marks")
+    print("9. Average Marks")
+    print("10. studentss Above 80 marks")
+    print("11. studentss Below 40 marks")
+    print("12. Change Course")
+    print("13. Increase Marks")
+    print("14. Show Topper")
+    print("15. Exit")
+    ch = input("Enter Your Choice : ")
+
+    if ch == '1':
+        roll = int(input("Enter Roll Number : "))
+
+        if roll in students:
+            print("students already exists.")
+        else:
+            name = input("Enter Name : ")
+            age = int(input("Enter your age :"))
+            course = input("Enter your Course : ")
+            marks = int(input("Enter your Marks : "))
+            students[roll] ={
+            "name" : name,
+            "age" : age,
+            "course" : course,
+            "marks" : marks}
+        
+        print("students Add Successfully!")
+    
+    elif ch == '2':
+        if len(students) == '0':
+            print("No students found")
+            
+        else:
+            for roll, details in students.items():
+                print("\nRoll No : {roll}")
+                print(f"Name : {details['name']}")
+                print(f"age : {details['age']}")
+                print(f"Course : {details['course']}")
+                print(f"Marks : {details[marks]}")
+    
+    elif ch == '3':
+        roll = int(input("Enter Roll Number : "))
+        if roll in students:
+            print(students[roll])
+        else:
+            print("Student Not Found")
+    
+    elif ch == '4':
+        roll = int(input("Enter Roll Number : "))
+        if roll in students:
+            students[roll]["name"] = input("Enter New Name :")
+            students[roll]["age"] = int(input("Enter New Age : "))
+            students[roll]["course"] = input("Enter New Course : ")
+            students[roll]["marks"] = int(input("Enter New marks : "))
+            print("Student Update Successuflly!")
+        else:
+            print("Student Not found")
+    
+    elif ch =='5':
+        roll = int(input("Enter Roll Number : "))
+        if roll in students:
+            del students[roll]
+            print("Student Deleted Successuflly!")
+        else:
+            print("Student Not Found")
+    
+    elif ch == '6':
+        print("Total Students : ", len(students))
+    
+    elif ch == '7':
+        if len(students) == 0:
+            print("Student Not Found")
+        else:
+            highest = -1
+            for data in students.values():
+                if data["marks"] > highest:
+                    highest = data["marks"]
+            print("Highest Mark :", highest)
+    
+    elif ch == '8':
+        if len(students) == 0:
+            print("Student Not Found")
+        else:
+            lowest = 101
+            for data in students.value():
+                if data["marks"] < lowest:
+                    lowest = data["marks"]
+            print("Lowest Mark :", lowest)
+
+    elif ch == '9':
+        if len(students) == 0:
+            print("Student Not Found")
+        else:
+            total = 0
+            for data in students.value():
+                total += data["marks"]
+                print("Average Marks :", total / len(students))
+    
+    elif ch == '10':
+        found = False
+        for roll, data in students.items():
+            if data["marks"] >= 80:
+                print(roll, data)
+                found = True
+        if not found:
+            print("No Student Found")
+
+    elif ch == '11':
+        found = False
+        for roll, data in students.items():
+            if data["marks"] <= 40:
+                print(roll, data)
+                found =True
+        if not found:
+            print("No Student Found")
+
+    elif ch == '12':
+        roll = int(input("Enter Roll Number :"))
+        if roll in students:
+            students["roll"]["course"] = input("Enter New Course :")
+            print("Course Update Successfully!")
+        else:
+            print("Student Not Found")
+    #Increase Marks
+    elif ch == '13':
+        roll = int(input("Enter Roll Number :"))
+        if roll in students:
+            increase = int(input("Enter Mark to increase :"))
+            students["roll"]["marks"] += increase
+            print("Marks Increase Successfully!")
+        else:
+            print("Student Not Found")
+    #Show Topper
+    elif ch == '14':
+        if len(students) == 0:
+            print("No Student Found")
+        else:
+            topper = None
+            highest = -1
+
+            for roll, data in students.items():
+                if data["marks"] > highest:
+                    highest = data["marks"]
+                    topper = roll
+
+
+            print("\nTopper details")
+            print("Roll Number :", topper)
+            print("Name :", students[topper]["name"])
+            print("Marks :", students[topper]["marks"])
+    
+    elif ch == '15':
+        print("Thank you for using student management system!")
+        break
+    else:
+        print("Invalid Choice")

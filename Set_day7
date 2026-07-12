@@ -1,0 +1,73 @@
+# attendance = set()
+
+# while True:
+#     name = input("Enter student name (or 'done' to finish): ")
+#     if name.lower() == "done":
+#         break
+#     attendance.add(name)
+
+# print("\nStudents Present: ")
+# for student in attendance:
+#     print(student)
+
+# print("\nTotal unique students:",len(attendance))
+
+
+"""Project: Student Attendance System (Using Set)"""
+
+attendance = set()
+while True:
+    print("\n======Students Attendance System======")
+    print("1. Add Student")
+    print("2. Remove student")
+    print("3. View All Student")
+    print("4. Search student")
+    print("5. Count Student")
+    print("6. Clear Student")
+    print("7. Exit")
+
+    ch = int(input("Enter your Choice : "))
+    #Add Student
+    if ch == 1:
+        name = input("Enter your name : ")
+        if name in attendance:
+            print("Student already exists")
+        else:
+            attendance.add(name)
+            print("Attendance add successfully!")
+    #Remove Student
+    elif ch == 2:
+        name = input("Enter name : ")
+        if name in attendance:
+            attendance.remove(name)
+            print("Attendance remove successfully!")
+        else:
+            print("Student not found")
+    #View All Students
+    elif ch == 3:
+        if len(attendance) ==0:
+            print("No student Attendance")
+        else:
+            print("\nPresent Studence :")
+            for student in attendance:
+                print(student)
+    #Search Student
+    elif ch == 4:
+        name = input("Enter student name : ")
+        if student in attendance:
+            print("The student is present.")
+        else:
+            print("The student is not present.")
+    #Count Students
+    elif ch == 5:
+        print("Total present student : ", len(attendance))
+    #Clear Attendance
+    elif ch == 6:
+        attendance.clear()
+        print("Attendance Cleared")
+    #Exit
+    elif ch == 7:
+        print("Thank you!")  
+        break 
+    else:
+        print("Invalid Choice")

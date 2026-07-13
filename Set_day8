@@ -1,0 +1,58 @@
+"""Company Employee Email Management System (Using Set)"""
+employee_emails = set()
+while True:
+    #Menu
+    print("========== Company Employee Email System ==========")
+
+    print("1. Add Employee Email")
+    print("2. Remove Employee Email")
+    print("3. View All Employee Emails")
+    print("4. Search Employee Email")
+    print("5. Count Employee Emails")
+    print("6. Clear All Emails")
+    print("7. Exit")
+    choice = input("Enter your choice : ")
+    #Add Employee Email
+    if choice == '1':
+        email = input("Enter your email_id : ")
+        if email in employee_emails:
+            print("Email Already exists.")
+        else:
+            employee_emails.add(email)
+            print("Email added Successfully!")
+    #Remove Employee Email
+    elif choice == '2':
+        email = input("Enter your email : ")
+        if email in employee_emails:
+            employee_emails.remove(email)
+            print("Email remove successfully!")
+        else:
+            print("Email Not Found")
+    #View All Employee Emails
+    elif choice == '3':
+        if len(employee_emails) == 0:
+            print("No Employee Emails Found")
+        else:
+            print("\nEmployee Email List")
+            for email in employee_emails:
+                print(email)
+    #Search Employee Email
+    elif choice == '4':
+        email = input("Enter your Email : ")
+        if email in employee_emails:
+            print("Employee email found",email)
+        else:
+            print("Employee Email not found")
+    #Count Employee Emails
+    elif choice == '5':
+        print("Total Employee Emails", len(employee_emails))
+    #Clear All Emails
+    elif choice == '6':
+        employee_emails.clear()
+        print("All Employee emails are deleted")
+    #Exit
+    elif choice == '7':
+        print("Thank you!")
+        break
+    else:
+        print("Invalid Choice")

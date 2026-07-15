@@ -1,0 +1,89 @@
+#sum defination
+# def calc_sum(a, b):
+#     sum = a + b
+#     print(sum)
+#     return sum
+# calc_sum(20, 35)
+# multiplay defination
+# def calc_mlt(c, d):
+#     mlt = c * d
+#     print(mlt)
+#     return mlt
+# calc_mlt(20, 20)
+#Print a Message
+
+def welcome():
+    print("Welcome to python!")
+welcome()
+# Add Two Numbers
+def add(a, b):
+    print("sum = ", a + b)
+num1 = int(input("Enter first number : "))
+num2 = int(input("Enter second number : "))
+add(num1, num2)
+# Find the Largest Number
+def largest(a, b):
+    if a > b:
+        print("largest = ", a)
+    else:
+        print("largest = ", b)
+num1 = int(input("Enter first number : "))
+num2 = int(input("Enter second number : "))
+largest(num1, num2)
+# Check Even or Odd
+def even_odd(num):
+    if num % 2 == 0:
+        print("Even number")
+    else:
+        print("Odd number")
+number = int(input("Enter a number :"))
+even_odd(number)
+# Find Square of a Number
+def square(num):
+    print("Square =", num * num)
+number = int(input("Enter a number :"))
+square(number)
+# Find Factorial
+def factorial(num):
+    fact = 1
+    for i in range(1, num + 1):
+        fact = fact * i
+    print("Factorial =", fact)
+number = int(input("Enter a number :"))
+factorial(number)
+# Count Vowels in a String
+def count_vowels(text):
+    count = 0
+
+    for ch in text.lower():
+        if ch in 'aeiou':
+            count += 1
+    print("Total vowel =", count)
+sentenc = input("Enter sentenc :")
+count_vowels(sentenc)
+# Reverse a String
+
+def reverse_string(text):
+    print("Reversed =", text[::-1])
+word = input("Enter new word :")
+reverse_string(word)
+
+# Find the Sum of Numbers from 1 to N
+
+def total(n):
+    sum = 0
+    for i in range(1, n + 1):
+        sum += i
+    print("Total =", sum)
+number = int(input("Enter a number :"))
+total(number)
+# Student Result
+def result(name, marks):
+    print("Student name :", name)
+    if marks >= 35:
+        print("Student Pass")
+    else:
+        print("Student fail")
+student = input("Enter your name :")
+marks = int(input("Enter your marks :"))
+result(student, marks)

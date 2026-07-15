@@ -22,3 +22,16 @@ if is_prime(num):
     print("This is a prime number")
 else:
     print("This is not a prime number")
+
+# Function to Find the Largest of Three Numbers
+def largest(a, b, c):
+    if a >= b and a >= c:
+        return a
+    elif b >= a and b >= c:
+        return b
+    else:
+        return c
+num1 = int(input("Enter first number :"))
+num2 = int(input("Enter second number :"))
+num3 = int(input("Enter third number :"))
+print("Largest =",largest(num1, num2, num3))

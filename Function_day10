@@ -1,0 +1,142 @@
+# Create a function to calculate the area of a rectangle.
+def rectangle_area(length, width):
+    area = length * width
+    print("Area of retangle =", area)
+length = float(input("Enter Length :"))
+width = float(input("Enter Width :"))
+rectangle_area(length, width)
+
+# Create a function to find the smallest of three numbers.
+def smallest_number(a, b, c):
+    if a <= b and a <= c:
+        print("Smallest Number =", a)
+    elif b <= a and b <= c:
+        print("Smallest Number =", b)
+    else:
+        print("Smallest Number =", c)
+num1 = int(input("Enter First number :"))
+num2 = int(input("Enter Second number :"))
+num3 = int(input("Enter Third number :"))
+smallest_number(num1, num2, num3)
+
+# Create a function to count uppercase letters in a string.
+def count_uppercase(str):
+    count = 0
+    for ch in str:
+        if ch.isupper():
+            count += 1
+    print("Uppercase Letter =", count)
+text = input("Enter Teaxt :")
+count_uppercase(text)
+
+# Create a function to check whether a year is a leap year.
+
+def leap_year(year):
+    if year % 4 == 0 and year % 400 == 0:
+        print("This is a leap year")
+    else:
+        print("This is not a leap year")
+years = int(input("Enter years :"))
+leap_year(years)
+
+# Create a function to print the multiplication table of a number.
+
+def multiplication_table(num):
+    for i in range(1, 11):
+        print(num, "x", i, "=", num * i)
+number = int(input("Enter number :"))
+multiplication_table(number)
+
+# Create a function to count even numbers in a list.
+def count_even(num):
+    count = 0
+    for i in num:
+        if i % 2 == 0:
+            count += 1
+    print("Even number count =", count)
+
+number = [10, 15, 22, 33, 40, 55, 60]
+
+count_even(number)
+
+# Create a function to find the average of five marks.
+
+def average_mark(sub1, sub2, sub3, sub4, sub5):
+    total = sub1 + sub2 + sub3 + sub4 + sub5
+    average = total / 5
+    print("Average mark =", average)
+
+sub01 = int(input("Enter Subject 1 mark :"))
+sub02 = int(input("Enter Subject 2 mark :"))
+sub03 = int(input("Enter Subject 3 mark :"))
+sub04 = int(input("Enter Subject 4 mark :"))
+sub05 = int(input("Enter Subject 5 mark :"))
+
+average_mark(sub01, sub02, sub03, sub04, sub05)
+
+# Create a function to check whether a string is a palindrome.
+
+def check_palindrome(str):
+    
+    text =(str[::-1])
+    if str == text:
+        print("palindrome")
+    else:
+        print("Not a palindrome")
+    
+string = input("Enter a string :")
+check_palindrome(string)
+
+# Create a function to count the words in a sentence.
+
+def count_word(text):
+    count = 1
+    for i in text:
+        if i == " ":
+            count += 1
+    print("total word =",count)
+
+str = input("Enter a sentence : ")
+count_word(str)
+
+# Create a menu-driven calculator using functions (add, subtract, multiply, divide).
+
+def add(a, b):
+    print("Addition=", a + b)
+
+def subtract(a, b):
+    print("subtract =", a - b)
+
+def multiply(a, b):
+    print("multiply =", a * b)
+
+def divide(a, b):
+    if b == 0:
+        print("Division by zero is not possible.")
+    else:
+        print("divide =", a / b)
+
+while True:
+    print("\n===== Calculator Menu ======")
+    print("1. Addition")
+    print("2. Subtract")
+    print("3. Multiplication")
+    print("4. Division")
+    print("5. Exit")
+    ch = int(input("Enter your choice :"))
+    if ch == 5:
+        print("Thank you!")
+        break
+    if ch >= 1 and ch <=4:
+        num1 = int(input("Enter first number :"))
+        num2 = int(input("Enter second number :"))
+        if ch == 1:
+            add(num1, num2)
+        elif ch == 2:
+            subtract(num1, num2)
+        elif ch == 3:
+            multiply(num1, num2)
+        elif ch == 4:
+            divide(num1, num2)
+    else:
+        print("Invalid Choice! Please try again")

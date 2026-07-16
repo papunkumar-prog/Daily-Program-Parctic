@@ -1,0 +1,42 @@
+"""ATM Simulation"""
+
+
+balance = 10000
+
+def check_balance():
+    print("Your bank balance =", balance)
+
+def deposit():
+    global balance
+    amount = float(input("Enter deposit amount: "))
+    balance += amount
+    print("Deposit Successful!")
+
+def withdraw():
+    global balance
+    amount = float(input("Enter withdrawal amount :"))
+    if amount <= balance:
+        balance -= amount
+        print("Withdrawal Successful!")
+    else:
+        print("Insufficient Balance!")
+
+while True:
+    print("\n1. Check Balance")
+    print("2. Deposite")
+    print("3. Withdrawal")
+    print("4. exit")
+    
+    ch = input("Enter your choice :")
+    if ch == "1":
+        check_balance()
+    elif ch == "2":
+        deposit()
+    elif ch == "3":
+        withdraw()
+    elif ch == "4":
+        print("Thank you!")
+        break
+        
+    else:
+        print("Invaled Choice")

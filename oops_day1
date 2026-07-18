@@ -1,0 +1,25 @@
+# class Animal:
+#     def eat(self):
+#         print("Eating")
+
+# class Dog(Animal):
+#     pass
+
+# d = Dog()
+# d.eat()
+
+class Students:
+    def set_name(self, name):
+        self.name = name
+
+    def show(self):
+        print(self.name)
+
+s1 = Students()
+s2 = Students()
+
+s1.set_name("Papun")
+s2.set_name("Kumar")
+
+s2.show()
+s1.show()

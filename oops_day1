@@ -43,3 +43,37 @@ phone3.set_brand("iPhone")
 phone1.show_brand()
 phone2.show_brand()
 phone3.show_brand()
+
+
+# Parent Class
+class Student:
+
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+"""give Student Management System program using Classes, Objects, self, Inheritance"""
+# Child Class
+class StudentResult(Student):
+
+    def __init__(self, name, age, mark):
+        super().__init__(name, age)
+        self.mark = mark
+
+    def display(self):
+        if self.mark >= 90:
+            grade = "A"
+        elif self.mark >= 75:
+            grade = "B"
+        elif self.mark >= 50:
+            grade = "C"
+        else:
+            grade = "Fail"
+
+        print("Name :", self.name)
+        print("Age :", self.age)
+        print("Mark :", self.mark)
+        print("Grade :", grade)
+
+student1 = StudentResult("Papun", 20, 95)
+
+student1.display()

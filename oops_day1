@@ -23,3 +23,23 @@ s2.set_name("Kumar")
 
 s2.show()
 s1.show()
+
+"""Mobile catagories"""
+class Mobile:
+    def set_brand(self, brand):
+        self.brand = brand
+
+    def show_brand(self):
+        print(self.brand)
+
+phone1 = Mobile()
+phone2 = Mobile()
+phone3 = Mobile()
+
+phone1.set_brand("Samsung")
+phone2.set_brand("Vivo")
+phone3.set_brand("iPhone")
+
+phone1.show_brand()
+phone2.show_brand()
+phone3.show_brand()

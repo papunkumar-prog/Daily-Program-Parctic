@@ -1,0 +1,64 @@
+#one-dimensional arry
+# import numpy as np
+# ar_1d = np.array([10,20,30,40,50])
+
+# print(ar_1d)
+
+#two-dimensional arry
+
+import numpy as np
+arr_2d = np.array([[1,2,3],
+[4,5,6],
+[7,8,9]])
+
+
+print(arr_2d)
+
+#Multi-dimensional arry
+#Metrix
+import numpy as np
+matrix = np.array([[2,4,6],
+[8,10,12]])
+
+print(matrix)
+
+#Creating array from python lists
+#
+
+import numpy as np
+arr = np.array([1,2,3])
+print(arr)
+
+#With default value
+#np.zeros(shape) (3) fir 1d, (3,3) arr_2d
+import numpy as np
+zeroes_array = np.zeros(3)
+print(zeroes_array)
+
+#Once(shape)
+
+import numpy as np
+ones_array = np.ones((2,3))
+print(ones_array)
+
+#full(shape, value)
+
+filled_Array = np.full((2,3), 7)
+print(filled_Array)
+
+# Creating sequences of number in numpy
+#arange()
+#arange(start,stop,step)
+
+import numpy as np
+arr = np.arange(1,10,2)
+
+print(arr)
+
+#Creating identity matrix
+#eye(size)
+
+import numpy as np
+identity_matrix = np.eye(4)
+
+print(identity_matrix)

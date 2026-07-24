@@ -1,0 +1,218 @@
+import numpy as np
+
+
+def header(title):
+    print("\n" + "-" * 78)
+    print(title)
+    print("-" * 78)
+
+def f_zeros():
+    header("f_zeros() -> np.zeros()")
+    resolt = np.zeros((2,3))
+    print("np.zeros((2,3)): \n", resolt)
+    return resolt
+f_zeros()
+
+def f_ones():
+    header("f_ones() -> np.ones()")
+    resolt = np.ones((3,3))
+    print("np.ones((3,3)): \n", resolt)
+    return resolt
+f_ones()
+
+def f_full():
+    header("f_full_value")
+    resolt = np.full((2,3), 9)
+    print("np.full \n", resolt)
+    return resolt
+f_full()
+def f_empty():
+    header("f_empty_value")
+    resolt = np.empty((3,3))
+    print("np.empty \n", resolt)
+    return resolt
+f_empty()
+def f_arange():
+    header("f_arange")
+    resolt = np.arange(0, 50, 5)
+    print("np.arange(0, 50, 5)\n", resolt)
+    return resolt
+f_arange()
+def f_linspace():
+    header("f_linspace() -> np.linspace()")
+    result = np.linspace(0, 1, 15)
+    print("np.linspace((0, 1, 15)\n :", result)
+    return result
+f_linspace()
+
+def f_eye():
+    header("f_eye() -> np.eye()")
+    result = np.eye((8))
+    print("np.eye((8))\n", result)
+    return result
+f_eye()
+
+def f_diag():
+    header("f_diag() -> np.diag()")
+    result = np.diag([10,20,30,40])
+    print("np.diag([1,2,3]):\n", result)
+    extracted = np.diag(result)
+    print("np.diag(result):\n", extracted)
+    return result
+f_diag()
+def f_random_rand():
+    header("f_random_rand() -> np.random.rand()")
+    np.random.seed(42)
+    result = np.random.rand(2, 5)
+    print("np.random.rand(2,2):\n", result)
+    return result
+f_random_rand()
+
+def f_random_randn():
+    header("f_random_randn() -> np.random.randn()")
+    np.random.seed(42)
+    result = np.random.randn(2, 2)
+    print("np.random.randn(2, 2)\n", result)
+    return result
+f_random_randn()
+
+def f_random_randint():
+    np.random.seed(42)
+    arr = np.random.randint(0, 10,(3, 3))
+    print("np.random.randint(0, 10,(3, 3))\n", arr)
+    return arr
+f_random_randint()
+
+def f_zeros_like():
+    header("f_zeros_like() -> np.zeros.like()")
+    original = np.array([[1,2,3],[4,5,6]])
+    print(original)
+    result = np.zeros_like(original)
+    print("np.zeros_like(original):\n", result)
+    return result
+f_zeros_like()
+
+# ==============================================================================
+# CATEGORY 2: ARRAY ATTRIBUTES (properties - bina parentheses () ke access hote hain)
+# ==============================================================================
+
+
+def f_ndim():
+    arr = np.array([[9,8,7],
+                   [6,5,4]])
+    print("arr :\n", arr)
+    print("arr.ndim:", arr.ndim,"-> 2 axes (rows, columns)")
+    return arr.ndim
+f_ndim()
+
+def f_shape():
+    arr = np.array([[9,8,7],
+                    [6,5,4]])
+    print("np.array([[9,8,7],[6,5,4]]);\n", arr)
+    print("arr.shape:", arr.shape, "-> 2 rows, 3 columns")
+    return np.shape
+f_shape()
+
+
+def f_size():
+    arr = np.array([[1,2,3],[4,5,6]])
+    print(arr)
+    print("Total element of array:", arr.size)
+    return arr
+f_size()
+
+def f_dtype():
+    arr = np.array([1,2,3])
+    arr_float = np.array([1.2, 3.1, 4.0])
+    print("np.array([1,2,3]):", arr.dtype)
+    print("np.array([1.2, 3.1, 4.0]):", arr_float.dtype)
+    return arr.dtype
+f_dtype()
+
+def f_itemsize():
+    header("f_itemsize -> arr.itemsize")
+    arr_int8 = np.array([1,2,3], dtype = np.int8)
+    arr_int64 = np.array([1,2,3], dtype = np.int64)
+    print("int8 itemsize", arr_int8.itemsize, "bytes per element")
+    print("int64 itemsize", arr_int64.itemsize, "bytes per element")
+    return arr_int64.itemsize
+f_itemsize()
+
+def f_nbytes():
+    header("f_nbytes() -> arr.nbytes()")
+    arr = np.zeros((1000, 1000), dtype = np.float64)
+    print("Array shape:", arr.shape, "dtype:", arr.dtype)
+    print("arr.nbytes:", arr.nbytes, "bytes(~", arr.nbytes / 1e6, "MB)")
+    return arr.nbytes
+f_nbytes()
+
+def f_T():
+    header("f_t() -> arr.T")
+    arr = np.array([[1,2,3],[4,5,6]])
+    print("np.array([[1,2,3],[4,5,6]]):", arr)
+    print("arr.T(change transpose):\n", arr.T)
+    return arr.T
+f_T()
+
+def f_flat():
+    header("f_flat -> arr.flat")
+    arr = np.array([[1,2,3],[4,5,6]])
+    print("arr:\n", arr)
+    result = list(arr.flat)
+    print("list(arr.flat):\n", result)
+    return result
+f_flat()
+
+def f_flags():
+    header("f_flags() -> arr.flags()")
+    arr = np.array([[1,2,3],[4,5,6]])
+    print("arr.flags:\n", arr.flags)
+    return arr.flags
+f_flags()
+def f_base():
+    header("f_base -> arr.base")
+    arr = np.array([1,2,3,4,5])
+    view = arr[1:4]
+    print("arr.base:", arr.base)
+    print("view.base is arr:", view.base is arr)
+f_base()
+
+def f_reshape():
+    header("f_reshape() -> arr.reshape()")
+    arr = np.arange(12)
+    print("original: ", arr)
+    result = arr.reshape(3, 4)
+    print("arr.reshape(3, 4) \n", result)
+    return result
+
+f_reshape()
+
+def f_flatten():
+    header("f_flatten() -> arr.flatten()")
+    arr = np.array([[1,2,3],[4,5,6]])
+    result = arr.flatten()
+    result[0] = 999
+    print("original arr:\n", arr)
+    print("flatten copy (modified):\n", result)
+    return result
+f_flatten()
+
+def f_ravel():
+    header("f_ravel -> arr.ravel")
+    arr = np.array([[1,2,3], [4,5,6]])
+    result = arr.ravel()
+    print("original arr:\n", arr)
+    result[0] = 999
+    
+    print("arr.ravel:\n", result)
+    return result
+f_ravel()
+
+def f_transpose():
+    header("f_transpose -> arr.transpose")
+    arr = np.arange(24).reshape(2, 3, 4)
+    print("original shape:", arr.shape)
+    result = np.transpose(arr, axes = (1,0,2))
+    print("transposed shape (0<->1 axes swap kiye):", result.shape)
+    return result
+f_transpose()

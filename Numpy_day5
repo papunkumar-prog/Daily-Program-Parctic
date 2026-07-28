@@ -1,0 +1,71 @@
+import numpy as np
+arr = np.arange(1, 25).reshape(4, 6)
+print(arr)
+
+import numpy as np
+arr = np.arange(1,26).reshape(5,5)
+print(arr)
+print("Third row:\n", arr[2, 0:])
+print("Second column:\n", arr[::,1])
+print("middle 3×3 submatrix:\n", arr[1:4,1:4])
+print("last two rows:\n", arr[3:6,0:])
+
+#Replace Values
+import numpy as np
+a = np.arange(1,21)
+a[a % 2 == 0] = -1
+print(a)
+
+# Boolean Indexing
+
+import numpy as np
+# Generate 30 random integers between 10 and 100
+arr = np.random.randint(10,101,30)
+print("original array:\n", arr)
+# Numbers greater than 50.
+print("Numbers greater than 50:\n", arr[arr > 50])
+# Numbers divisible by 5.
+print("Numbers divisible by 5:\n", arr[arr % 5 == 0])
+# Numbers between 30 and 70.
+print("Numbers between 30 and 70:\n", arr[(arr >= 30) & (arr <= 70)])
+
+# Matrix Operations
+import numpy as np
+
+# Create two 3x3 matrices
+A = np.array([[1, 2, 3],
+              [4, 5, 6],
+              [7, 8, 9]])
+
+B = np.array([[9, 8, 7],
+              [6, 5, 4],
+              [3, 2, 1]])
+
+print("Matrix A:")
+print(A)
+
+print("\nMatrix B:")
+print(B)
+
+# Addition
+print("\nAddition:")
+print(A + B)
+
+# Subtraction
+print("\nSubtraction:")
+print(A - B)
+
+# Element-wise Multiplication
+print("\nElement-wise Multiplication:")
+print(A * B)
+
+# Matrix Multiplication
+print("\nMatrix Multiplication:")
+print(A @ B)        # or np.matmul(A, B)
+
+# Transpose
+print("\nTranspose of Matrix A:")
+print(A.T)
+
+print("\nTranspose of Matrix B:")
+print(B.T)

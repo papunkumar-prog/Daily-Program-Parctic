@@ -1,5 +1,9 @@
 import numpy as np
 a= np.arange(1, 101).reshape(10,10)
+print("entire 1st row.:\n",a[0])
+print("entire 5th column:\n",a[:,5])
+print("last row using negative indexing:\n",a[-1,0:])
+print("last column using negative indexing:\n",a[:,-1])
 print("top-left 3 X 3:\n", a[0:3,0:3])
 print("midle 3 X 3:\n", a[4:7,0:3])
 print("bottom-right 3 X 3:\n", a[7:11,0:3])
@@ -7,5 +11,13 @@ print("row 2 to 6 and columns 3 to 7:\n", a[1:6,2:7])
 #every alternate row(0th,2nd,4th,6th,8th and column
 print("every alternate row(0th,2nd,4th,6th,8th and column):\n", a[::2, : ])
 print("every alternate row and every alternate column:\n", a[::2, ::2])
-print("only the four corner element of the metrix")
-print(a)
+print("only the four corner element of the metrix:\n", a[0,0], a[0,-1], a[-1,0], a[-1,-1])
+print("main diagonal:\n", a)
+# for i in range(len(a)):
+#     print(a[i][i])
+print(a.diagonal())
+print("anti-diagonal:\n", np.fliplr(a).diagonal)
+#Reverse the order of rows.
+print("Reverse the order of rows:\n", a[0,::-1])
+#Reverse the order of columns
+print("Reverse the order of columns:\n", a[:,::-1])

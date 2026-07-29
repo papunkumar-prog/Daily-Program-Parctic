@@ -1,0 +1,37 @@
+---------------------------------------------------
+Here are 5 practice questions using np.linspace():
+---------------------------------------------------
+Create 10 evenly spaced numbers between 1 and 100 and print the array.
+Create 5 evenly spaced numbers between 0 and 20 and print the array.
+Create 21 evenly spaced numbers between -10 and 10 and print the array.
+Create 8 evenly spaced numbers between 50 and 100, then print the first, last, and middle elements.
+Create 11 evenly spaced numbers between 0 and 1, then print only the numbers greater than 0.5.
+
+These questions will help you practice:
+
+Using start, stop, and num
+Understanding evenly spaced values
+Indexing
+Slicing
+Boolean filtering
+"""
+#np.linspace(start, stop, num)
+#Create 10 evenly spaced numbers between 1 and 100 and print the array.
+import numpy as np
+arr = np.linspace(1,100,10)
+print("np.linspace(1,100,10)\n", arr)
+#Create 5 evenly spaced numbers between 0 and 20 and print the array.
+a = np.linspace(0, 20, 5)
+print(a)
+#Create 21 evenly spaced numbers between -10 and 10 and print the array.
+a = np.linspace(-10, 10, 21)
+print(a)
+#Create 8 evenly spaced numbers between 50 and 100, then print the first, last, and middle elements
+a = np.linspace(50, 100, 8)
+print(a)
+print("first element:\n", a[0])
+print("second element:\n", a[-1])
+print("middle elements:\n",a[3], a[4])
+#Create 11 evenly spaced numbers between 0 and 1, then print only the numbers greater than 0.5.
+a = np.linspace(0,1,11)
+print(a[a > 0.5])

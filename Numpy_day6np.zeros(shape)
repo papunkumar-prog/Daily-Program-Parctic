@@ -1,0 +1,75 @@
+"""
+------------------------------------------------------------------
+Here are 5 practice questions using np.zeros(shape) for beginners:
+------------------------------------------------------------------
+Create a 1D array of 10 zeros.
+Create a 2D array with 3 rows and 4 columns, where all elements are 0.
+Create a 5 × 5 matrix filled with zeros and print its shape.
+Create a 3D array of shape (2, 3, 4) using np.zeros() and print the array.
+Create a 4 × 4 zero matrix, then change the main diagonal elements to 1 and print the result.
+
+These questions will help you practice:
+
+Creating 1D, 2D, and 3D arrays.
+Understanding the shape parameter.
+Accessing and modifying array elements after creating a zero-filled array.
+--------------------------------------------------------
+Here are 5 more practice questions using np.zeros():
+--------------------------------------------------------
+Create a 6 × 6 zero matrix and print only the first row.
+Create a 5 × 5 zero matrix, then change the main diagonal elements to 1.
+Create a 4 × 4 zero matrix, then change the anti-diagonal elements to 9.
+Create a 3D array of shape (3, 2, 2) using np.zeros(), then change the first element of each block to 5.
+Create a 7 × 7 zero matrix, then change the border (first row, last row, first column, last column) to 1, keeping all inner elements 0.
+
+These questions will help you practice:
+
+Creating arrays with np.zeros()
+Indexing and slicing
+Main and anti-diagonals
+3D array indexing
+Modifying selected elements after creating a zero-filled array
+
+"""
+#Create a 1D array of 10 zeros.
+import numpy as np
+arr = np.zeros(10)
+print(arr)
+#Create a 2D array with 3 rows and 4 columns, where all elements are 0.
+a = np.zeros([3, 4])
+print(a)
+#Create a 5 × 5 matrix filled with zeros and print its shape.
+a = np.zeros([5, 5])
+print(a.shape)
+#Create a 3D array of shape (2, 3, 4) using np.zeros() and print the array.
+a = np.zeros([2, 3, 4])
+print(a)
+#Create a 4 × 4 zero matrix, then change the main diagonal elements to 1 and print the result.
+a = np.zeros([4, 4])
+a = np.diag((1,2,3,4))
+print("diagonal\n",a)
+#Create a 6 × 6 zero matrix and print only the first row.
+a = np.zeros([6, 6])
+print(a[0])
+#Create a 5 × 5 zero matrix, then change the main diagonal elements to 1.
+a = np.zeros([5, 5])
+a = np.diag([1,2,3,4,5,6])
+print(a)
+#Create a 4 × 4 zero matrix, then change the anti-diagonal elements to 9.
+a = np.zeros([4, 4], dtype=int)
+n = len(a)
+for i in range(n):
+    a[i][n - 1 - i] = 9
+print(a)
+#Create a 3D array of shape (3, 2, 2) using np.zeros(), then change the first element of each block to 5.
+a = np.zeros((3, 2, 2), dtype=int)
+for i in range(len(a)):
+    a[i][0][0] = 5
+print(a)
+#Create a 7 × 7 zero matrix, then change the border (first row, last row, first column, last column) to 1, keeping all inner elements 0.
+a = np.zeros([7, 7])
+a[0,:] = 1
+a[-1,:] = 1
+a[:,0] = 1
+a[:,-1] =1
+print(a)

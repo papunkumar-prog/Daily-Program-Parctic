@@ -1,0 +1,91 @@
+import numpy as np
+# Set seed for pemanent rendom number (element place)
+np.random.seed(42)
+#Generate 4 product sales data for 90 day
+#shape (90,4) -> 90 rows (days), 4 columns (products)
+sales_units = np.random.randint(10,100, size=(90,4))
+
+# unit price for [laptop, smartphone, headphone, smartwatch]
+prices = np.array([800, 500, 100, 200])
+
+#product labels
+products = np.array(["Laptop","Smartphone","Headphones","Smartwatch"])
+
+#calculat 2D revenue matrix (days X products)using broadcasting
+sales_revenue = sales_units * prices
+
+#1. Revenue generated each day across all products
+daily_total_revenue = sales_revenue.sum(axis=1)
+
+# 2. Total revenue over the entire 90-day period
+grand_total_revenue = sales_revenue.sum()
+
+print("--- Overall Performance---")
+print(f"Grand total revenue : ${grand_total_revenue:,}")
+print(f"First 5 days revenue: {daily_total_revenue[:5]}")
+
+# Total revenue per product (sums down each column)
+product_totals = sales_revenue.sum(axis=0)
+
+# Find indices of max and min product totals
+best_prod_idx =np.argmax(product_totals)
+worst_prod_idx =np.argmin(product_totals)
+
+print("\n--- Product Ranking ---")
+for name, total in zip(products, product_totals):
+    print(f"{name}: ${total:,}")
+
+print(f"\n🏆 Best-Selling Product: {products[best_prod_idx]}(${product_totals[best_prod_idx]:,})")
+print(f"\n📉 Worst-Selling Product: {products[worst_prod_idx]}(${product_totals[worst_prod_idx]:,})")
+
+# Reshape (90, 4) -> (3 months, 30 days, 4 products)
+monthly_data = sales_revenue.reshape(3,30,4)
+
+# Total revenue for each month (summing days and products within each month)
+monthly_totals = monthly_data.sum(axis=(1,2))
+print("\n--- Monthly Breakdown ---")
+months = ["month 1", "month 2", "month 3"]
+for month, total in zip(months, monthly_totals):
+    print(f"{month} Total Revenue : ${total:, }")
+
+"""
+import numpy as np
+
+# Set seed
+np.random.seed(42)
+
+# Setup Data
+products = np.array(["Laptop", "Smartphone", "Headphones", "Smartwatch"])
+prices = np.array([800, 500, 100, 200])
+sales_units = np.random.randint(10, 100, size=(90, 4))
+sales_revenue = sales_units * prices
+
+# Calculations
+daily_totals = sales_revenue.sum(axis=1)
+grand_total = sales_revenue.sum()
+product_totals = sales_revenue.sum(axis=0)
+
+best_idx = np.argmax(product_totals)
+worst_idx = np.argmin(product_totals)
+
+# Monthly reshape
+monthly_revenue = sales_revenue.reshape(3, 30, 4).sum(axis=(1, 2))
+
+# Output Summary
+print("==========================================")
+print("          SALES ANALYSIS REPORT           ")
+print("==========================================")
+print(f"Total Revenue Generated : ${grand_total:,}\n")
+
+print("Product Performance:")
+for name, rev in zip(products, product_totals):
+    print(f" - {name:<12}: ${rev:,}")
+
+print(f"\nTop Performer          : {products[best_idx]}")
+print(f"Lowest Performer       : {products[worst_idx]}\n")
+
+print("Monthly Breakdown:")
+for i, rev in enumerate(monthly_revenue, 1):
+    print(f" - Month {i}              : ${rev:,}")
+print("==========================================")
+"""

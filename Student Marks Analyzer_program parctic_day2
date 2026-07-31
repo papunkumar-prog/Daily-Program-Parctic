@@ -1,0 +1,16 @@
+#Student Marks Analyzer
+import numpy as np
+
+def header(titel):
+    print("\n" + "=" * 50)
+    print(titel)
+    print("-" * 50)
+def input_marks():
+    n = int(input("Enter number a students: "))
+    marks =[]
+    print("\nEnter students marks:")
+    for i in range (n):
+        mark = float(input(f"Student {i + 1}: "))
+        marks.append(mark)
+    return np.array(marks)
+def 

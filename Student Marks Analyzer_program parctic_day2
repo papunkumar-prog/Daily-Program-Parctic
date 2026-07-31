@@ -4,13 +4,90 @@ import numpy as np
 def header(titel):
     print("\n" + "=" * 50)
     print(titel)
-    print("-" * 50)
+    print("=" * 50)
+
 def input_marks():
-    n = int(input("Enter number a students: "))
-    marks =[]
-    print("\nEnter students marks:")
-    for i in range (n):
+    n = int(input("Enter number of student:"))
+
+    marks = []
+    print("\nEnter student marks:")
+    for i in range(n):
         mark = float(input(f"Student {i + 1}: "))
         marks.append(mark)
     return np.array(marks)
-def 
+
+def display_marks(marks):
+    header("Student Marks")
+    print(marks)
+    
+def highest_mark(marks):
+    header("Highest Mark")
+    print("Highest mark :", np.max(marks))
+
+def lowest_mark(marks):
+    header("Lowest Mark")
+    print("Lowest Mark :", np.min(marks))
+
+def average_mark(marks):
+    header("Average Marks")
+    print("Average Mark :", np.mean(marks))
+
+def median_mark(marks):
+    header("Median Mark")
+    print("Median Mark :", np.median(marks))
+
+def passed_student(marks):
+    header("Passed Student")
+    passed = marks[marks >= 40]
+    print("Passed Student :", passed)
+    print("Total Passed :", len(passed))
+
+def failed_students(marks):
+    header("Failed Student")
+    failed = marks[marks < 40]
+    print("Failed Student :", failed)
+    print("Total Failed :", len(failed))
+
+def sort_marks(marks):
+    header("Sorted Marks")
+    print(np.sort(marks))
+
+def top_five_student(marks):
+    header("Top 5 Students")
+
+    sorted_marks = np.sort(marks)
+    if len(sorted_marks) >= 5:
+        print(sorted_marks[-5:])
+    else:
+        print(sorted_marks)
+
+def highest_student(marks):
+    header("Highest Scoring Student")
+    index = np.argmax(marks)
+    print("Student Index :", index)
+    print("Highest Mark:", marks[index])
+
+def lowest_student(marks):
+    header("Lowest Scoring Student")
+    index = np.argmin(marks)
+    print("Student Index :", index)
+    print("Lowest Mark :", marks[index])
+
+def main():
+    marks = input_marks()
+
+    idsplay_marks(marks)
+    highest_mark(marks)
+    lowest_mark(marks)
+    average_mark(marks)
+    median_mark(marks)
+    passed_students(marks)
+    failed_students(marks)
+    sort_marks(marks)
+    top_five_students(marks)
+    highest_student(marks)
+    lowest_student(marks)
+main()
+
+
+

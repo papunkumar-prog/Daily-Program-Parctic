@@ -1,0 +1,103 @@
+#6. Image Processing with Arrays
+import numpy as nu
+#---------------------------------------
+# Simple Image (5X5 RGB Image)
+#---------------------------------------
+image = np.random.randint(0,256,(5,5,3), dtype=np.unit8)
+print("Original Image")
+print(image)
+# -----------------------------
+# 1. Brightness Adjustment
+# -----------------------------
+def adjus_brightness(img, value):
+    result = np.clip(img.astype(np.int16) + value, 0, 255)
+    return result.astype(np.uint8)
+# -----------------------------
+# 2. Negative Image
+# -----------------------------
+def negative_image(img):
+    return 255 - img
+# -----------------------------
+# 3. Thresholding
+# -----------------------------
+def threshold_image(img, thershold):
+    # Convert RGB to grayscale
+    gray = img.mean(axis=2)
+    binary = np.where(gray > thershold,255,0)
+    return binary.astype(np.uint8)
+# -----------------------------
+# 4. Rotate 90° Clockwise
+# -----------------------------
+def rotate_anticlockwise(img):
+    return np.rot90(img)
+# -----------------------------
+# 6. Horizontal Flip
+# -----------------------------
+def flip_horizontal(img):
+    return np.fliplr(img)
+# -----------------------------
+# 7. Vertical Flip
+# -----------------------------
+def flip_vertical(img):
+    return np.flipud(img)
+# -----------------------------
+# 8. Crop Image
+# -----------------------------
+def crop_image(img, start_row, end_row, start_col, end_col):
+    return img[start_row:end_row, start_col:end_col]
+# -----------------------------
+# 9. Grayscale
+# -----------------------------
+def grayscale(img):
+    gray = np.dot(img[..., :3], [0.299, 0.587, 0.114])
+    return gray.astype(np.unit8)
+# -----------------------------
+# Demonstration
+# -----------------------------
+bright = adjust_brightness(image, 50)
+negative = negative_image(image)
+binary = threshold_image(image, 128)
+rotated = rotate_clockwise(image)
+flip_h = flip_horizontal(image)
+flip_v = flip_vertical(image)
+cropped = crop_image(image, 1, 4, 1, 4)
+gray = grayscale(image)
+
+print("\nBrightness:")
+print(bright)
+
+print("\nNegative:")
+print(negative)
+
+print("\nThreshold:")
+print(binary)
+
+print("\nRotated:")
+print(rotated)
+
+print("\nHorizontal Flip:")
+print(flip_h)
+
+print("\nVertical Flip:")
+print(flip_v)
+
+print("\nCropped:")
+print(cropped)
+
+print("\nGrayscale:")
+print(gray)
+"""
+from PIL import Image
+import numpy as np
+
+# Load image
+image = np.array(Image.open("image.jpg"))
+
+# Apply NumPy operation
+bright = adjust_brightness(image, 50)
+
+# Save result
+Image.fromarray(bright).save("bright_image.jpg")
+
+"""
+

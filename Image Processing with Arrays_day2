@@ -1,4 +1,4 @@
-#6. Image Processing with Arrays
+# Image Processing with Arrays
 import numpy as nu
 #---------------------------------------
 # Simple Image (5X5 RGB Image)

@@ -1,0 +1,23 @@
+import numpy as np
+# 1. Array Creation & Reshaping
+print("--- 1. Array Creation & Reshaping---")
+data = np.arange(1, 13) # Array from 1 to 12
+matrix = data.reshape(3,4) # reshape into a 3X4 metrix
+print("3X4 matrix:\n", matrix)
+
+# 2. Vectorized Math (No loops needed!)
+print("\n---2. Vectorized Math ---")
+squared = matrix**2
+print("Matrix Squared:\n", squared)
+
+# 3. Statistical Operations
+print("\n---3. Statistics---")
+print(f"Overal Mean: {matrix.mean():.2f}")
+print(f"Column-Wise Sum: {matrix.sum(axis=0)}") # Sum down columns
+print(f"Row-wise Sum: {matrix.sum(axis=1)}") # Sum across rows
+
+# 4. Matrix Multiplication
+print("\n--- 4. Matrix Multiplication ---")
+weights = np.array([[0.5], [1.0], [1.5], [2.0]]) # 4x1 column vector
+result = matrix @ weights  # (3x4) * (4x1) -> (3x1)
+print("Dot Product Result:\n", result)

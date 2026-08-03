@@ -1,0 +1,78 @@
+#----------------------------------------------------------
+#The simplest pattern
+#----------------------------------------------------------
+import re
+#Give a text
+text = "cat dog cat bird"
+#Find the word what i need
+result = re.findall("cat", text)
+#Print the result
+print(result)
+#----------------------------------------------------------
+#Matching one character
+#----------------------------------------------------------
+text1 = "banana"
+print(re.findall("a", text1))
+#----------------------------------------------------------
+#Matching multiple characters
+#----------------------------------------------------------
+text2 = "banana"
+print(re.findall("an", text2))
+#----------------------------------------------------------
+#Case sensitivity
+#----------------------------------------------------------
+text3 = "Python python PYTHON"
+print(re.findall("Python", text3))
+#----------------------------------------------------------
+#Empty list
+#----------------------------------------------------------
+text4 = "apple mango"
+print(re.findall("banana", text4))
+#----------------------------------------------------------
+#Count Matches 
+#----------------------------------------------------------
+text5 = "dog dog cat dog"
+result = re.findall("dog", text5)
+print(len(result))
+#----------------------------------------------------------
+#Store in a variable
+#----------------------------------------------------------
+text6 = "red blue red green"
+colors = re.findall("red", text6)
+print(colors)
+for color in colors:
+    print(color)
+#----------------------------------------------------------
+#Pattern can be a variable
+#----------------------------------------------------------
+text7 = "apple mango apple"
+word = "apple"
+print(re.findall(word, text7))
+#----------------------------------------------------------
+#Searching inside user input
+#----------------------------------------------------------
+text8 = input("Enter a sentence:")
+word = input("Enter word to search:")
+print(re.findall(word, text8))
+#----------------------------------------------------------
+#Understanding the return type
+#----------------------------------------------------------
+text9 = "cat dog cat 23 48"
+result = re.findall("cat", text)
+print(type(result))
+
+print(result[0])
+print(len(result))
+print(result.count("cat"))
+#----------------------------------------------------------
+#Understanding the return type
+#----------------------------------------------------------
+print(re.findall("cat", text9))
+print(re.findall("dog", text9))
+print(re.findall(r"\d+", text9))
+print(re.findall(r"[a-z]+", text9))
+print(re.findall(r"\w+", text9))
+print(re.findall("Python", text3))
+print(re.findall(r"[0-9]+", text9))
+print(re.findall("a*", text9))
+print(re.findall(r"\\d+", text9))

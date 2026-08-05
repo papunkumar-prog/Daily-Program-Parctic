@@ -1,0 +1,83 @@
+#----------------------------------------------------------
+#Character Classes
+#----------------------------------------------------------
+#Any digit
+# \d -> Digit
+# \d means any single digit(0-9)
+import re
+text = "My age is 21"
+print(re.findall(r"\d", text))
+
+# \d+ -> One or more digits
+text2 = "My age is 21"
+print(re.findall(r"\d+", text2))
+
+# \D -> Not a digit
+text3 = "A1B2C3"
+print(re.findall(r"\D", text3))
+#Word Character
+text4 = "Python_3"
+print(re.findall(r"\w", text4))
+#Not a word character
+text5 = "Python@3!"
+print(re.findall(r"\W", text5))
+#Whitespace
+text6 = "Python Java"
+print(re.findall(r"\s", text6))
+# Not Whitespace
+text7 = "Python Java"
+print(re.findall(r"\S", text7))
+
+#Practic Program
+text8 = "Room 305"
+print(re.findall(r"\d", text8))
+
+text9 = "Marks: 90 85 100"
+print(re.findall(r"\d+", text9))
+
+text10 = "user_name123"
+print(re.findall(r"\w", text10))
+
+text11 = "Python is easy"
+print(re.findall(r"\s", text11))
+
+text12 = "Python is easy"
+print(re.findall(r"\S", text12))
+"""
+Practice Questions
+Find all digits in "Phone: 9876543210".
+Find complete numbers in "10 200 3000".
+Find all non-digit characters in "A1B2C3D4".
+Find all word characters in "Hello_2026".
+Find all non-word characters in "Hello@2026!".
+Find all spaces in "I love Python programming".
+Find all non-space characters in "Hello World".q
+What is the difference between \d and \d+? Verify it with code.
+"""
+#Find all digits in "Phone: 9876543210".
+import re
+text = "9876543210"
+
+print(re.findall(r"\d", text))
+#Find complete numbers in "10 200 3000".
+text2 = "10 200 3000"
+print(re.findall(r"\d+", text2))
+#Find all non-digit characters in "A1B2C3D4".
+text3 = "A1B2C3D4"
+print(re.findall(r"\D", text3))
+#Find all word characters in "Hello_2026".
+text4 = "Hello_2026"
+print(re.findall(r"\w", text4))
+#Find all non-word characters in "Hello@2026!".
+text5 = "Hello@2026!"
+print(re.findall(r"\W", text5))
+#Find all spaces in "I love Python programming".
+text6 = "I love Python"
+print(re.findall(r"\s", text6))
+#Find all non-space characters in "Hello World".
+text7 = "Hell Worlr"
+print(re.findall(r"/S", text7))
+#What is the difference between \d and \d+? Verify it with code.
+text13 = "My age is 25 and my roll number is 1234"
+print(re.findall(r"\d", text13))
+print(re.findall(r"\d+", text13))

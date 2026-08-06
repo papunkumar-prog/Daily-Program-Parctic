@@ -1,0 +1,45 @@
+#\w → Letter, digit or _
+import re
+text = "Python_123"
+print(re.findall(r"\w", text))
+#\s → Space
+text1 = "Hi Pyhton"
+print(re.findall(r"\s", text1))
+#\S → Not a space
+print(re.findall(r"\S", text1))
+#\. → Real dot
+text2 = "3.14"
+print(re.findall(r"\.", text2))
+#. — Any Character
+text3 = "cat bat hat"
+print(re.findall(r".at", text3))
+#^ — Starts With
+text4 = "Python is easy"
+print(re.findall(r"^Python", text4))
+#$ — Ends With
+text5 = "I love Python"
+print(re.findall(r"Python$", text5))
+#* — Zero or More
+text6 = "ac abc abbc abbbc"
+print(re.findall(r"ab*c", text6))
+#+ — One or More
+text7 = "ac abc abbc abbbc"
+print(re.findall(r"ab+c", text7))
+#? — Zero or One
+text8 = "color colour"
+print(re.findall(r"colou?r", text8))
+#{} — Number of Times
+text9 = "1 12 123 1234"
+print(re.findall(r"\d{2}", text9))
+#At least 2
+text10 = "A AB ABC ABCD"
+print(re.findall(r"[A-Z]{2}", text10))
+#Between 2 and 4
+text11 = "A AB ABC ABCD ABCDE"
+print(re.findall(r"[A-Z]{2,4}", text11))
+#| — OR
+text12 = "cat dog bird"
+print(re.findall(r"cat|dog", text12))
+#() — Group
+text13 = "John 25"
+print(re.findall(r"(\w+) (\d+)", text13))

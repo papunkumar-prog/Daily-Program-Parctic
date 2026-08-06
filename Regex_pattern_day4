@@ -1,0 +1,188 @@
+# #re.search()
+# import re
+# text = "My phone number is 9876543210"
+# result = re.search(r"\d{10}", text)
+
+# if result:
+#     print(result.group())
+#     print(result.start())
+#     print(result.end())
+#     print(result.span())
+# #re.match()
+#------------------------
+#Text Patterns
+#------------------------
+import re
+
+text = text = "Alice and Bob are learning Python. Apple is AWESOME. They have a Bike and a CAT."
+
+# Words starting with A
+print(re.findall(r"\bA\w*", text))
+# Words ending with e
+print(re.findall(r"\w+e\b", text))
+# Exactly 4-letter words
+print(re.findall(r"\b[A-Za-z]{4}\b", text))
+# Words with only uppercase letters
+print(re.findall(r"\b[A-Z]+\b", text))
+#Words with only lowercase letters
+print(re.findall(r"\b[a-z]+\b", text))
+#------------------------
+#Number Patterns
+#------------------------
+import re
+
+
+text1 = """
+John scored 95 marks.
+Alice scored 120 marks.
+Bob scored 345 marks.
+The price is 45.75 dollars.
+The temperature is -12 degrees.
+Room numbers are 101, 250, and 999.
+"""
+# 3-digit numbers
+print("3-digit numbers:")
+print(re.findall(r"\b\d{3}\b", text1))
+#Numbers greater than 100 (basic)
+print("\nNumbers with 3 or more digits:")
+print(re.findall(r"\b[1-9]+\d{2,}\b", text1))
+# Decimal numbers
+print("\nDecimal numbers")
+print(re.findall(r"\d+\.\d+", text1))
+# Negative numbers
+print("\nPositive numbers & Negative numbers")
+print(re.findall(r"-?\d+", text1))
+
+#------------------------
+# String Patterns
+#------------------------
+
+text2 = """
+Python is an amazing programming language.
+John is running and singing while eating.
+The book has a committee meeting in the afternoon.
+The balloon is full of coffee and butter.
+"""
+# Words containing 'on'
+print("\nWords containing 'on':")
+print(re.findall(r"\w*on\w*", text2))
+# Words ending with 'ing'
+print("\nWords ending with 'ing':")
+print(re.findall(r"\w+ing\b", text2))
+# Double letters
+print("\nDouble letters:")
+print(re.findall(r"\w*(\w)\1\w*", text2))
+
+#------------------------
+# Special Characters
+#------------------------
+
+import re
+
+text3 = """
+Hello, John! How are you?
+The price is ₹500, $20, €15 and £10.
+Email: john@example.com
+Symbols: @ # % & * ( )
+"""
+# Punctuation
+print("\nPunctuation")
+print(re.findall(r"[.,!?;:]", text3))
+
+# Currency symbols
+print("\nCurrency symbols")
+print(re.findall(r"[₹$€£]", text3))
+
+# All non-alphanumeric symbols
+print("\nAll non-alphanumeric symbols")
+print(re.findall(r"[^A-Za-z0-9\s]", text3))
+
+#------------------------
+# Web Patterns
+#------------------------
+
+import re
+
+text4 = """
+Visit https://www.google.com for search.
+Our website is example.org.
+You can also visit mysite.net.
+Email us at john@gmail.com or admin@yahoo.com.
+Another HTTPS site: https://github.com
+"""
+# Domain names
+print("\nDomain names:")
+print(re.findall(r"\b\w+\.(com|org|net)\b", text4))
+# HTTPS URLs only
+print("\nHTTPS URLs only:")
+print(re.findall(r"https://\S+", text4))
+# Gmail addresses only
+print("\nGmail addresses only:")
+print(re.findall(r"\b\w+@gmail\.com\b", text4))
+
+#------------------------
+# Validation Patterns
+#------------------------
+import re
+
+text5 = """
+PAN Number: ABCDE1234F
+Aadhaar Number: 1234 5678 9012
+PIN Code: 600001
+Passport Number: M1234567
+
+Invalid PAN: ABC12345F
+Invalid Aadhaar: 123456789012
+Invalid PIN: 60001
+Invalid Passport: AB1234567
+"""
+
+# Find PAN Numbers
+print("PAN Numbers:")
+print(re.findall(r"\b[A-Z]{5}\d{4}[A-Z]\b", text5))
+
+# Find Aadhaar Numbers
+print("\nAadhaar Numbers:")
+print(re.findall(r"\b\d{4}\s\d{4}\s\d{4}\b", text5))
+
+# Find PIN Codes
+print("\nPIN Codes:")
+print(re.findall(r"\b\d{6}\b", text5))
+
+# Find Passport Numbers
+print("\nPassport Numbers:")
+print(re.findall(r"\b[A-Z]\d{7}\b", text5))
+
+#------------------------
+# Mixed Patterns
+#------------------------
+import re
+
+text6 = """
+User IDs: ABC123, Test456, Python789
+Codes: 123ABC, 456XYZ, 789Test
+Hex Colors: #FF5733, #00ff00, #ABCDEF
+Times: 09:30, 14:45:20, 23:59
+"""
+
+# Letters followed by numbers
+print("Letters followed by numbers:")
+print(re.findall(r"[A-Za-z]+\d+", text6))
+
+# Numbers followed by letters
+print("\nNumbers followed by letters:")
+print(re.findall(r"\d+[A-Za-z]+", text6))
+
+# Hex color codes
+print("\nHex color codes:")
+print(re.findall(r"#[0-9A-Fa-f]{6}", text6))
+
+# Time (HH:MM or HH:MM:SS)
+print("\nTime:")
+print(re.findall(r"\b\d{2}:\d{2}(?::\d{2})?\b", text6))
+
+
+
+
+
+

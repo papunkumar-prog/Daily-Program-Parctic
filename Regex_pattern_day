@@ -1,0 +1,86 @@
+#------------------------------
+#   re.finditer()
+#------------------------------
+"""
+finditer() returns Match objects.
+
+These Match objects contain extra information like:
+
+group()
+start()
+end()
+span()
+"""
+import re
+text="My name is Papun-Kumar_Bhola. My Id is like MISC 1167" \
+" and my email_id is papunkumar.b@botree.co.in. Here is my contact" \
+" number 8018830034 i work at Botree Software Internation Pvt.ltd"
+"""
+group()->for actual text
+end() and start() -> starting index and ending index
+span() -> both starting index and ending index give in a touple (start,end)
+1. print entire text starting point and ending point
+2. Find your name
+3. Find your id
+3. Find your .domain
+4. Find your gmail name before @
+5. Find the 'in' in your email
+6. Find your email
+7. Find your mobilenumber
+8. Find your company name with span(start,end)
+9. Print 80,188,30034 {}
+"""
+#print entire text starting point and ending point
+match = r".*"
+matches = re.finditer(match, text)
+for txt in matches:
+    print(txt.group())
+#Find your name
+match1 = r"\bPapun-Kumar_Bhola\b"
+matches1 = re.finditer(match1, text)
+for name in matches1:
+    print(name.group())
+#Find your id
+match2 = r"[A-Z]{4}\s\d{4}"
+matches2 = re.finditer(match2, text)
+for id in matches2:
+    print(id.group())
+#Find your .domain
+match3 = r"\.[a-z]{2}"
+matches3 = re.finditer(match3, text)
+for domain in matches3:
+    print(domain.group())
+#Find your gmail name before @
+match4 = r"[A-Za-z]+\.[A-Za-z]+@"
+matches4 = re.finditer(match4, text)
+for gmail in matches4:
+    print(gmail.group())
+#Find the 'in' in your email
+match5 =r".in"
+matches5 = re.finditer(match5, text)
+for i in matches5:
+    print(i.group())
+#Find your email
+match6 =r"\b[A-Za-z]+\.[A-Za-z]@[A-Za-z]+\.[a-z]{2}\.[a-z]{2}\b"
+matches6 = re.finditer(match6, text)
+for email in matches6:
+    print(email.group())
+#Find your mobilenumber
+match7 = r"[0-9]{10}"
+matches7 = re.finditer(match7, text)
+for num in matches7:
+    print(num.group())
+#Find your company name with span(start,end)
+#Botree Software Internation Pvt.ltd"
+match8 = r"[A-Za-z]+\s[A-Za-z]+\s[A-Za-z]{3}\.[a-z]{3}"
+mathes8 = re.finditer(match8, text)
+for comp in mathes8:
+    print(comp.group())
+    print(comp.span())
+#Print 80,188,30034 {}
+match9 = r"\d{2}\d{3}\d{5}"
+matches9 = re.finditer(match9, text)
+for n in matches9:
+    print(n.group())
+
+#print(text)

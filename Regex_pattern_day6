@@ -1,0 +1,99 @@
+import re
+
+text = "My name is Rahul-Sharma. My Employee Id is TECH4521 and my email_id is rahul.sharma@techworld.in. Here is my contact number 9876543210. I work at TechWorld Solutions Pvt.Ltd."
+"""
+Print the entire text with its starting and ending index.
+Find the person's name.
+Find the Employee ID (TECH4521).
+Find the domain name (techworld.in).
+Find the email username before @ (rahul.sharma).
+Find only in from the email.
+Find the complete email address.
+Find the 10-digit mobile number.
+Find the company name and print its span().
+Print the mobile number in this format:
+98,765,43210
+Find all the digits in the text.
+Find all the capital letters.
+Find all the small letters.
+Find all occurrences of the letter a.
+Find the text between My and and.
+"""
+#Print the entire text with its starting and ending index.
+match = r".+"
+result = re.finditer(match, text)
+for num in result:
+    print(num.group())
+#Find the person's name.
+match1 = r"Rahul-Sharma"
+result1 = re.finditer(match1, text)
+for nam in result1:
+    print(nam.group())
+#Find the Employee ID (TECH4521)
+match2 = r"\b[A-Z0-9]{8}\b"
+result2 = re.finditer(match2, text)
+for id in result2:
+    print(id.group())
+#Find the domain name (techworld.in).
+match3 = r"\b[A-Za-z]+\.[A-Za-z]{2}\b"
+result3 = re.finditer(match3, text)
+for domn in result3:
+    print(domn.group())
+#Find the email username before @ (rahul.sharma).
+match4 = r"[A-Za-z]+\.[A-Za-z]+@"
+result4 = re.finditer(match4, text)
+for email in result4:
+    print(email.group())
+#Find only in from the email.
+match5 = r".in"
+result5 = re.finditer(match5, text)
+for i in result5:
+    print(i.group())
+#Find the complete email address.
+match6 = r"[A-Za-z]+\.[A-Za-z]+@[A-Za-z]+\.[A-Za-z]{2}"
+result6 = re.finditer(match6, text)
+for email_address in result6:
+    print(email_address.group())
+#Find the 10-digit mobile number.
+match7 = r"\d{10}"
+result7 = re.finditer(match7, text)
+for num in result7:
+    print(num.group())
+#Find the company name and print its span().
+match8 = r"[A-Za-z]+\s[A-Za-z]+\s[A-Za-z]+\.[A-Za-z]+"
+result8 = re.finditer(match8,text)
+for comp in result8:
+    print(comp.group())
+    print(comp.span())
+#Print the mobile number in this format:
+#98,765,43210
+match9 = r"\d{2}\d{3}\d{5}"
+result9 = re.finditer(match9, text)
+for mob in result9:
+    number = mob.group()
+    print(number[:2]+","+number[2:5]+","+number[5:])
+#Find all the digits in the text.
+match10 = r"[0-9]+"
+result10 = re.finditer(match10, text)
+for dig in result10:
+    print(dig.group())
+#Find all the capital letters.
+match11 = r"[A-Z]+"
+result11 = re.finditer(match11, text)
+for cap in result11:
+    print(cap.group())
+#Find all the small letters.
+match12 = r"[a-z]+"
+result12 = re.finditer(match12, text)
+for sml in result12:
+    print(sml.group())
+#Find all occurrences of the letter a.
+match13 = r"a+"
+result13 = re.finditer(match13, text)
+for occ in result13:
+    print(occ.group())
+#Find the text between My and and.
+match14 = r"My(.*?)and"
+result14 = re.finditer(match14, text)
+for bet in result14:
+    print(bet.group())

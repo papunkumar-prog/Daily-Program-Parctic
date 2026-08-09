@@ -1,0 +1,89 @@
+#------------------------------
+#   Array Traversal
+#------------------------------
+arr = [10, 20, 30, 40, 50]
+for i in range(len(arr)):
+    print(arr[i])
+#------------------------------
+#   Finding Maximum
+#------------------------------
+arr1 = [10, 50, 20, 80, 30]
+maximum = arr1[0]
+for i1 in range(1, len(arr1)):
+    if arr1[i1] > maximum:
+        maximum = arr1[i1]
+print("Maximum : ", maximum)
+#------------------------------
+#   Finding Minimum
+#------------------------------
+arr2 = [10,50,20,80,5]
+minimum = arr2[0]
+for i2 in range(1, len(arr2)):
+    if arr2[i2] < minimum:
+        minimum = arr2[i2]
+print("Manimum :", minimum)
+#------------------------------
+#   Finding Minimum
+#------------------------------
+arr3 = [10,20,30,40,50]
+total = 0
+for i3 in range(len(arr3)):
+    total = total + arr3[i3]
+print("Sum :", total)
+#------------------------------
+#   Reverse Array
+#------------------------------
+arr4 = [1,2,3,4,5]
+reverse = []
+for rvs in range(len(arr4)-1, -1, -1):
+    reverse.append(arr4[rvs])
+print("Reverse :", reverse)
+#------------------------------
+#   Remove Duplicates
+#------------------------------
+arr5 = [10, 20, 10, 30, 20, 40, 30]
+result = []
+for element in arr5:
+    if element not in result:
+        result.append(element)
+print("Result :", result)
+#------------------------------
+#   Rotate Array
+#------------------------------
+arr6 = [10,20,30,40,50]
+first = arr6[0]
+for rot in range(len(arr6) -1):
+    arr6[rot] = arr6[rot + 1]
+arr6[-1] = first
+print(arr6)
+#------------------------------
+#   Find Missing Number
+#------------------------------
+arr7 = [1,2,4,5,3,7]
+n = 7
+expected_sum = n * (n+1) // 2
+
+actual_sum = 0
+for elements in arr7:
+    actual_sum = actual_sum + elements
+missing = expected_sum - actual_sum
+print("Missing Object :", missing)
+#------------------------------
+#   Find Duplicate Number
+#------------------------------
+arr8 = [10, 20, 30, 20, 40]
+for i4 in range(len(arr8)):
+    for j in range(i4 + 1, len(arr8)):
+        if arr8[i4] == arr8[j]:
+            print("Duplicate :", arr8[i4])
+#------------------------------
+#   Frequency Counting
+#------------------------------
+arr9 = [10, 20, 10, 30, 40, 10]
+frequency = {}
+for elmt in arr9:
+    if elmt in frequency:
+        frequency[elmt] = frequency[elmt] + 1
+    else:
+        frequency[elmt] = 1
+print(frequency)

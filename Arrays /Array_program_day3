@@ -1,0 +1,60 @@
+# Length of a String
+s = "Python"
+print(len(s))
+count = 0
+for ch in s:
+    count += 1
+print(count)
+# Traversing a String
+
+for ch in s:
+    print(ch)
+for i in range(len(s)):
+    print(s[i])
+#Concatenation
+a = "Hello"
+b = "World"
+c = a + " " + b
+print(c)
+# Repetition
+j = "hi"
+print(j * 3)
+# Membership
+print("P" in s)
+print("z" in s)
+
+# lower()
+s1 = "PYTHON"
+print(s1.lower())
+#Linear Search using lower()
+arr = ["Apple", "Banana", "Mango", "Orange"]
+key = input("Enter fruit to search:").lower()
+for i in range(len(arr)):
+    if arr[i].lower() == key:
+        print("Found at index:", i)
+        break
+else:
+    print("No found")
+#Count a word using lower()
+arr1 = ["Apple", "apple", "Mango", "APPLE", "Banana"]
+count = 0
+
+for word in arr1:
+    if word.lower() == key:
+        count += 1
+print("Count = ", count)
+# Sort strings ignoring uppercase/lowercase
+
+#upper()
+s2 = s1.upper()
+print(s2)
+# strip()
+s3 = "python"
+print(s3.strip())
+# replace()
+s4 = "I like JAVA"
+s4 = s4.replace("JAVA", "python")
+print(s4)
+#count()
+s5 = "banana"
+print(s5.count("a"))

@@ -1,0 +1,143 @@
+#---------------------------------------------------------------
+#   os.getcwd()-Get Current Folder
+#---------------------------------------------------------------
+# prog1
+import os
+print(os.getcwd())
+# prog2 Store the location
+location = os.getcwd()
+print("Current Folder :", location)
+# prog3 Check current folder
+folder = os.getcwd()
+if folder:
+    print("Python is working in:", folder)
+#prog4 Print with a message
+print("My current working directory is:")
+print(os.getcwd())
+#prog5 Function
+def show_location():
+    print(os.getcwd())
+show_location()
+#---------------------------------------------------------------
+#   os.listdir() — See Files and Folders
+#---------------------------------------------------------------
+#prog1
+import os
+print(os.listdir())
+#prog2-Print one by one
+items = os.listdir()
+for item in items:
+    print(item)
+#prog3-Count items
+items1 = os.listdir()
+print("Folder count is :", len(items1))
+#prog4-Check if a file exists in current folder
+items2 = os.listdir()
+if "getcwd.py" in items2:
+    print("The file is exist")
+else:
+    print("The file not exist")
+#prog5-Show only Python files
+for item in items1:
+    if item.endswith(".py"):
+        print(item)
+#---------------------------------------------------------------
+#   os.mkdir() — Create a Folder
+#---------------------------------------------------------------      
+#prog1
+import os
+os.mkdir("New folder")
+#prog2
+folder_name = "PythonPractice"
+os.mkdir(folder_name)
+print("Folder created")
+#prog3-Check before creating
+if os.path.exists("Practic"):
+    os.mkdir("Practic")
+    print("Folder Created")
+else:
+    print("This folder is already exists")
+#prog4-Create multiple folders
+os.mkdir("Folder1")
+os.mkdir("Folder2")
+os.mkdir("Folder3")
+print("The folder's are created successfully!")
+#prog5-Function
+def create_folder():
+    if not os.path.exists("MyFolder"):
+        os.mkdir("MyFolder")
+        print("Folder Created")
+    else:
+        print("This Folder Already exists")
+create_folder()
+#---------------------------------------------------------------
+#   os.rmdir() — Delete Empty Folder
+#---------------------------------------------------------------   
+#prog1
+import os
+os.rmdir("NewFolder")
+#prog2
+folder = "Practice"
+if os.path.exists("Practice"):
+    os.rmdir("Practice")
+    print("Delete successfully!")
+else:
+    print("This folder not exists")
+#prog3
+os.mkdir("TestFolder")
+print("Folder Created")
+os.rmdir("TestFolder")
+print("Folder Deleted")
+#prog4
+folder = "MyFolder"
+if os.path.isdir("Myfolder"):
+    os.rmdir("MyFolder")
+    print("Deleted", folder)
+else:
+    print("Folder not Found")
+#prog5-Function
+def delete_folder(folder):
+    if os.path.isdir(folder):
+        os.mrdir(folder)
+        print("Deleted Folder")
+    else:
+        print("File not found")
+delete_folder()
+#---------------------------------------------------------------
+#   os.remove() — Delete a File
+#---------------------------------------------------------------  
+#prog1
+import os
+os.remove("notes.txt")
+#prog2-Check first
+if os.path.exists("notes.txt"):
+    os.remove("notes.txt")
+    print("The file was removed successfully!")
+else:
+    print("File not found")
+#prog3
+file = "test.txt"
+if os.path.iefile(file):
+    os.remove(file)
+    print("File was removed")
+else:
+    print("This file not exists")
+#prog4-Create and delete
+file = "example.txt"
+with open(file, 'w') as f:
+    f.wright("Hello")
+print("Create File")
+os.remove(file)
+print("Deleted File")
+#prog5-Function
+def delete_file(file)
+    if os.path.isfile(file):
+        os.remove(file)
+        print("File was deleted!")
+    else:
+        print("File not found")
+delete_file()
+#---------------------------------------------------------------
+#   os.remove() — Delete a File
+#--------------------------------------------------------------- 
+

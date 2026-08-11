@@ -138,6 +138,88 @@ def delete_file(file)
         print("File not found")
 delete_file()
 #---------------------------------------------------------------
-#   os.remove() — Delete a File
+#   os.remove() — Rename File or Folder
 #--------------------------------------------------------------- 
+# prog1-Rename file
+import os
+os.rename("old.txt", "new.txt")
+#prog2-Rename Folder
+os.rename("OldFolder", "NewFolder")
+#prog3-Check before renaming
+if os.path.exists("old.txt"):
+    os.rename("old.txt", "new.txt")
+    print("File renamed")
+else:
+    print("File not found")
+#prog4
+old_name = "Python"
+new_name = "PythonPractice"
+os.rename(old_name, new_name)
+print("Renamed successfully!")
+#prog5-Function
+def rename_file(old_name, new_name):
+    if os.path.exists(old_name):
+        os.rename(old_name, new_name)
+        print("Renamed successfully")
+    else:
+        print("File or folder not foud")
+rename_file("old.txt", "new.txt")
+#---------------------------------------------------------------
+#   os.remove() — Does It Exist
+#--------------------------------------------------------------- 
+#prog1
+import os
+print(os.path.exists("notes.txt"))
+#prog2
+if os.path.exists("notes.txt"):
+    print("File exists")
+else:
+    print("File does not exist")
+#prog3
+if os.path.exists("PythonProjects"):
+    print("Folder exists")
+else:
+    print("Foledr does not exists")
+#prog4
+file = "data.txt"
+if os.path.exists(file):
+    print("Found")
+else:
+    print("Not found")
+#prog5-Function
+def check(path):
+    if os.path.exitst(path):
+        print("Exists")
+    else:
+        print("Does not exists")
+check("notes.txt")
+#---------------------------------------------------------------
+#   os.remove() — Is It a File?
+#--------------------------------------------------------------- 
+#prog1
+import os
+print(os.path.isfile("notes.txt"))
+#prog2
+if os.path.isfile("notes.txt"):
+    print("This is a file")
+else:
+    print("This is not a file")
+#prog3
+for item in os.listdir():
+    if os.path.isfile(item):
+        print(item)
+#prog4
+file = "data.txt"
+if os.path.isfile(file):
+    print("File found")
+#prog5
+file = []
+for item in os.listdir():
+    if os.path.isfile(item):
+        file.append(item)
+print("File:", file)
+#---------------------------------------------------------------
+#   Enviroment Variables
+#--------------------------------------------------------------- 
+#prog1
 

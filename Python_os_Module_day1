@@ -219,7 +219,23 @@ for item in os.listdir():
         file.append(item)
 print("File:", file)
 #---------------------------------------------------------------
-#   Enviroment Variables
-#--------------------------------------------------------------- 
-#prog1
+#   Environment Variables
+#---------------------------------------------------------------
+# prog1 
+import os
+print(os.getenv("USERNAME"))
+#prog2
+print(os.getenv("TEMP"))
+#prog3
+username = os.getenv("USERNAME")
+print("Username :", username)
+#prog4
+path = os.getenv("PATH")
+print(path)
+#prog5
+value = os.getenv("MY_VARIABLE")
+if value:
+    print("Variable found :", value)
+else:
+    print("Variable not found")
 

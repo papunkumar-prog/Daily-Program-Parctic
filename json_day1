@@ -1,0 +1,78 @@
+"""
+import json
+employee = {
+    "name" : "papun",
+    "age" : 55,
+    "salary" : true,
+    "skills": ["Python", "SQL", "HTML"]
+}
+json_data = json.dumps(employee)
+json_data1 = json.dumps(employee, indent=4)
+
+print(json_data)
+print(json_data1)
+
+import json
+json_data = '{"name": "papun", "age": 55, "salary": true, "skills": ["Python", "SQL", "HTML"]}'
+
+data = json.loads(json_data)
+print(data)
+print(data["name"])
+print(data["age"])
+print(data["skills"])
+
+import json
+employee = {
+    "name": "papun",
+    "age": 60
+}
+with open("employee.json", "w") as file:
+    json.dump(employee, file, indent=4)
+with open("employee.json", "r") as file:
+    data = json.load(file)
+print(data)
+text = '{"name": "Rahul", "age": 25}'
+data1 = json.loads(text)
+print(data)
+
+import json
+student = {
+    "name": "Rahul",
+    "age": 25,
+    "height": 5.8,
+    "is_student": True,
+    "skills": ["Python", "SQL"],
+    "address": {
+        "city": "Chennai",
+        "country": "India"
+    },
+    "phone": None
+}
+json_data = json.dumps(student, indent=4)
+print(json_data)
+
+import json
+data = {
+    "name": "Rahul",
+    "address": {
+        "city": "Chennai",
+        "state": "Tamil Nadu",
+        "country": "India"
+    }
+}
+print(data["address"]["city"])
+
+
+{
+    "name": "Rahul",
+    "age": 25,
+    "course": "Python"
+}
+"""
+import json
+
+with open("student.json", "r") as file:
+    student = json.load(file)
+
+print(student["name"])
+print(student["course"])

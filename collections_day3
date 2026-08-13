@@ -1,0 +1,58 @@
+Python collections
+       |
+       |-- Counter
+       |-- defaultdict
+       |-- OrderedDict
+       |-- deque
+       |-- namedtuple
+       |-- ChainMap
+       |-- UserDict
+       |-- UserList
+       |-- UserString
+"""
+# Counter 🔢
+from collections import Counter
+
+fruits = ["apple", "banana", "apple", "orange", "apple", "banana"]
+
+count = Counter(fruits)
+
+print(count)
+print(count["banana"])
+
+from collections import Counter
+
+word = "banana"
+
+count = Counter(word)
+
+print(count)
+# defaultdict 📦
+
+from collections import defaultdict
+students = defaultdict(int)
+
+students["Arun"] += 1
+students["Arun"] += 1
+students["Ravi"] +=1
+print(students)
+
+from collections import defaultdict
+students = defaultdict(list)
+students["Class A"].append("Arjun")
+students["Class A"].append("Ravi")
+students["Class B"].append("Priya")
+print(students)
+
+# deque 🔄
+from collections import deque
+students = deque(["Arjun", "Ravi", "Priya"])
+print(students)
+students.appendleft("Kumar")
+print(students)
+students.append("Meena")
+print(students)
+students.popleft()
+print(students)
+"""
+# namedtuple 🏷️

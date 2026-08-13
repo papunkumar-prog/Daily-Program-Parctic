@@ -1,0 +1,169 @@
+#---------------------------------------------------------------
+#   Import pathlib
+#---------------------------------------------------------------
+
+"""from pathlib import Path
+current_folder = Path.cwd()
+print(current_folder)
+# Create a Folder
+#folder = Path("Pythonpath")
+#folder.mkdir()
+print("Folder create")
+#If the folder already exists
+folder = Path("Pythonpath")
+folder.mkdir(exist_ok=True)
+print("Folder ready")
+#Create a File
+file = Path("notes.txt")
+file.touch()
+print("File created")
+#Create a File
+from pathlib import Path
+file1 = Path("notes.txt")
+file1.touch()
+print("File created")
+
+# Check if File Exists
+from pathlib import Path
+
+file = Path("notes.txt")
+if file.exists:
+    print("File exists")
+else:
+    print("File does not exists")
+
+# Check if Something is a File
+from pathlib import Path
+file = Path("notes.txt")
+if file.is_file():
+    print("This is a file")
+else:
+    print("File not available")
+
+# Check if Something is a Folder
+from pathlib import Path
+folder = Path("PythonProjects")
+if folder.is_dir():
+    print("This ia a folder")
+else:
+    print("Folder is not found")
+
+# Write to a File
+file = Path("notes.txt")
+file.write_text("Hi Dipak. How are you.")
+print("Data written")
+
+# Read a File
+file = Path("notes.txt")
+data = file.read_text()
+print(data)
+
+# Add More Text to a File
+
+file = Path("notes.txt")
+with file.open("a") as f:
+    f.write("\nI am learning python")
+print("Data added")
+
+file = Path("notes.txt")
+data = file.read_text()
+print(data)
+
+# Rename a File
+old_file = Path("notes.txt")
+new_file = Path("python_notes.txt")
+old_file.rename(new_file)
+print("File rename:", new_file)
+
+# Delete a File
+from pathlib import Path
+file = Path("python_notes.txt")
+file.unlink()
+print("File deleted")
+
+# Rename a Folder
+from pathlib import Path
+old_folder = Path("Pythonpath")
+new_folder = Path("MyPythonpath")
+old_folder.rename(new_folder)
+print("Folder renamed")
+
+# Delete an Empty Folder
+from pathlib import Path
+folder = Path("MyPythonpath")
+folder.rmdir()
+print("Folder was deleted")
+
+# Get File Name
+from pathlib import Path
+file = Path("C:/Users/Administrator/Desktop/Papun/notes.txt")
+print(file.name)
+
+#Get File Extension
+file = Path("notes.txt")
+print(file.suffix)
+
+# Get File Name Without Extension
+file = Path("notes.txt")
+print(file.stem)            
+
+#Get Parent Folder
+file = Path("C:/Users/Administrator/Desktop/Papun/notes.txt")
+print(file.parent)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+
+# Create a Path
+file = Path("Desktop") / "notes.txt"
+print(file)
+folder = Path("PythonProjects")
+file = folder / "program.py"
+print(file)
+
+# List Files in a Folder
+folder = Path(".")
+for item in folder.iterdir():
+    print(item)
+
+# Find Only Python Files
+folder = Path(".")
+
+for file in folder.glob("*.py"):
+    print(file)
+
+# Find All Text Files
+folder = Path(".")
+for file in folder.glob("*.txt"):
+    print(file)
+
+# Find Files Inside Subfolders
+folder = Path(".")
+for file in folder.rglob("*.py"):
+    print(file)
+
+
+⭐ Important pathlib Methods
+
+You don't need to memorize everything at once.
+
+Start with these:
+
+pathlib	What it does
+Path()	Create a path
+Path.cwd()	Current folder
+.mkdir()	Create folder
+.touch()	Create file
+.exists()	Check existence
+.is_file()	Check file
+.is_dir()	Check folder
+.write_text()	Write text
+.read_text()	Read text
+.rename()	Rename
+.unlink()	Delete file
+.rmdir()	Delete empty folder
+.name	Get filename
+.stem	Filename without extension
+.suffix	File extension
+.parent	Parent folder
+.iterdir()	List folder contents
+.glob()	Find matching files
+.rglob()	Find files recursively
+"""

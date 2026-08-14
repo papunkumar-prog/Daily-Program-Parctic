@@ -1,0 +1,213 @@
+"""
+# Counter
+from collections import Counter
+numbers = [1,2,2,3,3,3,4]
+result = Counter(numbers)
+print(result)
+print(result[1])
+print(result[2])
+print(result[3])
+
+# most_common()
+number = [1, 2, 2, 3, 3, 3, 4, 4, 4, 4]
+count = Counter(number)
+print(count.most_common())
+
+# defaultdict
+from collections import defaultdict
+student = defaultdict(list)
+student["Papun"].append("Python")
+student["papun"].append("SQL")
+print(student)
+
+# defaultdict(int)
+count1 = defaultdict(int)
+num = [1,2,2,3,3,3]
+for number1 in num:
+    count1[number1] += 1
+print(count1)
+
+# deque (Double Ended Queue)
+
+from collections import deque
+num1 = deque([1,2,3,4])
+print(num1)
+num1.append(5)
+print(num1)
+num1.appendleft(0)
+print(num1)
+num1.pop()
+print(num1)
+num1.popleft()
+print(num1)
+
+from collections import deque
+
+queue = deque()
+
+queue.append("Papun")
+queue.append("Rahul")
+queue.append("Amit")
+
+print(queue)
+
+person = queue.popleft()
+
+print("Removed:", person)
+print(queue)
+
+# deque as a Stack
+
+from collections import deque
+
+stack = deque()
+
+stack.append(10)
+stack.append(20)
+stack.append(30)
+
+print(stack)
+
+print(stack.pop())
+print(stack.pop())
+
+# maxlen
+from collections import deque
+
+number2 = deque(maxlen=3)
+
+number2.append(10)
+number2.append(20)
+number2.append(30)
+
+print(number2)
+
+number2.append(40)
+
+print(number2)
+"""
+# namedtuple
+from collections import namedtuple
+Student1 = namedtuple("Student",["name", "age", "course"])
+student1 = Student1("Papun", 30, "Python")
+print(student1)
+print(student1.name)
+print(student1.age)
+print(student1.course)
+"""
+student = ("Papun", 22, "Python")
+
+print(student[0])
+
+student = Student("Papun", 22, "Python")
+
+print(student.name)
+
+#OrderedDict
+
+from collections import OrderedDict
+data = OrderedDict()
+data["a"] = 1
+data["b"] = 2
+data["c"] = 3
+print(data)
+
+from collections import OrderedDict
+data = OrderedDict([
+    ("a", 1),
+    ("b", 2),
+    ("c", 3)
+])
+data.move_to_end("a")
+print(data)
+
+# ChainMap
+from collections import ChainMap
+student = {
+    "name" : "Papun",
+    "age" : 22
+}
+course = {
+    "course" : "Python",
+    "duration" : "6 Months"
+}
+data = ChainMap(student, course)
+print(data["name"])
+print(data["course"])
+
+# Why ChainMap is useful
+default_settings = {
+    "theme": "light",
+    "language": "English"
+}
+
+user_settings = {
+    "theme": "dark"
+}
+from collections import ChainMap
+settings = ChainMap(user_settings, default_settings)
+print(settings["theme"])
+print(settings["language"])
+
+#UserDict
+
+from collections import UserDict
+class MyDict(UserDict):
+    def add_data(self, key, value):
+        self.data[key] = value
+d = MyDict()
+d.add_data("name", "Papun")
+d.add_data("age", 30)
+print(d)
+
+# UserList
+from collections import UserList
+class MyList(UserList):
+    def add_item(self, value):
+        self.data.append(value)
+n = MyList()
+n.add_item(10)
+n.add_item(20)
+print(n)
+
+# UserString
+
+from collections import UserString
+class MyString(UserString):
+    def reverse(self):
+        return self.data[::-1]
+text = MyString("Python")
+print(text.reverse())
+
+#collections in DSA
+#Frequency counting
+from collections import Counter
+arr = [1, 2, 2, 3, 3, 3]
+freq = Counter(arr)
+print(freq)
+"""
+#Grouping
+from collections import defaultdict
+groups = defaultdict(list)
+
+students = [
+    ("Python", "Papun"),
+    ("Python", "Rahul"),
+    ("SQL", "Amit")
+]
+for course, student in students:
+    groups[course].append(student)
+print(groups)
+
+#Queue
+
+from collections import deque
+
+queue = deque()
+
+queue.append("A")
+queue.append("B")
+queue.append("C")
+
+while queue:
+    print(queue.popleft())

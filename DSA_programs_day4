@@ -1,0 +1,62 @@
+"""def word_frequency(text):
+    sentence = text.lower()
+    words = sentence.split()
+    frequency = {}
+    for word in words:
+
+        if word in frequency:
+            frequency[word] = frequency[word] + 1
+        else:
+            frequency[word] = 1
+    maximum = 0
+    maximum_word = ""
+    for word in frequency:
+        if frequency[word] > maximum:
+            maximum = frequency[word]
+            maximum_word = word
+    result = (maximum_word, maximum)
+
+    return frequency, result
+text = "Python is easy and python is powerful"
+
+frequency, result = word_frequency(text)
+
+print("Frequency:", frequency)
+print("Most frequency word:", result[0])
+print("Frequency:", result[1])
+"""
+# Student Marks Analyzer
+
+def analyze_students(students):
+    topper_name = ""
+    highest_mark = 0
+
+    frequency = {}
+    for student in students:
+        name = student[0]
+        marks = student[1]
+        if marks > highest_mark:
+            highest_mark = marks
+            topper_name = name
+        if marks in frequency:
+            frequency[marks] = frequency[marks] + 1
+        else:
+            frequency[marks] = 1
+
+    topper = (topper_name, highest_mark)
+
+    return topper, frequency
+
+
+students = [
+    ("Papun", 85),
+    ("Rahul", 72),
+    ("Amit", 91),
+    ("Ravi", 85)
+]
+
+topper, frequency = analyze_students(students)
+
+print("Topper:", topper[0])
+print("Marks:", topper[1])
+print("Marks Frequency:", frequency)

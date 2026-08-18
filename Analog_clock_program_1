@@ -1,0 +1,276 @@
+import turtle
+import time
+import math
+
+# ==========================================
+# SCREEN SETUP
+# ==========================================
+
+wn = turtle.Screen()
+wn.title("✨ Stylish Analog Clock")
+wn.bgcolor("#0b1020")
+wn.setup(width=700, height=700)
+wn.tracer(0)
+
+# ==========================================
+# TURTLE SETUP
+# ==========================================
+
+clock = turtle.Turtle()
+clock.hideturtle()
+clock.speed(0)
+
+text = turtle.Turtle()
+text.hideturtle()
+text.speed(0)
+
+# ==========================================
+# DRAW CLOCK CIRCLE
+# ==========================================
+
+def draw_circle(radius, color, width=2):
+    clock.penup()
+    clock.goto(0, -radius)
+    clock.setheading(0)
+    clock.pensize(width)
+    clock.color(color)
+    clock.pendown()
+    clock.circle(radius)
+    clock.penup()
+
+
+# ==========================================
+# DRAW CLOCK FACE
+# ==========================================
+
+def draw_clock_face():
+
+    # Outer glow rings
+    draw_circle(255, "#1e3a5f", 8)
+    draw_circle(245, "#38bdf8", 3)
+    draw_circle(235, "#172554", 2)
+
+    # Main clock face
+    clock.fillcolor("#111827")
+    clock.begin_fill()
+    clock.goto(0, -220)
+    clock.setheading(0)
+    clock.pendown()
+    clock.circle(220)
+    clock.end_fill()
+    clock.penup()
+
+    # Hour marks
+    for i in range(12):
+
+        angle = math.radians(i * 30)
+
+        x1 = 205 * math.sin(angle)
+        y1 = 205 * math.cos(angle)
+
+        x2 = 185 * math.sin(angle)
+        y2 = 185 * math.cos(angle)
+
+        clock.goto(x1, y1)
+        clock.setheading(i * 30)
+        clock.color("#38bdf8")
+        clock.pensize(5)
+        clock.pendown()
+        clock.goto(x2, y2)
+        clock.penup()
+
+    # Minute marks
+    for i in range(60):
+
+        if i % 5 != 0:
+
+            angle = math.radians(i * 6)
+
+            x1 = 210 * math.sin(angle)
+            y1 = 210 * math.cos(angle)
+
+            x2 = 202 * math.sin(angle)
+            y2 = 202 * math.cos(angle)
+
+            clock.goto(x1, y1)
+            clock.setheading(i * 6)
+            clock.color("#64748b")
+            clock.pensize(2)
+            clock.pendown()
+            clock.goto(x2, y2)
+            clock.penup()
+
+
+# ==========================================
+# DRAW NUMBERS
+# ==========================================
+
+def draw_numbers():
+
+    numbers = [
+        ("12", 0, 175),
+        ("1", 87, 151),
+        ("2", 151, 87),
+        ("3", 175, 0),
+        ("4", 151, -87),
+        ("5", 87, -151),
+        ("6", 0, -175),
+        ("7", -87, -151),
+        ("8", -151, -87),
+        ("9", -175, 0),
+        ("10", -151, 87),
+        ("11", -87, 151)
+    ]
+
+    for number, x, y in numbers:
+
+        text.goto(x, y - 10)
+        text.color("#f8fafc")
+        text.write(
+            number,
+            align="center",
+            font=("Arial", 20, "bold")
+        )
+
+
+# ==========================================
+# DRAW CLOCK HAND
+# ==========================================
+
+def draw_hand(angle, length, color, width):
+
+    clock.penup()
+    clock.goto(0, 0)
+
+    # Turtle's 0 degree points right.
+    # Clock's 0 degree points upward.
+    clock.setheading(90 - angle)
+
+    clock.color(color)
+    clock.pensize(width)
+
+    clock.pendown()
+    clock.forward(length)
+    clock.penup()
+
+
+# ==========================================
+# DRAW CENTER
+# ==========================================
+
+def draw_center():
+
+    clock.goto(0, -10)
+    clock.color("#38bdf8")
+    clock.fillcolor("#38bdf8")
+
+    clock.begin_fill()
+    clock.circle(10)
+    clock.end_fill()
+
+    clock.goto(0, -5)
+    clock.color("#ffffff")
+    clock.fillcolor("#ffffff")
+
+    clock.begin_fill()
+    clock.circle(5)
+    clock.end_fill()
+
+
+# ==========================================
+# DIGITAL TIME
+# ==========================================
+
+def draw_digital_time():
+
+    now = time.localtime()
+
+    current_time = time.strftime(
+        "%I:%M:%S %p",
+        now
+    )
+
+    text.goto(0, -275)
+    text.color("#38bdf8")
+
+    text.write(
+        current_time,
+        align="center",
+        font=("Arial", 22, "bold")
+    )
+
+
+# ==========================================
+# MAIN CLOCK FUNCTION
+# ==========================================
+
+def draw_clock():
+
+    clock.clear()
+    text.clear()
+
+    # Static clock design
+    draw_clock_face()
+    draw_numbers()
+
+    # Current time
+    now = time.localtime()
+
+    seconds = now.tm_sec
+    minutes = now.tm_min
+    hours = now.tm_hour % 12
+
+    # Calculate angles
+
+    second_angle = seconds * 6
+
+    minute_angle = minutes * 6 + seconds * 0.1
+
+    hour_angle = hours * 30 + minutes * 0.5
+
+    # Draw hands
+
+    # Hour hand
+    draw_hand(
+        hour_angle,
+        105,
+        "#60a5fa",
+        8
+    )
+
+    # Minute hand
+    draw_hand(
+        minute_angle,
+        145,
+        "#34d399",
+        5
+    )
+
+    # Second hand
+    draw_hand(
+        second_angle,
+        175,
+        "#ef4444",
+        2
+    )
+
+    # Center
+    draw_center()
+
+    # Digital time
+    draw_digital_time()
+
+    # Update screen
+    wn.update()
+
+    # Run again after 1 second
+    wn.ontimer(draw_clock, 1000)
+
+
+# ==========================================
+# START CLOCK
+# ==========================================
+
+draw_clock()
+
+wn.mainloop()

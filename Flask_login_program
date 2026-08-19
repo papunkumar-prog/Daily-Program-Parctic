@@ -1,0 +1,99 @@
+"""
+from flask import Flask, request
+
+app =Flask(__name__)
+
+@app.route("/")
+def home():
+    return 'Hello user! This is my first flask app'
+
+@app.route("/about")
+def about():
+    return 'This is about us page'
+
+@app.route("/contact")
+def contact():
+    return 'This is contact us page'
+
+@app.route("/submit", methods=["GET", "POST"])
+def submit():
+    if request.method == "POST":
+        return "You send the data"
+    else:
+        return "You are only viewing the form"
+"""
+from flask import Flask, request, redirect, url_for, session, Response
+
+app = Flask(__name__)
+
+app.secret_key = "supersecret"
+
+
+# Homepage / Login
+@app.route("/", methods=["GET", "POST"])
+def login():
+
+    if request.method == "POST":
+
+        Username = request.form.get("username")
+        Password = request.form.get("Password")
+
+        if Username == "admin" and Password == "123":
+
+            session["user"] = Username
+
+            return redirect(url_for("welcome"))
+
+        else:
+            return Response(
+                "Invalid credentials. Try again",
+                mimetype="text/plain"
+            )
+
+    return '''
+        <h1>Login Page</h1>
+
+        <form method="POST">
+
+            Username:
+            <input type="text" name="username">
+            <br>
+
+            Password:
+            <input type="password" name="Password">
+            <br>
+
+            <input type="submit" value="Login">
+
+        </form>
+    '''
+
+
+# Welcome page
+@app.route("/welcome")
+def welcome():
+
+    if "user" in session:
+
+        return f'''
+            <h2>Welcome, {session["user"]}</h2>
+
+            <a href="{url_for('logout')}">Logout</a>
+        '''
+
+    return redirect(url_for("login"))
+
+
+# Logout
+@app.route("/logout")
+def logout():
+
+    session.pop("user", None)
+
+    return redirect(url_for("login"))
+
+
+if __name__ == "__main__":
+    app.run(debug=True)   
+
+ 

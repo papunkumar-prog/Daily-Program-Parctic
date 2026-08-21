@@ -1,0 +1,204 @@
+# Student Details — Dictionary + Tuple
+def student_details():
+    student = {
+        "name": "Papun",
+        "age": 22,
+        "marks": (80, 75, 90)
+    }
+
+    print("Name:", student["name"])
+    print("Age:", student["age"])
+    print("Marks:", student["marks"])
+
+
+student_details()
+
+# Find Total Marks — Tuple + Function
+def total_marks(marks):
+    total = sum(marks)
+    print("Marks:", marks)
+    print("Total:", total)
+
+
+marks = (80, 75, 90, 85)
+total_marks(marks)
+
+# Display Employee Details — Dictionary + Function
+
+def show_employee(employee):
+    print("Name:", employee["name"])
+    print("Department:", employee["department"])
+    print("Salary:", employee["salary"])
+
+
+employee = {
+    "name": "Rahul",
+    "department": "IT",
+    "salary": 30000
+}
+
+show_employee(employee)
+
+# Find Largest Number — List + Function
+
+def find_largest(numbers):
+    largest = max(numbers)
+    print("Largest number:", largest)
+
+
+numbers = [10, 50, 20, 80, 30]
+
+find_largest(numbers)
+
+# Shopping Cart — List + Dictionary + Function
+
+def show_cart(cart):
+    for item in cart:
+        print("Product:", item["product"])
+        print("Price:", item["price"])
+        print()
+
+
+cart = [
+    {"product": "Laptop", "price": 30000},
+    {"product": "Mouse", "price": 500},
+    {"product": "Keyboard", "price": 1000}
+]
+
+show_cart(cart)
+
+# Filter Students by Marks — List + Dictionary + Function
+
+def passed_students(students):
+    for student in students:
+        if student["marks"] >= 40:
+            print(student["name"], "-", student["marks"])
+
+
+students = [
+    {"name": "Papun", "marks": 80},
+    {"name": "Rahul", "marks": 35},
+    {"name": "Amit", "marks": 60},
+    {"name": "Ravi", "marks": 25}
+]
+
+passed_students(students)
+
+# Expense Tracker — List + Dictionary + Function
+
+def show_expenses(expenses):
+    total = 0
+
+    for expense in expenses:
+        print("Amount:", expense["amount"])
+        print("Category:", expense["category"])
+        print("Description:", expense["description"])
+        print()
+
+        total = total + expense["amount"]
+
+    print("Total Expense:", total)
+
+
+expenses = [
+    {
+        "amount": 500,
+        "category": "Food",
+        "description": "Lunch"
+    },
+    {
+        "amount": 1000,
+        "category": "Travel",
+        "description": "Bus"
+    },
+    {
+        "amount": 200,
+        "category": "Shopping",
+        "description": "T-shirt"
+    }
+]
+
+show_expenses(expenses)
+
+# Search Product — List + Dictionary + Function
+
+def search_product(products, search):
+    for product in products:
+        if product["name"] == search:
+            print("Product found")
+            print("Name:", product["name"])
+            print("Price:", product["price"])
+
+
+products = [
+    {"name": "Laptop", "price": 30000},
+    {"name": "Mouse", "price": 500},
+    {"name": "Keyboard", "price": 1000}
+]
+
+search = input("Enter product name: ")
+
+search_product(products, search)
+
+# Tuple Inside Dictionary — Function
+
+def show_subjects(student):
+    print("Student:", student["name"])
+
+    for subject in student["subjects"]:
+        print(subject)
+
+
+student = {
+    "name": "Papun",
+    "subjects": ("Python", "SQL", "Flask")
+}
+
+show_subjects(student)
+
+# Student Management Mini Program — List + Dictionary + Tuple + Functions
+
+def show_students(students):
+    for student in students:
+        print("Name:", student["name"])
+        print("Age:", student["age"])
+        print("Marks:", student["marks"])
+        print()
+
+
+def find_student(students, name):
+    for student in students:
+        if student["name"] == name:
+            print("Student Found")
+            print("Name:", student["name"])
+            print("Age:", student["age"])
+            print("Marks:", student["marks"])
+            return
+
+    print("Student not found")
+
+
+students = [
+    {
+        "name": "Papun",
+        "age": 22,
+        "marks": (80, 75, 90)
+    },
+    {
+        "name": "Rahul",
+        "age": 21,
+        "marks": (60, 70, 65)
+    },
+    {
+        "name": "Amit",
+        "age": 23,
+        "marks": (90, 85, 95)
+    }
+]
+
+
+show_students(students)
+
+name = input("Enter student name: ")
+
+find_student(students, name)

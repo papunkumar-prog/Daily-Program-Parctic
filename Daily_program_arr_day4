@@ -1,0 +1,70 @@
+# Print all elements
+arr = [10, 20, 30, 40, 50]
+for i in arr:
+    print(i)
+# Find sum of array
+arr = [10, 20, 30, 40, 50]
+total = 0
+for i in arr:
+    total = total + i
+print("Sum:", total)
+# Find Largest Element
+arr = [10, 50, 20, 80, 30]
+largest = arr[0]
+for i in arr:
+    if i > largest:
+        largest = i
+print("Largest:", largest)
+# Find Smallest element
+arr = [10, 50, 20, 80, 30]
+smallest = arr[0]
+for i in arr:
+    if i < smallest:
+        smallest = i
+print("Smallest:", smallest)
+# Count even and odd number
+arr1 = [10, 15, 20, 25, 30, 35]
+odd = 0
+even = 0
+for j in arr1:
+    if j % 2 == 0:
+        even += 1
+    else:
+        odd += 1
+print("Even :", even)
+print("Odd :", odd)
+# Reverse an array
+arr = [10, 20, 30, 40, 50]
+for i in range(len(arr) -1, -1, -1):
+    print(arr[i])
+# Search an element
+arr = [10, 20, 30, 40, 50]
+search = int(input("Enter numer :"))
+found = False
+for i in arr:
+    if i == search:
+        found = True
+        break
+if found:
+    print("Element Found")
+else:
+    print("Element Not Found")
+# Count frequency of an element
+arr = [10, 20, 10, 30, 20, 40]
+ch = int(input("Enter Number:"))
+count = 0
+for i in arr:
+    if i == ch:
+        count += 1
+print("Frequency :", count)
+# Find second largest element
+arr = [10, 50, 20, 80, 30]
+arr.sort()
+print("Second Largest:", arr[-2])
+# Remove duplicate elements
+arr = [10, 20, 10, 30, 20, 40]
+new_arr = []
+for i in arr:
+    if i not in new_arr:
+        new_arr.append(i)
+print(new_arr)

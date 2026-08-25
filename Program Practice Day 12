@@ -1,0 +1,213 @@
+# ============================================================
+#        10 DSA PRACTICE PROGRAMS USING TUPLES
+# ============================================================
+
+
+# 1. Find the Largest Element
+def largest_element():
+    numbers = (10, 25, 5, 40, 15)
+
+    largest = numbers[0]
+
+    for i in numbers:
+        if i > largest:
+            largest = i
+
+    print("Largest:", largest)
+
+
+# 2. Find the Smallest Element
+def smallest_element():
+    numbers = (10, 25, 5, 40, 15)
+
+    smallest = numbers[0]
+
+    for i in numbers:
+        if i < smallest:
+            smallest = i
+
+    print("Smallest:", smallest)
+
+
+# 3. Search an Element
+def search_element():
+    numbers = (10, 20, 30, 40, 50)
+
+    search = int(input("Enter number to search: "))
+
+    found = False
+
+    for i in numbers:
+        if i == search:
+            found = True
+            break
+
+    if found:
+        print("Element found")
+    else:
+        print("Element not found")
+
+
+# 4. Count Occurrences
+def count_occurrences():
+    numbers = (10, 20, 10, 30, 10, 40)
+
+    search = int(input("Enter number: "))
+
+    count = 0
+
+    for i in numbers:
+        if i == search:
+            count += 1
+
+    print("Occurrences:", count)
+
+
+# 5. Find Sum of Elements
+def sum_elements():
+    numbers = (10, 20, 30, 40, 50)
+
+    total = 0
+
+    for i in numbers:
+        total += i
+
+    print("Sum:", total)
+
+
+# 6. Find Average
+def average_elements():
+    numbers = (10, 20, 30, 40, 50)
+
+    total = 0
+
+    for i in numbers:
+        total += i
+
+    average = total / len(numbers)
+
+    print("Average:", average)
+
+
+# 7. Separate Even and Odd Numbers
+def even_odd():
+    numbers = (10, 15, 20, 25, 30, 35)
+
+    even = []
+    odd = []
+
+    for i in numbers:
+        if i % 2 == 0:
+            even.append(i)
+        else:
+            odd.append(i)
+
+    print("Even:", even)
+    print("Odd:", odd)
+
+
+# 8. Reverse a Tuple
+def reverse_tuple():
+    numbers = (10, 20, 30, 40, 50)
+
+    reverse = []
+
+    for i in range(len(numbers) - 1, -1, -1):
+        reverse.append(numbers[i])
+
+    print("Original:", numbers)
+    print("Reverse:", tuple(reverse))
+
+
+# 9. Find Second Largest Element
+def second_largest():
+    numbers = (10, 50, 30, 80, 40)
+
+    largest = numbers[0]
+    second_largest = numbers[0]
+
+    for i in numbers:
+        if i > largest:
+            second_largest = largest
+            largest = i
+
+        elif i > second_largest and i != largest:
+            second_largest = i
+
+    print("Largest:", largest)
+    print("Second Largest:", second_largest)
+
+
+# 10. Remove Duplicate Elements
+def remove_duplicates():
+    numbers = (10, 20, 10, 30, 20, 40, 30)
+
+    unique = []
+
+    for i in numbers:
+        if i not in unique:
+            unique.append(i)
+
+    print("Original:", numbers)
+    print("Without duplicates:", tuple(unique))
+
+
+# ============================================================
+#                       MENU
+# ============================================================
+
+while True:
+
+    print("\n================================")
+    print("       TUPLE DSA PROGRAMS")
+    print("================================")
+    print("1. Find Largest Element")
+    print("2. Find Smallest Element")
+    print("3. Search Element")
+    print("4. Count Occurrences")
+    print("5. Find Sum")
+    print("6. Find Average")
+    print("7. Even and Odd Numbers")
+    print("8. Reverse Tuple")
+    print("9. Find Second Largest")
+    print("10. Remove Duplicates")
+    print("11. Exit")
+
+    choice = input("Enter your choice: ")
+
+    if choice == "1":
+        largest_element()
+
+    elif choice == "2":
+        smallest_element()
+
+    elif choice == "3":
+        search_element()
+
+    elif choice == "4":
+        count_occurrences()
+
+    elif choice == "5":
+        sum_elements()
+
+    elif choice == "6":
+        average_elements()
+
+    elif choice == "7":
+        even_odd()
+
+    elif choice == "8":
+        reverse_tuple()
+
+    elif choice == "9":
+        second_largest()
+
+    elif choice == "10":
+        remove_duplicates()
+
+    elif choice == "11":
+        print("Thank you!")
+        break
+
+    else:
+        print("Invalid choice! Please enter 1-11.")

@@ -1,0 +1,877 @@
+# ============================================================
+# 20 PYTHON PRACTICE PROGRAMS
+# Topics: List, Dictionary, Tuple, Array, Functions
+# ============================================================
+
+
+# ============================================================
+# PROGRAM 1: FIND LARGEST AND SMALLEST
+# ============================================================
+
+def find_largest_smallest(numbers):
+
+    largest = numbers[0]
+    smallest = numbers[0]
+
+    for number in numbers:
+
+        if number > largest:
+            largest = number
+
+        if number < smallest:
+            smallest = number
+
+    print("Largest:", largest)
+    print("Smallest:", smallest)
+
+
+numbers = [10, 45, 23, 67, 12, 89, 34]
+
+find_largest_smallest(numbers)
+
+
+# ============================================================
+# PROGRAM 2: COUNT EVEN AND ODD NUMBERS
+# ============================================================
+
+def count_even_odd(numbers):
+
+    even = 0
+    odd = 0
+
+    for number in numbers:
+
+        if number % 2 == 0:
+            even += 1
+
+        else:
+            odd += 1
+
+    print("Even numbers:", even)
+    print("Odd numbers:", odd)
+
+
+numbers = [10, 15, 20, 23, 30, 35, 40]
+
+count_even_odd(numbers)
+
+
+# ============================================================
+# PROGRAM 3: REMOVE DUPLICATES
+# ============================================================
+
+def remove_duplicates(numbers):
+
+    unique = []
+
+    for number in numbers:
+
+        if number not in unique:
+            unique.append(number)
+
+    print("Original:", numbers)
+    print("Without duplicates:", unique)
+
+
+numbers = [10, 20, 10, 30, 20, 40, 30]
+
+remove_duplicates(numbers)
+
+
+# ============================================================
+# PROGRAM 4: FIND SECOND LARGEST
+# ============================================================
+
+def second_largest(numbers):
+
+    largest = numbers[0]
+    second = numbers[0]
+
+    for number in numbers:
+
+        if number > largest:
+            second = largest
+            largest = number
+
+        elif number > second and number != largest:
+            second = number
+
+    print("Largest:", largest)
+    print("Second Largest:", second)
+
+
+numbers = [10, 50, 30, 90, 20, 70]
+
+second_largest(numbers)
+
+
+# ============================================================
+# PROGRAM 5: REVERSE A LIST
+# ============================================================
+
+def reverse_list(numbers):
+
+    reversed_list = []
+
+    for i in range(len(numbers) - 1, -1, -1):
+        reversed_list.append(numbers[i])
+
+    print("Original:", numbers)
+    print("Reversed:", reversed_list)
+
+
+numbers = [10, 20, 30, 40, 50]
+
+reverse_list(numbers)
+
+
+# ============================================================
+# PROGRAM 6: FIND COMMON ELEMENTS
+# ============================================================
+
+def common_elements(list1, list2):
+
+    common = []
+
+    for number in list1:
+
+        if number in list2 and number not in common:
+            common.append(number)
+
+    print("Common elements:", common)
+
+
+list1 = [10, 20, 30, 40, 50]
+list2 = [30, 40, 50, 60, 70]
+
+common_elements(list1, list2)
+
+
+# ============================================================
+# PROGRAM 7: COUNT FREQUENCY OF ELEMENTS
+# ============================================================
+
+def frequency(numbers):
+
+    count = {}
+
+    for number in numbers:
+
+        if number in count:
+            count[number] += 1
+
+        else:
+            count[number] = 1
+
+    print("Frequency:", count)
+
+
+numbers = [1, 2, 2, 3, 3, 3, 4, 4, 4, 4]
+
+frequency(numbers)
+
+
+# ============================================================
+# PROGRAM 8: SEPARATE POSITIVE AND NEGATIVE NUMBERS
+# ============================================================
+
+def separate_numbers(numbers):
+
+    positive = []
+    negative = []
+
+    for number in numbers:
+
+        if number >= 0:
+            positive.append(number)
+
+        else:
+            negative.append(number)
+
+    print("Positive:", positive)
+    print("Negative:", negative)
+
+
+numbers = [10, -5, 20, -10, 30, -2, 40]
+
+separate_numbers(numbers)
+
+
+# ============================================================
+# PROGRAM 9: SUM OF EACH ROW
+# ============================================================
+
+def row_sum(matrix):
+
+    for row in matrix:
+
+        total = 0
+
+        for number in row:
+            total += number
+
+        print("Row sum:", total)
+
+
+matrix = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+]
+
+row_sum(matrix)
+
+
+# ============================================================
+# PROGRAM 10: SUM OF EACH COLUMN
+# ============================================================
+
+def column_sum(matrix):
+
+    columns = len(matrix[0])
+
+    for column in range(columns):
+
+        total = 0
+
+        for row in matrix:
+            total += row[column]
+
+        print("Column", column + 1, "sum:", total)
+
+
+matrix = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+]
+
+column_sum(matrix)
+
+
+# ============================================================
+# PROGRAM 11: STUDENT MARKS ANALYZER
+# ============================================================
+
+students = {
+    "Rahul": 85,
+    "Amit": 72,
+    "Priya": 95,
+    "Neha": 58,
+    "Ravi": 65
+}
+
+
+def analyze_students():
+
+    total = 0
+    highest = 0
+    topper = ""
+
+    passed = []
+    failed = []
+
+    for name, marks in students.items():
+
+        total += marks
+
+        if marks > highest:
+            highest = marks
+            topper = name
+
+        if marks >= 40:
+            passed.append(name)
+
+        else:
+            failed.append(name)
+
+    average = total / len(students)
+
+    print("Topper:", topper)
+    print("Highest Marks:", highest)
+    print("Average:", average)
+    print("Passed:", passed)
+    print("Failed:", failed)
+
+
+analyze_students()
+
+
+# ============================================================
+# PROGRAM 12: EMPLOYEE SALARY ANALYZER
+# ============================================================
+
+employees = {
+    "Rahul": 25000,
+    "Amit": 30000,
+    "Priya": 28000,
+    "Neha": 35000,
+    "Ravi": 22000
+}
+
+
+def salary_analyzer():
+
+    total = 0
+    highest = 0
+    lowest = float("inf")
+
+    highest_employee = ""
+    lowest_employee = ""
+
+    for name, salary in employees.items():
+
+        total += salary
+
+        if salary > highest:
+            highest = salary
+            highest_employee = name
+
+        if salary < lowest:
+            lowest = salary
+            lowest_employee = name
+
+    average = total / len(employees)
+
+    print("Highest Salary:", highest_employee, highest)
+    print("Lowest Salary:", lowest_employee, lowest)
+    print("Average Salary:", average)
+
+
+salary_analyzer()
+
+
+# ============================================================
+# PROGRAM 13: WORD FREQUENCY COUNTER
+# ============================================================
+
+def word_frequency(sentence):
+
+    words = sentence.lower().split()
+
+    frequency = {}
+
+    for word in words:
+
+        if word in frequency:
+            frequency[word] += 1
+
+        else:
+            frequency[word] = 1
+
+    print("Word Frequency:")
+
+    for word, count in frequency.items():
+        print(word, ":", count)
+
+
+sentence = "python is easy and python is powerful"
+
+word_frequency(sentence)
+
+
+# ============================================================
+# PROGRAM 14: TUPLE STATISTICS
+# ============================================================
+
+def tuple_statistics(numbers):
+
+    total = 0
+    even = 0
+    odd = 0
+
+    largest = numbers[0]
+    smallest = numbers[0]
+
+    for number in numbers:
+
+        total += number
+
+        if number % 2 == 0:
+            even += 1
+
+        else:
+            odd += 1
+
+        if number > largest:
+            largest = number
+
+        if number < smallest:
+            smallest = number
+
+    average = total / len(numbers)
+
+    print("Tuple:", numbers)
+    print("Sum:", total)
+    print("Average:", average)
+    print("Largest:", largest)
+    print("Smallest:", smallest)
+    print("Even:", even)
+    print("Odd:", odd)
+
+
+numbers = (10, 20, 15, 30, 25, 40)
+
+tuple_statistics(numbers)
+
+
+# ============================================================
+# PROGRAM 15: FIND DUPLICATE WORDS
+# ============================================================
+
+def duplicate_words(sentence):
+
+    words = sentence.lower().split()
+
+    frequency = {}
+
+    for word in words:
+
+        if word in frequency:
+            frequency[word] += 1
+
+        else:
+            frequency[word] = 1
+
+    duplicates = []
+
+    for word, count in frequency.items():
+
+        if count > 1:
+            duplicates.append(word)
+
+    print("Duplicate words:", duplicates)
+
+
+sentence = "python is easy python is powerful and python is popular"
+
+duplicate_words(sentence)
+
+
+# ============================================================
+# PROGRAM 16: MATRIX DIAGONAL SUM
+# ============================================================
+
+def diagonal_sum(matrix):
+
+    main_sum = 0
+    anti_sum = 0
+
+    size = len(matrix)
+
+    for i in range(size):
+
+        main_sum += matrix[i][i]
+
+        anti_sum += matrix[i][size - 1 - i]
+
+    print("Main diagonal:", main_sum)
+    print("Anti diagonal:", anti_sum)
+
+
+matrix = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+]
+
+diagonal_sum(matrix)
+
+
+# ============================================================
+# PROGRAM 17: STUDENT GRADE SYSTEM
+# ============================================================
+
+students = {
+    "Rahul": 92,
+    "Amit": 78,
+    "Priya": 85,
+    "Neha": 65,
+    "Ravi": 45
+}
+
+
+def assign_grade(marks):
+
+    if marks >= 90:
+        return "A"
+
+    elif marks >= 80:
+        return "B"
+
+    elif marks >= 70:
+        return "C"
+
+    elif marks >= 60:
+        return "D"
+
+    else:
+        return "F"
+
+
+def show_grades():
+
+    for name, marks in students.items():
+
+        grade = assign_grade(marks)
+
+        print(name, ":", marks, "Grade:", grade)
+
+
+show_grades()
+
+
+# ============================================================
+# PROGRAM 18: INVENTORY MANAGEMENT
+# ============================================================
+
+inventory = {
+    "Laptop": {
+        "price": 50000,
+        "quantity": 2
+    },
+
+    "Mouse": {
+        "price": 500,
+        "quantity": 10
+    },
+
+    "Keyboard": {
+        "price": 1000,
+        "quantity": 5
+    }
+}
+
+
+def view_products():
+
+    for product, details in inventory.items():
+
+        print("Product:", product)
+        print("Price:", details["price"])
+        print("Quantity:", details["quantity"])
+        print()
+
+
+def search_product():
+
+    name = input("Enter product name: ")
+
+    if name in inventory:
+
+        print("Product found")
+        print("Price:", inventory[name]["price"])
+        print("Quantity:", inventory[name]["quantity"])
+
+    else:
+        print("Product not found")
+
+
+def total_inventory_value():
+
+    total = 0
+
+    for product, details in inventory.items():
+
+        value = details["price"] * details["quantity"]
+
+        total += value
+
+    print("Total Inventory Value:", total)
+
+
+view_products()
+
+search_product()
+
+total_inventory_value()
+
+
+# ============================================================
+# PROGRAM 19: EXPENSE ANALYZER
+# ============================================================
+
+expenses = [
+    {
+        "category": "Food",
+        "amount": 300
+    },
+
+    {
+        "category": "Travel",
+        "amount": 500
+    },
+
+    {
+        "category": "Food",
+        "amount": 200
+    },
+
+    {
+        "category": "Shopping",
+        "amount": 1000
+    },
+
+    {
+        "category": "Travel",
+        "amount": 300
+    }
+]
+
+
+def total_expense():
+
+    total = 0
+
+    for expense in expenses:
+        total += expense["amount"]
+
+    print("Total Expense:", total)
+
+
+def highest_expense():
+
+    highest = expenses[0]
+
+    for expense in expenses:
+
+        if expense["amount"] > highest["amount"]:
+            highest = expense
+
+    print("Highest Expense:", highest)
+
+
+def category_total():
+
+    categories = {}
+
+    for expense in expenses:
+
+        category = expense["category"]
+        amount = expense["amount"]
+
+        if category in categories:
+            categories[category] += amount
+
+        else:
+            categories[category] = amount
+
+    print("Category Wise Expense:")
+
+    for category, amount in categories.items():
+        print(category, ":", amount)
+
+
+total_expense()
+
+highest_expense()
+
+category_total()
+
+
+# ============================================================
+# PROGRAM 20: MINI STUDENT MANAGEMENT SYSTEM
+# ============================================================
+
+students = []
+
+
+def add_student():
+
+    name = input("Enter student name: ")
+    marks = int(input("Enter marks: "))
+
+    student = {
+        "name": name,
+        "marks": marks
+    }
+
+    students.append(student)
+
+    print("Student added successfully.")
+
+
+def view_students():
+
+    if len(students) == 0:
+
+        print("No students found.")
+        return
+
+    for number, student in enumerate(students, start=1):
+
+        print()
+        print("Student", number)
+        print("Name:", student["name"])
+        print("Marks:", student["marks"])
+
+
+def search_student():
+
+    name = input("Enter student name: ")
+
+    found = False
+
+    for student in students:
+
+        if student["name"].lower() == name.lower():
+
+            print("Student Found")
+            print("Name:", student["name"])
+            print("Marks:", student["marks"])
+
+            found = True
+            break
+
+    if not found:
+        print("Student not found.")
+
+
+def update_marks():
+
+    name = input("Enter student name: ")
+
+    for student in students:
+
+        if student["name"].lower() == name.lower():
+
+            marks = int(input("Enter new marks: "))
+
+            student["marks"] = marks
+
+            print("Marks updated successfully.")
+            return
+
+    print("Student not found.")
+
+
+def delete_student():
+
+    name = input("Enter student name: ")
+
+    for student in students:
+
+        if student["name"].lower() == name.lower():
+
+            students.remove(student)
+
+            print("Student deleted successfully.")
+            return
+
+    print("Student not found.")
+
+
+def find_topper():
+
+    if len(students) == 0:
+
+        print("No students available.")
+        return
+
+    topper = students[0]
+
+    for student in students:
+
+        if student["marks"] > topper["marks"]:
+            topper = student
+
+    print("Topper:", topper["name"])
+    print("Marks:", topper["marks"])
+
+
+def calculate_average():
+
+    if len(students) == 0:
+
+        print("No students available.")
+        return
+
+    total = 0
+
+    for student in students:
+        total += student["marks"]
+
+    average = total / len(students)
+
+    print("Average Marks:", average)
+
+
+def show_passed():
+
+    print("Passed Students:")
+
+    for student in students:
+
+        if student["marks"] >= 40:
+            print(student["name"], "-", student["marks"])
+
+
+def show_failed():
+
+    print("Failed Students:")
+
+    for student in students:
+
+        if student["marks"] < 40:
+            print(student["name"], "-", student["marks"])
+
+
+def menu():
+
+    while True:
+
+        print()
+        print("================================")
+        print("     STUDENT MANAGEMENT SYSTEM")
+        print("================================")
+        print("1. Add Student")
+        print("2. View Students")
+        print("3. Search Student")
+        print("4. Update Marks")
+        print("5. Delete Student")
+        print("6. Find Topper")
+        print("7. Calculate Average")
+        print("8. Show Passed Students")
+        print("9. Show Failed Students")
+        print("10. Exit")
+        print("================================")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            add_student()
+
+        elif choice == "2":
+            view_students()
+
+        elif choice == "3":
+            search_student()
+
+        elif choice == "4":
+            update_marks()
+
+        elif choice == "5":
+            delete_student()
+
+        elif choice == "6":
+            find_topper()
+
+        elif choice == "7":
+            calculate_average()
+
+        elif choice == "8":
+            show_passed()
+
+        elif choice == "9":
+            show_failed()
+
+        elif choice == "10":
+
+            print("Program ended.")
+            break
+
+        else:
+            print("Invalid choice. Please try again.")
+
+
+menu()

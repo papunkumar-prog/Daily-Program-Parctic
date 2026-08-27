@@ -1,0 +1,309 @@
+# ==========================================
+# 1. CHECK WHETHER A NUMBER IS DIVISIBLE BY 5
+# ==========================================
+
+def divisible_by_five(number):
+    if number % 5 == 0:
+        print("Divisible by 5")
+    else:
+        print("Not divisible by 5")
+
+
+# ==========================================
+# 2. FIND THE CUBE OF A NUMBER
+# ==========================================
+
+def cube(number):
+    return number ** 3
+
+
+# ==========================================
+# 3. FIND THE AVERAGE OF TWO NUMBERS
+# ==========================================
+
+def average(num1, num2):
+    return (num1 + num2) / 2
+
+
+# ==========================================
+# 4. CHECK VOTING ELIGIBILITY
+# ==========================================
+
+def check_vote(age):
+    if age >= 18:
+        print("Eligible to vote")
+    else:
+        print("Not eligible to vote")
+
+
+# ==========================================
+# 5. PRINT MULTIPLICATION TABLE
+# ==========================================
+
+def multiplication_table(number):
+    for i in range(1, 11):
+        print(f"{number} x {i} = {number * i}")
+
+
+# ==========================================
+# 6. SUM OF EVEN NUMBERS FROM 1 TO N
+# ==========================================
+
+def sum_even_numbers(n):
+    total = 0
+
+    for i in range(1, n + 1):
+        if i % 2 == 0:
+            total += i
+
+    return total
+
+
+# ==========================================
+# 7. COUNT DIGITS IN A NUMBER
+# ==========================================
+
+def count_digits(number):
+    number = abs(number)
+
+    if number == 0:
+        return 1
+
+    count = 0
+
+    while number > 0:
+        count += 1
+        number //= 10
+
+    return count
+
+
+# ==========================================
+# 8. FIND THE SUM OF DIGITS
+# ==========================================
+
+def sum_digits(number):
+    number = abs(number)
+    total = 0
+
+    while number > 0:
+        digit = number % 10
+        total += digit
+        number //= 10
+
+    return total
+
+
+# ==========================================
+# 9. CHECK WHETHER A NUMBER IS PRIME
+# ==========================================
+
+def check_prime(number):
+    if number <= 1:
+        return False
+
+    for i in range(2, number):
+        if number % i == 0:
+            return False
+
+    return True
+
+
+# ==========================================
+# 10. PRINT EVEN NUMBERS FROM 1 TO 50
+# ==========================================
+
+def print_even_numbers():
+    for i in range(1, 51):
+        if i % 2 == 0:
+            print(i)
+
+
+# ==========================================
+# 11. CONVERT STRING TO UPPERCASE
+# ==========================================
+
+def convert_upper(text):
+    return text.upper()
+
+
+# ==========================================
+# 12. COUNT CHARACTERS IN A STRING
+# ==========================================
+
+def count_characters(text):
+    count = 0
+
+    for i in text:
+        count += 1
+
+    return count
+
+
+# ==========================================
+# 13. FIND FIRST CHARACTER OF A STRING
+# ==========================================
+
+def first_character(text):
+    if text:
+        return text[0]
+    else:
+        return "Empty string"
+
+
+# ==========================================
+# 14. CHECK WHETHER A CHARACTER IS A DIGIT
+# ==========================================
+
+def check_digit(character):
+    if character.isdigit():
+        return True
+    else:
+        return False
+
+
+# ==========================================
+# 15. COUNT SPACES IN A STRING
+# ==========================================
+
+def count_spaces(text):
+    count = 0
+
+    for i in text:
+        if i == " ":
+            count += 1
+
+    return count
+
+
+# ==========================================
+# 16. PRINT ALL ELEMENTS OF A LIST
+# ==========================================
+
+def show_list(numbers):
+    for i in numbers:
+        print(i)
+
+
+# ==========================================
+# 17. FIND THE LENGTH OF A LIST
+# ==========================================
+
+def list_length(numbers):
+    count = 0
+
+    for i in numbers:
+        count += 1
+
+    return count
+
+
+# ==========================================
+# 18. COUNT POSITIVE NUMBERS IN A LIST
+# ==========================================
+
+def count_positive(numbers):
+    count = 0
+
+    for i in numbers:
+        if i > 0:
+            count += 1
+
+    return count
+
+
+# ==========================================
+# 19. FIND DUPLICATE ELEMENTS IN A LIST
+# ==========================================
+
+def find_duplicates(numbers):
+    duplicates = []
+
+    for i in numbers:
+        if numbers.count(i) > 1:
+            if i not in duplicates:
+                duplicates.append(i)
+
+    return duplicates
+
+
+# ==========================================
+# 20. REMOVE NEGATIVE NUMBERS FROM A LIST
+# ==========================================
+
+def remove_negative(numbers):
+    positive_numbers = []
+
+    for i in numbers:
+        if i >= 0:
+            positive_numbers.append(i)
+
+    return positive_numbers
+
+
+# ==========================================
+# FUNCTION CALLS / TESTING
+# ==========================================
+
+print("1.")
+divisible_by_five(10)
+
+print("\n2.")
+print(cube(5))
+
+print("\n3.")
+print(average(10, 20))
+
+print("\n4.")
+check_vote(20)
+
+print("\n5.")
+multiplication_table(5)
+
+print("\n6.")
+print(sum_even_numbers(10))
+
+print("\n7.")
+print(count_digits(12345))
+
+print("\n8.")
+print(sum_digits(123))
+
+print("\n9.")
+if check_prime(17):
+    print("Prime Number")
+else:
+    print("Not a Prime Number")
+
+print("\n10.")
+print_even_numbers()
+
+print("\n11.")
+print(convert_upper("hello python"))
+
+print("\n12.")
+print(count_characters("Python"))
+
+print("\n13.")
+print(first_character("Python"))
+
+print("\n14.")
+print(check_digit("5"))
+
+print("\n15.")
+print(count_spaces("Hello Python World"))
+
+print("\n16.")
+show_list([10, 20, 30, 40])
+
+print("\n17.")
+print(list_length([10, 20, 30, 40]))
+
+print("\n18.")
+print(count_positive([10, -5, 20, -3, 30]))
+
+print("\n19.")
+print(find_duplicates([10, 20, 30, 20, 40, 10]))
+
+print("\n20.")
+print(remove_negative([10, -5, 20, -10, 30]))

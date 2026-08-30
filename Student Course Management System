@@ -1,0 +1,144 @@
+students = {}
+
+
+def add_student():
+    student_id = input("Enter Student ID: ")
+
+    if student_id in students:
+        print("Student already exists!")
+        return
+
+    name = input("Enter Student Name: ")
+    age = int(input("Enter Student Age: "))
+
+    # Tuple for fixed student information
+    student_info = (name, age)
+
+    # Set for unique courses
+    courses = set()
+
+    # Dictionary stores the complete record
+    students[student_id] = {
+        "info": student_info,
+        "courses": courses
+    }
+
+    print("Student added successfully!")
+
+
+def view_students():
+
+    if not students:
+        print("No students found!")
+        return
+
+    for student_id, data in students.items():
+
+        name, age = data["info"]
+
+        print("\nStudent ID:", student_id)
+        print("Name:", name)
+        print("Age:", age)
+
+        if data["courses"]:
+            print("Courses:", ", ".join(data["courses"]))
+        else:
+            print("Courses: No courses added")
+
+
+def add_course():
+
+    student_id = input("Enter Student ID: ")
+
+    if student_id not in students:
+        print("Student not found!")
+        return
+
+    course = input("Enter Course Name: ").strip().title()
+
+    students[student_id]["courses"].add(course)
+
+    print("Course added successfully!")
+
+
+def view_courses():
+
+    all_courses = set()
+
+    for data in students.values():
+        all_courses.update(data["courses"])
+
+    if all_courses:
+        print("\nUnique Courses:")
+        for course in all_courses:
+            print("-", course)
+    else:
+        print("No courses found!")
+
+
+def search_student():
+
+    student_id = input("Enter Student ID: ")
+
+    if student_id in students:
+
+        data = students[student_id]
+        name, age = data["info"]
+
+        print("\nStudent Found!")
+        print("Name:", name)
+        print("Age:", age)
+        print("Courses:", data["courses"])
+
+    else:
+        print("Student not found!")
+
+
+def remove_student():
+
+    student_id = input("Enter Student ID: ")
+
+    if student_id in students:
+        del students[student_id]
+        print("Student removed successfully!")
+    else:
+        print("Student not found!")
+
+
+while True:
+
+    print("\n--- Student Course Management System ---")
+    print("1. Add Student")
+    print("2. View Students")
+    print("3. Add Course")
+    print("4. View Unique Courses")
+    print("5. Search Student")
+    print("6. Remove Student")
+    print("7. Exit")
+
+    choice = input("Enter your choice: ")
+
+    if choice == "1":
+        add_student()
+
+    elif choice == "2":
+        view_students()
+
+    elif choice == "3":
+        add_course()
+
+    elif choice == "4":
+        view_courses()
+
+    elif choice == "5":
+        search_student()
+
+    elif choice == "6":
+        remove_student()
+
+    elif choice == "7":
+        print("Thank you!")
+        break
+
+    else:
+        print("Invalid choice!")

@@ -1,0 +1,209 @@
+# ==========================================
+# PROJECT: GROCERY STORE MANAGEMENT SYSTEM
+# ==========================================
+
+
+# Tuple - fixed product categories
+categories = (
+    "Fruits",
+    "Vegetables",
+    "Dairy",
+    "Snacks"
+)
+
+
+# List - stores all orders
+orders = []
+
+
+# Dictionary - available products
+products = {
+    "Apple": 100,
+    "Banana": 50,
+    "Milk": 60,
+    "Bread": 40,
+    "Chips": 30
+}
+
+
+# ------------------------------------------
+# Show Categories
+# ------------------------------------------
+def show_categories():
+
+    print("\n------ CATEGORIES ------")
+
+    for index, category in enumerate(categories, start=1):
+        print(f"{index}. {category}")
+
+
+# ------------------------------------------
+# Show Products
+# ------------------------------------------
+def show_products():
+
+    print("\n------ AVAILABLE PRODUCTS ------")
+
+    for product, price in products.items():
+        print(f"{product} - ₹{price}")
+
+
+# ------------------------------------------
+# Add Order
+# ------------------------------------------
+def add_order():
+
+    show_products()
+
+    product_name = input("\nEnter product name: ").strip().title()
+
+    if product_name not in products:
+        print("Product not available.")
+        return
+
+    try:
+        quantity = int(input("Enter quantity: "))
+
+        if quantity <= 0:
+            print("Quantity must be greater than 0.")
+            return
+
+    except ValueError:
+        print("Please enter a valid number.")
+        return
+
+    price = products[product_name]
+
+    total = price * quantity
+
+    # Dictionary for one order
+    order = {
+        "product": product_name,
+        "price": price,
+        "quantity": quantity,
+        "total": total
+    }
+
+    # Add dictionary to list
+    orders.append(order)
+
+    print("\nOrder added successfully!")
+    print("Total: ₹", total)
+
+
+# ------------------------------------------
+# View Orders
+# ------------------------------------------
+def view_orders():
+
+    if not orders:
+        print("\nNo orders found.")
+        return
+
+    print("\n------ ORDER LIST ------")
+
+    for index, order in enumerate(orders, start=1):
+
+        print(f"\nOrder {index}")
+        print("Product:", order["product"])
+        print("Price: ₹", order["price"])
+        print("Quantity:", order["quantity"])
+        print("Total: ₹", order["total"])
+
+
+# ------------------------------------------
+# Calculate Grand Total
+# ------------------------------------------
+def grand_total():
+
+    total_amount = 0
+
+    for order in orders:
+        total_amount += order["total"]
+
+    print("\nGrand Total: ₹", total_amount)
+
+
+# ------------------------------------------
+# Delete Order
+# ------------------------------------------
+def delete_order():
+
+    if not orders:
+        print("\nNo orders available.")
+        return
+
+    view_orders()
+
+    try:
+        number = int(input("\nEnter order number to delete: "))
+
+        index = number - 1
+
+        if 0 <= index < len(orders):
+
+            deleted_order = orders[index]
+
+            orders.pop(index)
+
+            print(
+                f"\n{deleted_order['product']} "
+                "order deleted successfully!"
+            )
+
+        else:
+            print("Invalid order number.")
+
+    except ValueError:
+        print("Please enter a valid number.")
+
+
+# ------------------------------------------
+# Main Function
+# ------------------------------------------
+def main():
+
+    while True:
+
+        print("\n===================================")
+        print(" GROCERY STORE MANAGEMENT SYSTEM")
+        print("===================================")
+
+        print("1. Show Categories")
+        print("2. Show Products")
+        print("3. Add Order")
+        print("4. View Orders")
+        print("5. Show Grand Total")
+        print("6. Delete Order")
+        print("7. Exit")
+
+        choice = input("\nEnter your choice: ").strip()
+
+        if choice == "1":
+            show_categories()
+
+        elif choice == "2":
+            show_products()
+
+        elif choice == "3":
+            add_order()
+
+        elif choice == "4":
+            view_orders()
+
+        elif choice == "5":
+            grand_total()
+
+        elif choice == "6":
+            delete_order()
+
+        elif choice == "7":
+            print("\nThank you for using the Grocery Store!")
+            break
+
+        else:
+            print("\nInvalid choice. Please try again.")
+
+
+# Run the program
+main()

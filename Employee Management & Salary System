@@ -1,0 +1,693 @@
+import json
+import re
+from datetime import datetime
+
+import numpy as np
+import pandas as pd
+
+
+# =========================================================
+# EMPLOYEE MANAGEMENT & SALARY SYSTEM
+# =========================================================
+
+employees = []
+
+
+# =========================================================
+# 1. LOAD EMPLOYEES
+# =========================================================
+
+def load_employees():
+
+    global employees
+
+    try:
+
+        with open("employees.json", "r") as file:
+
+            employees = json.load(file)
+
+        print("\nEmployee data loaded successfully!")
+
+    except FileNotFoundError:
+
+        print("\nNo employee file found.")
+        employees = []
+
+    except json.JSONDecodeError:
+
+        print("\nInvalid JSON file.")
+        employees = []
+
+
+# =========================================================
+# 2. SAVE EMPLOYEES
+# =========================================================
+
+def save_employees():
+
+    try:
+
+        with open("employees.json", "w") as file:
+
+            json.dump(employees, file, indent=4)
+
+        print("\nEmployee data saved successfully!")
+
+    except Exception as error:
+
+        print("Error:", error)
+
+
+# =========================================================
+# 3. ADD EMPLOYEE
+# =========================================================
+
+def add_employee():
+
+    print("\n" + "=" * 45)
+    print("ADD EMPLOYEE")
+    print("=" * 45)
+
+    emp_id = input("Enter employee ID: ").strip().upper()
+
+    if not emp_id:
+
+        print("Employee ID cannot be empty.")
+
+        return
+
+    # Check duplicate ID
+    for employee in employees:
+
+        if employee["id"] == emp_id:
+
+            print("Employee ID already exists.")
+
+            return
+
+    name = input("Enter employee name: ").strip().title()
+
+    # Regex validation
+    if not re.match(r"^[A-Za-z ]+$", name):
+
+        print("Invalid name.")
+
+        return
+
+    email = input("Enter email: ").strip().lower()
+
+    # Email validation
+    if not re.match(
+        r"^[\w.-]+@[\w.-]+\.[A-Za-z]{2,}$",
+        email
+    ):
+
+        print("Invalid email address.")
+
+        return
+
+    department = input(
+        "Enter department: "
+    ).strip().title()
+
+    designation = input(
+        "Enter designation: "
+    ).strip().title()
+
+    try:
+
+        salary = float(
+            input("Enter monthly salary: ₹")
+        )
+
+        if salary <= 0:
+
+            print("Salary must be greater than 0.")
+
+            return
+
+    except ValueError:
+
+        print("Please enter a valid salary.")
+
+        return
+
+    joining_date = datetime.now().strftime(
+        "%Y-%m-%d"
+    )
+
+    employee = {
+
+        "id": emp_id,
+
+        "name": name,
+
+        "email": email,
+
+        "department": department,
+
+        "designation": designation,
+
+        "salary": salary,
+
+        "joining_date": joining_date
+
+    }
+
+    employees.append(employee)
+
+    print("\nEmployee added successfully!")
+
+
+# =========================================================
+# 4. VIEW EMPLOYEES
+# =========================================================
+
+def view_employees():
+
+    if not employees:
+
+        print("\nNo employees found.")
+
+        return
+
+    print("\n" + "=" * 90)
+
+    print(
+        f"{'ID':<10}"
+        f"{'Name':<20}"
+        f"{'Department':<18}"
+        f"{'Designation':<20}"
+        f"{'Salary':<12}"
+    )
+
+    print("=" * 90)
+
+    for employee in employees:
+
+        print(
+            f"{employee['id']:<10}"
+            f"{employee['name']:<20}"
+            f"{employee['department']:<18}"
+            f"{employee['designation']:<20}"
+            f"₹{employee['salary']:<11.2f}"
+        )
+
+
+# =========================================================
+# 5. SEARCH EMPLOYEE
+# =========================================================
+
+def search_employee():
+
+    search = input(
+        "\nEnter employee name or ID: "
+    ).strip().lower()
+
+    found = False
+
+    for employee in employees:
+
+        if (
+            search in employee["name"].lower()
+            or search == employee["id"].lower()
+        ):
+
+            print("\nEmployee Found")
+
+            print("-" * 40)
+
+            print("ID:", employee["id"])
+            print("Name:", employee["name"])
+            print("Email:", employee["email"])
+            print("Department:", employee["department"])
+            print("Designation:", employee["designation"])
+            print("Salary:", employee["salary"])
+            print("Joining Date:", employee["joining_date"])
+
+            found = True
+
+    if not found:
+
+        print("\nEmployee not found.")
+
+
+# =========================================================
+# 6. UPDATE SALARY
+# =========================================================
+
+def update_salary():
+
+    emp_id = input(
+        "\nEnter employee ID: "
+    ).strip().upper()
+
+    for employee in employees:
+
+        if employee["id"] == emp_id:
+
+            try:
+
+                new_salary = float(
+                    input("Enter new salary: ₹")
+                )
+
+                if new_salary <= 0:
+
+                    print(
+                        "Salary must be greater than 0."
+                    )
+
+                    return
+
+                employee["salary"] = new_salary
+
+                print(
+                    "\nSalary updated successfully!"
+                )
+
+            except ValueError:
+
+                print("Invalid salary.")
+
+            return
+
+    print("\nEmployee not found.")
+
+
+# =========================================================
+# 7. DELETE EMPLOYEE
+# =========================================================
+
+def delete_employee():
+
+    emp_id = input(
+        "\nEnter employee ID to delete: "
+    ).strip().upper()
+
+    for employee in employees:
+
+        if employee["id"] == emp_id:
+
+            print("\nEmployee:")
+
+            print(employee["name"])
+
+            confirm = input(
+                "Are you sure? (yes/no): "
+            ).strip().lower()
+
+            if confirm == "yes":
+
+                employees.remove(employee)
+
+                print(
+                    "\nEmployee deleted successfully!"
+                )
+
+            else:
+
+                print("\nDelete cancelled.")
+
+            return
+
+    print("\nEmployee not found.")
+
+
+# =========================================================
+# 8. HIGHEST SALARY
+# =========================================================
+
+def highest_salary():
+
+    if not employees:
+
+        print("\nNo employees available.")
+
+        return
+
+    employee = max(
+        employees,
+        key=lambda x: x["salary"]
+    )
+
+    print("\n" + "=" * 40)
+    print("HIGHEST SALARY")
+    print("=" * 40)
+
+    print("Employee:", employee["name"])
+    print("Department:", employee["department"])
+    print("Salary:", employee["salary"])
+
+
+# =========================================================
+# 9. LOWEST SALARY
+# =========================================================
+
+def lowest_salary():
+
+    if not employees:
+
+        print("\nNo employees available.")
+
+        return
+
+    employee = min(
+        employees,
+        key=lambda x: x["salary"]
+    )
+
+    print("\n" + "=" * 40)
+    print("LOWEST SALARY")
+    print("=" * 40)
+
+    print("Employee:", employee["name"])
+    print("Department:", employee["department"])
+    print("Salary:", employee["salary"])
+
+
+# =========================================================
+# 10. DEPARTMENT SEARCH
+# =========================================================
+
+def department_search():
+
+    department = input(
+        "\nEnter department: "
+    ).strip().title()
+
+    found = False
+
+    for employee in employees:
+
+        if employee["department"] == department:
+
+            print(
+                employee["id"],
+                "-",
+                employee["name"],
+                "-",
+                employee["designation"]
+            )
+
+            found = True
+
+    if not found:
+
+        print("\nNo employees found.")
+
+
+# =========================================================
+# 11. SHOW DEPARTMENTS USING SET
+# =========================================================
+
+def show_departments():
+
+    if not employees:
+
+        print("\nNo employees available.")
+
+        return
+
+    departments = set()
+
+    for employee in employees:
+
+        departments.add(
+            employee["department"]
+        )
+
+    print("\nDepartments:")
+
+    for department in departments:
+
+        print("-", department)
+
+
+# =========================================================
+# 12. TUPLE INFORMATION
+# =========================================================
+
+def company_information():
+
+    company = (
+        "ABC Technologies",
+        "IT Services",
+        "India"
+    )
+
+    print("\nCompany Information")
+
+    print("Name:", company[0])
+    print("Industry:", company[1])
+    print("Country:", company[2])
+
+
+# =========================================================
+# 13. NUMPY SALARY ANALYSIS
+# =========================================================
+
+def numpy_salary_analysis():
+
+    if not employees:
+
+        print("\nNo employees available.")
+
+        return
+
+    salaries = []
+
+    for employee in employees:
+
+        salaries.append(
+            employee["salary"]
+        )
+
+    salary_array = np.array(salaries)
+
+    print("\n" + "=" * 45)
+    print("NUMPY SALARY ANALYSIS")
+    print("=" * 45)
+
+    print("Salaries:", salary_array)
+
+    print(
+        "Total Salary:",
+        np.sum(salary_array)
+    )
+
+    print(
+        "Average Salary:",
+        np.mean(salary_array)
+    )
+
+    print(
+        "Highest Salary:",
+        np.max(salary_array)
+    )
+
+    print(
+        "Lowest Salary:",
+        np.min(salary_array)
+    )
+
+    print(
+        "Salary Standard Deviation:",
+        np.std(salary_array)
+    )
+
+
+# =========================================================
+# 14. PANDAS REPORT
+# =========================================================
+
+def pandas_report():
+
+    if not employees:
+
+        print("\nNo employees available.")
+
+        return
+
+    df = pd.DataFrame(employees)
+
+    print("\n" + "=" * 60)
+    print("EMPLOYEE DATA REPORT")
+    print("=" * 60)
+
+    print(df.to_string(index=False))
+
+
+# =========================================================
+# 15. DEPARTMENT SALARY REPORT
+# =========================================================
+
+def department_salary_report():
+
+    if not employees:
+
+        print("\nNo employees available.")
+
+        return
+
+    df = pd.DataFrame(employees)
+
+    report = df.groupby(
+        "department"
+    )["salary"].agg(
+        ["count", "sum", "mean"]
+    )
+
+    print("\n" + "=" * 60)
+    print("DEPARTMENT SALARY REPORT")
+    print("=" * 60)
+
+    print(report)
+
+
+# =========================================================
+# 16. SORT EMPLOYEES BY SALARY
+# =========================================================
+
+def sort_by_salary():
+
+    if not employees:
+
+        print("\nNo employees available.")
+
+        return
+
+    sorted_employees = sorted(
+        employees,
+        key=lambda x: x["salary"],
+        reverse=True
+    )
+
+    print("\nEmployees sorted by salary:")
+
+    for employee in sorted_employees:
+
+        print(
+            employee["name"],
+            "₹",
+            employee["salary"]
+        )
+
+
+# =========================================================
+# 17. MAIN MENU
+# =========================================================
+
+def main():
+
+    load_employees()
+
+    while True:
+
+        print("\n")
+        print("=" * 55)
+        print("       EMPLOYEE MANAGEMENT SYSTEM")
+        print("=" * 55)
+
+        print("1. Add Employee")
+        print("2. View Employees")
+        print("3. Search Employee")
+        print("4. Update Salary")
+        print("5. Delete Employee")
+        print("6. Highest Salary")
+        print("7. Lowest Salary")
+        print("8. Department Search")
+        print("9. Show Departments")
+        print("10. Company Information")
+        print("11. NumPy Salary Analysis")
+        print("12. Pandas Report")
+        print("13. Department Salary Report")
+        print("14. Sort by Salary")
+        print("15. Save Data")
+        print("16. Exit")
+
+        choice = input(
+            "\nEnter your choice: "
+        ).strip()
+
+        if choice == "1":
+
+            add_employee()
+
+        elif choice == "2":
+
+            view_employees()
+
+        elif choice == "3":
+
+            search_employee()
+
+        elif choice == "4":
+
+            update_salary()
+
+        elif choice == "5":
+
+            delete_employee()
+
+        elif choice == "6":
+
+            highest_salary()
+
+        elif choice == "7":
+
+            lowest_salary()
+
+        elif choice == "8":
+
+            department_search()
+
+        elif choice == "9":
+
+            show_departments()
+
+        elif choice == "10":
+
+            company_information()
+
+        elif choice == "11":
+
+            numpy_salary_analysis()
+
+        elif choice == "12":
+
+            pandas_report()
+
+        elif choice == "13":
+
+            department_salary_report()
+
+        elif choice == "14":
+
+            sort_by_salary()
+
+        elif choice == "15":
+
+            save_employees()
+
+        elif choice == "16":
+
+            save_employees()
+
+            print(
+                "\nThank you for using Employee Management System!"
+            )
+
+            break
+
+        else:
+
+            print("\nInvalid choice!")
+
+
+# =========================================================
+# START PROGRAM
+# =========================================================
+
+main()

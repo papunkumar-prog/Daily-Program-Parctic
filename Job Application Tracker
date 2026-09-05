@@ -1,0 +1,842 @@
+import json
+import re
+from datetime import datetime
+
+import numpy as np
+import pandas as pd
+
+
+# ==========================================================
+# JOB APPLICATION TRACKER
+# ==========================================================
+
+applications = []
+
+
+# ==========================================================
+# 1. LOAD APPLICATIONS
+# ==========================================================
+
+def load_applications():
+
+    global applications
+
+    try:
+
+        with open("jobs.json", "r") as file:
+
+            applications = json.load(file)
+
+        print("\nJob data loaded successfully!")
+
+    except FileNotFoundError:
+
+        print("\nNo previous job data found.")
+
+        applications = []
+
+    except json.JSONDecodeError:
+
+        print("\nInvalid JSON file.")
+
+        applications = []
+
+
+# ==========================================================
+# 2. SAVE APPLICATIONS
+# ==========================================================
+
+def save_applications():
+
+    try:
+
+        with open("jobs.json", "w") as file:
+
+            json.dump(
+                applications,
+                file,
+                indent=4
+            )
+
+        print("\nJob data saved successfully!")
+
+    except Exception as error:
+
+        print("Error:", error)
+
+
+# ==========================================================
+# 3. ADD JOB APPLICATION
+# ==========================================================
+
+def add_application():
+
+    print("\n" + "=" * 50)
+    print("ADD JOB APPLICATION")
+    print("=" * 50)
+
+    company = input(
+        "Enter company name: "
+    ).strip().title()
+
+    if not company:
+
+        print("Company name cannot be empty.")
+
+        return
+
+    job_title = input(
+        "Enter job title: "
+    ).strip().title()
+
+    if not job_title:
+
+        print("Job title cannot be empty.")
+
+        return
+
+    location = input(
+        "Enter location: "
+    ).strip().title()
+
+    email = input(
+        "Enter recruiter email: "
+    ).strip().lower()
+
+    # Regex email validation
+
+    if email:
+
+        if not re.match(
+            r"^[\w.-]+@[\w.-]+\.[A-Za-z]{2,}$",
+            email
+        ):
+
+            print("Invalid email address.")
+
+            return
+
+    try:
+
+        salary = float(
+            input("Enter expected salary: ₹")
+        )
+
+        if salary <= 0:
+
+            print(
+                "Salary must be greater than zero."
+            )
+
+            return
+
+    except ValueError:
+
+        print("Enter a valid salary.")
+
+        return
+
+    status = input(
+        "Enter status "
+        "(Applied/Interview/Selected/Rejected): "
+    ).strip().title()
+
+    valid_status = (
+        "Applied",
+        "Interview",
+        "Selected",
+        "Rejected"
+    )
+
+    if status not in valid_status:
+
+        print("Invalid status.")
+
+        print(
+            "Choose:",
+            ", ".join(valid_status)
+        )
+
+        return
+
+    date = datetime.now().strftime(
+        "%Y-%m-%d"
+    )
+
+    application = {
+
+        "company": company,
+
+        "job_title": job_title,
+
+        "location": location,
+
+        "email": email,
+
+        "salary": salary,
+
+        "status": status,
+
+        "date": date
+
+    }
+
+    applications.append(application)
+
+    print(
+        "\nJob application added successfully!"
+    )
+
+
+# ==========================================================
+# 4. VIEW APPLICATIONS
+# ==========================================================
+
+def view_applications():
+
+    if not applications:
+
+        print("\nNo job applications found.")
+
+        return
+
+    print("\n" + "=" * 100)
+
+    print(
+        f"{'ID':<5}"
+        f"{'Company':<20}"
+        f"{'Job Title':<25}"
+        f"{'Location':<18}"
+        f"{'Salary':<12}"
+        f"{'Status':<12}"
+    )
+
+    print("=" * 100)
+
+    for index, job in enumerate(
+        applications,
+        start=1
+    ):
+
+        print(
+            f"{index:<5}"
+            f"{job['company']:<20}"
+            f"{job['job_title']:<25}"
+            f"{job['location']:<18}"
+            f"₹{job['salary']:<11.2f}"
+            f"{job['status']:<12}"
+        )
+
+
+# ==========================================================
+# 5. SEARCH JOB
+# ==========================================================
+
+def search_job():
+
+    search = input(
+        "\nEnter company or job title: "
+    ).strip().lower()
+
+    found = False
+
+    for job in applications:
+
+        if (
+            search in job["company"].lower()
+            or search in job["job_title"].lower()
+        ):
+
+            print("\nJob Found")
+
+            print("-" * 40)
+
+            print(
+                "Company:",
+                job["company"]
+            )
+
+            print(
+                "Job Title:",
+                job["job_title"]
+            )
+
+            print(
+                "Location:",
+                job["location"]
+            )
+
+            print(
+                "Recruiter Email:",
+                job["email"]
+            )
+
+            print(
+                "Expected Salary:",
+                job["salary"]
+            )
+
+            print(
+                "Status:",
+                job["status"]
+            )
+
+            print(
+                "Applied Date:",
+                job["date"]
+            )
+
+            found = True
+
+    if not found:
+
+        print("\nNo matching job found.")
+
+
+# ==========================================================
+# 6. UPDATE STATUS
+# ==========================================================
+
+def update_status():
+
+    if not applications:
+
+        print("\nNo applications available.")
+
+        return
+
+    view_applications()
+
+    try:
+
+        index = int(
+            input(
+                "\nEnter application ID: "
+            )
+        )
+
+        if not 1 <= index <= len(applications):
+
+            print("Invalid application ID.")
+
+            return
+
+        print(
+            "\nCurrent status:",
+            applications[index - 1]["status"]
+        )
+
+        new_status = input(
+            "Enter new status: "
+        ).strip().title()
+
+        valid_status = (
+            "Applied",
+            "Interview",
+            "Selected",
+            "Rejected"
+        )
+
+        if new_status not in valid_status:
+
+            print("Invalid status.")
+
+            return
+
+        applications[index - 1]["status"] = (
+            new_status
+        )
+
+        print(
+            "\nStatus updated successfully!"
+        )
+
+    except ValueError:
+
+        print("Enter a valid number.")
+
+
+# ==========================================================
+# 7. DELETE APPLICATION
+# ==========================================================
+
+def delete_application():
+
+    if not applications:
+
+        print("\nNo applications available.")
+
+        return
+
+    view_applications()
+
+    try:
+
+        index = int(
+            input(
+                "\nEnter application ID to delete: "
+            )
+        )
+
+        if not 1 <= index <= len(applications):
+
+            print("Invalid ID.")
+
+            return
+
+        job = applications[index - 1]
+
+        print(
+            "\nYou are deleting:",
+            job["company"],
+            "-",
+            job["job_title"]
+        )
+
+        confirm = input(
+            "Confirm? (yes/no): "
+        ).strip().lower()
+
+        if confirm == "yes":
+
+            applications.pop(index - 1)
+
+            print(
+                "\nApplication deleted successfully!"
+            )
+
+        else:
+
+            print("\nDelete cancelled.")
+
+    except ValueError:
+
+        print("Enter a valid number.")
+
+
+# ==========================================================
+# 8. FILTER BY STATUS
+# ==========================================================
+
+def filter_status():
+
+    status = input(
+        "\nEnter status: "
+    ).strip().title()
+
+    found = False
+
+    for job in applications:
+
+        if job["status"] == status:
+
+            print(
+                job["company"],
+                "|",
+                job["job_title"],
+                "|",
+                job["location"]
+            )
+
+            found = True
+
+    if not found:
+
+        print(
+            "\nNo applications found "
+            "with this status."
+        )
+
+
+# ==========================================================
+# 9. SHOW UNIQUE COMPANIES
+# ==========================================================
+
+def show_companies():
+
+    if not applications:
+
+        print("\nNo applications available.")
+
+        return
+
+    companies = set()
+
+    for job in applications:
+
+        companies.add(
+            job["company"]
+        )
+
+    print("\nCompanies:")
+
+    for company in companies:
+
+        print("-", company)
+
+
+# ==========================================================
+# 10. APPLICATION STATISTICS
+# ==========================================================
+
+def application_statistics():
+
+    if not applications:
+
+        print("\nNo applications available.")
+
+        return
+
+    total = len(applications)
+
+    applied = 0
+    interviews = 0
+    selected = 0
+    rejected = 0
+
+    for job in applications:
+
+        if job["status"] == "Applied":
+
+            applied += 1
+
+        elif job["status"] == "Interview":
+
+            interviews += 1
+
+        elif job["status"] == "Selected":
+
+            selected += 1
+
+        elif job["status"] == "Rejected":
+
+            rejected += 1
+
+    print("\n" + "=" * 40)
+    print("APPLICATION STATISTICS")
+    print("=" * 40)
+
+    print("Total Applications:", total)
+
+    print("Applied:", applied)
+
+    print("Interviews:", interviews)
+
+    print("Selected:", selected)
+
+    print("Rejected:", rejected)
+
+
+# ==========================================================
+# 11. HIGHEST SALARY JOB
+# ==========================================================
+
+def highest_salary():
+
+    if not applications:
+
+        print("\nNo applications available.")
+
+        return
+
+    job = max(
+        applications,
+        key=lambda x: x["salary"]
+    )
+
+    print("\nHighest Salary Job")
+
+    print(
+        "Company:",
+        job["company"]
+    )
+
+    print(
+        "Job:",
+        job["job_title"]
+    )
+
+    print(
+        "Salary:",
+        job["salary"]
+    )
+
+
+# ==========================================================
+# 12. NUMPY SALARY ANALYSIS
+# ==========================================================
+
+def numpy_analysis():
+
+    if not applications:
+
+        print("\nNo applications available.")
+
+        return
+
+    salaries = []
+
+    for job in applications:
+
+        salaries.append(
+            job["salary"]
+        )
+
+    salary_array = np.array(
+        salaries
+    )
+
+    print("\n" + "=" * 45)
+    print("NUMPY SALARY ANALYSIS")
+    print("=" * 45)
+
+    print(
+        "Salary Array:",
+        salary_array
+    )
+
+    print(
+        "Total Expected Salary:",
+        np.sum(salary_array)
+    )
+
+    print(
+        "Average Salary:",
+        np.mean(salary_array)
+    )
+
+    print(
+        "Highest Salary:",
+        np.max(salary_array)
+    )
+
+    print(
+        "Lowest Salary:",
+        np.min(salary_array)
+    )
+
+    print(
+        "Salary Standard Deviation:",
+        np.std(salary_array)
+    )
+
+
+# ==========================================================
+# 13. PANDAS REPORT
+# ==========================================================
+
+def pandas_report():
+
+    if not applications:
+
+        print("\nNo applications available.")
+
+        return
+
+    df = pd.DataFrame(
+        applications
+    )
+
+    print("\n" + "=" * 80)
+    print("PANDAS JOB APPLICATION REPORT")
+    print("=" * 80)
+
+    print(
+        df.to_string(index=False)
+    )
+
+
+# ==========================================================
+# 14. STATUS REPORT USING PANDAS
+# ==========================================================
+
+def status_report():
+
+    if not applications:
+
+        print("\nNo applications available.")
+
+        return
+
+    df = pd.DataFrame(
+        applications
+    )
+
+    report = df.groupby(
+        "status"
+    ).size()
+
+    print("\nSTATUS REPORT")
+
+    print(report)
+
+
+# ==========================================================
+# 15. SORT JOBS BY SALARY
+# ==========================================================
+
+def sort_by_salary():
+
+    if not applications:
+
+        print("\nNo applications available.")
+
+        return
+
+    sorted_jobs = sorted(
+        applications,
+        key=lambda x: x["salary"],
+        reverse=True
+    )
+
+    print("\nJobs sorted by salary:")
+
+    for job in sorted_jobs:
+
+        print(
+            job["company"],
+            "-",
+            job["job_title"],
+            "- ₹",
+            job["salary"]
+        )
+
+
+# ==========================================================
+# 16. SHOW STATUS TYPES USING TUPLE
+# ==========================================================
+
+def show_status_types():
+
+    statuses = (
+        "Applied",
+        "Interview",
+        "Selected",
+        "Rejected"
+    )
+
+    print("\nAvailable Status Types:")
+
+    for status in statuses:
+
+        print("-", status)
+
+
+# ==========================================================
+# 17. MAIN MENU
+# ==========================================================
+
+def main():
+
+    load_applications()
+
+    while True:
+
+        print("\n")
+        print("=" * 55)
+        print("       JOB APPLICATION TRACKER")
+        print("=" * 55)
+
+        print("1. Add Job Application")
+        print("2. View Applications")
+        print("3. Search Job")
+        print("4. Update Status")
+        print("5. Delete Application")
+        print("6. Filter by Status")
+        print("7. Show Companies")
+        print("8. Application Statistics")
+        print("9. Highest Salary Job")
+        print("10. NumPy Salary Analysis")
+        print("11. Pandas Report")
+        print("12. Status Report")
+        print("13. Sort Jobs by Salary")
+        print("14. Show Status Types")
+        print("15. Save Data")
+        print("16. Exit")
+
+        choice = input(
+            "\nEnter your choice: "
+        ).strip()
+
+        if choice == "1":
+
+            add_application()
+
+        elif choice == "2":
+
+            view_applications()
+
+        elif choice == "3":
+
+            search_job()
+
+        elif choice == "4":
+
+            update_status()
+
+        elif choice == "5":
+
+            delete_application()
+
+        elif choice == "6":
+
+            filter_status()
+
+        elif choice == "7":
+
+            show_companies()
+
+        elif choice == "8":
+
+            application_statistics()
+
+        elif choice == "9":
+
+            highest_salary()
+
+        elif choice == "10":
+
+            numpy_analysis()
+
+        elif choice == "11":
+
+            pandas_report()
+
+        elif choice == "12":
+
+            status_report()
+
+        elif choice == "13":
+
+            sort_by_salary()
+
+        elif choice == "14":
+
+            show_status_types()
+
+        elif choice == "15":
+
+            save_applications()
+
+        elif choice == "16":
+
+            save_applications()
+
+            print(
+                "\nThank you for using Job Application Tracker!"
+            )
+
+            break
+
+        else:
+
+            print(
+                "\nInvalid choice. Try again."
+            )
+
+
+# ==========================================================
+# PROGRAM START
+# ==========================================================
+
+main()

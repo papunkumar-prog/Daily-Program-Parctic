@@ -1,0 +1,1307 @@
+import json
+import re
+from datetime import datetime
+
+import numpy as np
+
+
+# ==========================================================
+# BANK ACCOUNT MANAGEMENT SYSTEM
+# ==========================================================
+
+accounts = []
+
+
+# ==========================================================
+# 1. LOAD ACCOUNTS
+# ==========================================================
+
+def load_accounts():
+
+    global accounts
+
+    try:
+
+        with open("accounts.json", "r") as file:
+
+            accounts = json.load(file)
+
+        print("\nAccount data loaded successfully!")
+
+    except FileNotFoundError:
+
+        print("\nNo previous account data found.")
+
+        accounts = []
+
+    except json.JSONDecodeError:
+
+        print("\nInvalid JSON file.")
+
+        accounts = []
+
+
+# ==========================================================
+# 2. SAVE ACCOUNTS
+# ==========================================================
+
+def save_accounts():
+
+    try:
+
+        with open("accounts.json", "w") as file:
+
+            json.dump(
+                accounts,
+                file,
+                indent=4
+            )
+
+        print("\nAccount data saved successfully!")
+
+    except Exception as error:
+
+        print("\nError while saving data:", error)
+
+
+# ==========================================================
+# 3. GENERATE ACCOUNT NUMBER
+# ==========================================================
+
+def generate_account_number():
+
+    if not accounts:
+
+        return "ACC1001"
+
+    numbers = []
+
+    for account in accounts:
+
+        account_number = account["account_number"]
+
+        number = int(
+            account_number.replace("ACC", "")
+        )
+
+        numbers.append(number)
+
+    highest_number = max(numbers)
+
+    return "ACC" + str(highest_number + 1)
+
+
+# ==========================================================
+# 4. CREATE ACCOUNT
+# ==========================================================
+
+def create_account():
+
+    print("\n" + "=" * 50)
+    print("CREATE NEW ACCOUNT")
+    print("=" * 50)
+
+    name = input(
+        "Enter customer name: "
+    ).strip().title()
+
+    # ------------------------------------------
+    # NAME VALIDATION USING REGEX
+    # ------------------------------------------
+
+    if not re.match(
+        r"^[A-Za-z ]+$",
+        name
+    ):
+
+        print(
+            "\nInvalid name. "
+            "Name should contain only letters."
+        )
+
+        return
+
+    # ------------------------------------------
+    # PHONE NUMBER
+    # ------------------------------------------
+
+    phone = input(
+        "Enter phone number: "
+    ).strip()
+
+    if not re.match(
+        r"^[6-9][0-9]{9}$",
+        phone
+    ):
+
+        print(
+            "\nInvalid phone number."
+        )
+
+        return
+
+    # ------------------------------------------
+    # EMAIL
+    # ------------------------------------------
+
+    email = input(
+        "Enter email: "
+    ).strip().lower()
+
+    if not re.match(
+        r"^[\w.-]+@[\w.-]+\.[A-Za-z]{2,}$",
+        email
+    ):
+
+        print(
+            "\nInvalid email address."
+        )
+
+        return
+
+    # ------------------------------------------
+    # ACCOUNT TYPE
+    # ------------------------------------------
+
+    account_types = (
+        "Savings",
+        "Current"
+    )
+
+    print("\nAccount Types:")
+
+    for account_type in account_types:
+
+        print("-", account_type)
+
+    account_type = input(
+        "Enter account type: "
+    ).strip().title()
+
+    if account_type not in account_types:
+
+        print("\nInvalid account type.")
+
+        return
+
+    # ------------------------------------------
+    # INITIAL DEPOSIT
+    # ------------------------------------------
+
+    try:
+
+        initial_deposit = float(
+            input(
+                "Enter initial deposit: ₹"
+            )
+        )
+
+        if initial_deposit < 0:
+
+            print(
+                "\nInitial deposit cannot be negative."
+            )
+
+            return
+
+    except ValueError:
+
+        print(
+            "\nPlease enter a valid amount."
+        )
+
+        return
+
+    # ------------------------------------------
+    # ACCOUNT NUMBER
+    # ------------------------------------------
+
+    account_number = generate_account_number()
+
+    # ------------------------------------------
+    # CREATE ACCOUNT
+    # ------------------------------------------
+
+    account = {
+
+        "account_number": account_number,
+
+        "name": name,
+
+        "phone": phone,
+
+        "email": email,
+
+        "account_type": account_type,
+
+        "balance": initial_deposit,
+
+        "transactions": []
+
+    }
+
+    # ------------------------------------------
+    # ADD INITIAL TRANSACTION
+    # ------------------------------------------
+
+    if initial_deposit > 0:
+
+        transaction = {
+
+            "type": "Deposit",
+
+            "amount": initial_deposit,
+
+            "date": datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S"
+            ),
+
+            "description": "Initial Deposit"
+
+        }
+
+        account["transactions"].append(
+            transaction
+        )
+
+    accounts.append(account)
+
+    print("\n" + "=" * 50)
+
+    print("ACCOUNT CREATED SUCCESSFULLY!")
+
+    print("=" * 50)
+
+    print(
+        "Account Number:",
+        account_number
+    )
+
+    print(
+        "Customer Name:",
+        name
+    )
+
+    print(
+        "Account Type:",
+        account_type
+    )
+
+    print(
+        "Balance: ₹",
+        initial_deposit
+    )
+
+
+# ==========================================================
+# 5. VIEW ALL ACCOUNTS
+# ==========================================================
+
+def view_accounts():
+
+    if not accounts:
+
+        print("\nNo accounts available.")
+
+        return
+
+    print("\n" + "=" * 100)
+
+    print(
+        f"{'ID':<5}"
+        f"{'Account No.':<15}"
+        f"{'Name':<20}"
+        f"{'Type':<12}"
+        f"{'Balance':<15}"
+    )
+
+    print("=" * 100)
+
+    for index, account in enumerate(
+        accounts,
+        start=1
+    ):
+
+        print(
+            f"{index:<5}"
+            f"{account['account_number']:<15}"
+            f"{account['name']:<20}"
+            f"{account['account_type']:<12}"
+            f"₹{account['balance']:<14.2f}"
+        )
+
+
+# ==========================================================
+# 6. FIND ACCOUNT
+# ==========================================================
+
+def find_account(account_number):
+
+    for account in accounts:
+
+        if (
+            account["account_number"]
+            == account_number
+        ):
+
+            return account
+
+    return None
+
+
+# ==========================================================
+# 7. SEARCH ACCOUNT
+# ==========================================================
+
+def search_account():
+
+    search = input(
+        "\nEnter account number or name: "
+    ).strip().lower()
+
+    found = False
+
+    for account in accounts:
+
+        if (
+            search
+            == account["account_number"].lower()
+            or search
+            in account["name"].lower()
+        ):
+
+            print("\n" + "-" * 45)
+
+            print(
+                "Account Number:",
+                account["account_number"]
+            )
+
+            print(
+                "Name:",
+                account["name"]
+            )
+
+            print(
+                "Phone:",
+                account["phone"]
+            )
+
+            print(
+                "Email:",
+                account["email"]
+            )
+
+            print(
+                "Account Type:",
+                account["account_type"]
+            )
+
+            print(
+                "Balance: ₹",
+                account["balance"]
+            )
+
+            print("-" * 45)
+
+            found = True
+
+    if not found:
+
+        print("\nAccount not found.")
+
+
+# ==========================================================
+# 8. DEPOSIT MONEY
+# ==========================================================
+
+def deposit_money():
+
+    account_number = input(
+        "\nEnter account number: "
+    ).strip().upper()
+
+    account = find_account(
+        account_number
+    )
+
+    if account is None:
+
+        print("\nAccount not found.")
+
+        return
+
+    try:
+
+        amount = float(
+            input(
+                "Enter deposit amount: ₹"
+            )
+        )
+
+        if amount <= 0:
+
+            print(
+                "\nAmount must be greater than zero."
+            )
+
+            return
+
+    except ValueError:
+
+        print(
+            "\nPlease enter a valid amount."
+        )
+
+        return
+
+    # Update balance
+
+    account["balance"] += amount
+
+    # Create transaction
+
+    transaction = {
+
+        "type": "Deposit",
+
+        "amount": amount,
+
+        "date": datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S"
+        ),
+
+        "description": "Money Deposited"
+
+    }
+
+    account["transactions"].append(
+        transaction
+    )
+
+    print("\nDeposit successful!")
+
+    print(
+        "Deposited: ₹",
+        amount
+    )
+
+    print(
+        "New Balance: ₹",
+        account["balance"]
+    )
+
+
+# ==========================================================
+# 9. WITHDRAW MONEY
+# ==========================================================
+
+def withdraw_money():
+
+    account_number = input(
+        "\nEnter account number: "
+    ).strip().upper()
+
+    account = find_account(
+        account_number
+    )
+
+    if account is None:
+
+        print("\nAccount not found.")
+
+        return
+
+    try:
+
+        amount = float(
+            input(
+                "Enter withdrawal amount: ₹"
+            )
+        )
+
+        if amount <= 0:
+
+            print(
+                "\nAmount must be greater than zero."
+            )
+
+            return
+
+    except ValueError:
+
+        print(
+            "\nPlease enter a valid amount."
+        )
+
+        return
+
+    # Check balance
+
+    if amount > account["balance"]:
+
+        print("\nInsufficient balance.")
+
+        print(
+            "Available Balance: ₹",
+            account["balance"]
+        )
+
+        return
+
+    # Update balance
+
+    account["balance"] -= amount
+
+    # Create transaction
+
+    transaction = {
+
+        "type": "Withdrawal",
+
+        "amount": amount,
+
+        "date": datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S"
+        ),
+
+        "description": "Money Withdrawn"
+
+    }
+
+    account["transactions"].append(
+        transaction
+    )
+
+    print("\nWithdrawal successful!")
+
+    print(
+        "Withdrawn: ₹",
+        amount
+    )
+
+    print(
+        "Remaining Balance: ₹",
+        account["balance"]
+    )
+
+
+# ==========================================================
+# 10. TRANSFER MONEY
+# ==========================================================
+
+def transfer_money():
+
+    print("\n" + "=" * 50)
+    print("MONEY TRANSFER")
+    print("=" * 50)
+
+    sender_number = input(
+        "Enter sender account number: "
+    ).strip().upper()
+
+    sender = find_account(
+        sender_number
+    )
+
+    if sender is None:
+
+        print("\nSender account not found.")
+
+        return
+
+    receiver_number = input(
+        "Enter receiver account number: "
+    ).strip().upper()
+
+    receiver = find_account(
+        receiver_number
+    )
+
+    if receiver is None:
+
+        print("\nReceiver account not found.")
+
+        return
+
+    if sender_number == receiver_number:
+
+        print(
+            "\nSender and receiver cannot be same."
+        )
+
+        return
+
+    try:
+
+        amount = float(
+            input(
+                "Enter transfer amount: ₹"
+            )
+        )
+
+        if amount <= 0:
+
+            print(
+                "\nAmount must be greater than zero."
+            )
+
+            return
+
+    except ValueError:
+
+        print(
+            "\nPlease enter a valid amount."
+        )
+
+        return
+
+    if amount > sender["balance"]:
+
+        print("\nInsufficient balance.")
+
+        return
+
+    # ------------------------------------------
+    # REMOVE MONEY FROM SENDER
+    # ------------------------------------------
+
+    sender["balance"] -= amount
+
+    # ------------------------------------------
+    # ADD MONEY TO RECEIVER
+    # ------------------------------------------
+
+    receiver["balance"] += amount
+
+    current_time = datetime.now().strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+
+    # ------------------------------------------
+    # SENDER TRANSACTION
+    # ------------------------------------------
+
+    sender_transaction = {
+
+        "type": "Transfer Sent",
+
+        "amount": amount,
+
+        "date": current_time,
+
+        "description":
+            f"Transferred to {receiver_number}"
+
+    }
+
+    sender["transactions"].append(
+        sender_transaction
+    )
+
+    # ------------------------------------------
+    # RECEIVER TRANSACTION
+    # ------------------------------------------
+
+    receiver_transaction = {
+
+        "type": "Transfer Received",
+
+        "amount": amount,
+
+        "date": current_time,
+
+        "description":
+            f"Received from {sender_number}"
+
+    }
+
+    receiver["transactions"].append(
+        receiver_transaction
+    )
+
+    print("\nTransfer successful!")
+
+    print(
+        "Amount transferred: ₹",
+        amount
+    )
+
+
+# ==========================================================
+# 11. CHECK BALANCE
+# ==========================================================
+
+def check_balance():
+
+    account_number = input(
+        "\nEnter account number: "
+    ).strip().upper()
+
+    account = find_account(
+        account_number
+    )
+
+    if account is None:
+
+        print("\nAccount not found.")
+
+        return
+
+    print("\n" + "=" * 40)
+
+    print("BALANCE INFORMATION")
+
+    print("=" * 40)
+
+    print(
+        "Account:",
+        account["account_number"]
+    )
+
+    print(
+        "Name:",
+        account["name"]
+    )
+
+    print(
+        "Balance: ₹",
+        account["balance"]
+    )
+
+
+# ==========================================================
+# 12. TRANSACTION HISTORY
+# ==========================================================
+
+def transaction_history():
+
+    account_number = input(
+        "\nEnter account number: "
+    ).strip().upper()
+
+    account = find_account(
+        account_number
+    )
+
+    if account is None:
+
+        print("\nAccount not found.")
+
+        return
+
+    transactions = account["transactions"]
+
+    if not transactions:
+
+        print("\nNo transactions found.")
+
+        return
+
+    print("\n" + "=" * 80)
+
+    print(
+        f"{'ID':<5}"
+        f"{'Type':<20}"
+        f"{'Amount':<15}"
+        f"{'Date':<22}"
+        f"{'Description':<30}"
+    )
+
+    print("=" * 80)
+
+    for index, transaction in enumerate(
+        transactions,
+        start=1
+    ):
+
+        print(
+            f"{index:<5}"
+            f"{transaction['type']:<20}"
+            f"₹{transaction['amount']:<14.2f}"
+            f"{transaction['date']:<22}"
+            f"{transaction['description']:<30}"
+        )
+
+
+# ==========================================================
+# 13. DELETE ACCOUNT
+# ==========================================================
+
+def delete_account():
+
+    account_number = input(
+        "\nEnter account number to delete: "
+    ).strip().upper()
+
+    account = find_account(
+        account_number
+    )
+
+    if account is None:
+
+        print("\nAccount not found.")
+
+        return
+
+    print("\nAccount found.")
+
+    print(
+        "Name:",
+        account["name"]
+    )
+
+    print(
+        "Balance: ₹",
+        account["balance"]
+    )
+
+    # Do not delete account with money
+
+    if account["balance"] > 0:
+
+        print(
+            "\nAccount cannot be deleted "
+            "while balance is greater than zero."
+        )
+
+        return
+
+    confirm = input(
+        "\nAre you sure? (yes/no): "
+    ).strip().lower()
+
+    if confirm == "yes":
+
+        accounts.remove(account)
+
+        print(
+            "\nAccount deleted successfully!"
+        )
+
+    else:
+
+        print("\nDelete cancelled.")
+
+
+# ==========================================================
+# 14. HIGHEST BALANCE
+# ==========================================================
+
+def highest_balance():
+
+    if not accounts:
+
+        print("\nNo accounts available.")
+
+        return
+
+    account = max(
+        accounts,
+        key=lambda x: x["balance"]
+    )
+
+    print("\n" + "=" * 40)
+
+    print("HIGHEST BALANCE")
+
+    print("=" * 40)
+
+    print(
+        "Account:",
+        account["account_number"]
+    )
+
+    print(
+        "Name:",
+        account["name"]
+    )
+
+    print(
+        "Balance: ₹",
+        account["balance"]
+    )
+
+
+# ==========================================================
+# 15. LOWEST BALANCE
+# ==========================================================
+
+def lowest_balance():
+
+    if not accounts:
+
+        print("\nNo accounts available.")
+
+        return
+
+    account = min(
+        accounts,
+        key=lambda x: x["balance"]
+    )
+
+    print("\n" + "=" * 40)
+
+    print("LOWEST BALANCE")
+
+    print("=" * 40)
+
+    print(
+        "Account:",
+        account["account_number"]
+    )
+
+    print(
+        "Name:",
+        account["name"]
+    )
+
+    print(
+        "Balance: ₹",
+        account["balance"]
+    )
+
+
+# ==========================================================
+# 16. BANK STATISTICS
+# ==========================================================
+
+def bank_statistics():
+
+    if not accounts:
+
+        print("\nNo accounts available.")
+
+        return
+
+    total_accounts = len(accounts)
+
+    savings = 0
+    current = 0
+
+    total_balance = 0
+
+    for account in accounts:
+
+        total_balance += account["balance"]
+
+        if account["account_type"] == "Savings":
+
+            savings += 1
+
+        elif account["account_type"] == "Current":
+
+            current += 1
+
+    print("\n" + "=" * 45)
+
+    print("BANK STATISTICS")
+
+    print("=" * 45)
+
+    print(
+        "Total Accounts:",
+        total_accounts
+    )
+
+    print(
+        "Savings Accounts:",
+        savings
+    )
+
+    print(
+        "Current Accounts:",
+        current
+    )
+
+    print(
+        "Total Bank Balance: ₹",
+        total_balance
+    )
+
+
+# ==========================================================
+# 17. SHOW ACCOUNT TYPES
+# ==========================================================
+
+def show_account_types():
+
+    account_types = (
+        "Savings",
+        "Current"
+    )
+
+    print("\nAccount Types:")
+
+    for account_type in account_types:
+
+        print("-", account_type)
+
+
+# ==========================================================
+# 18. SHOW UNIQUE ACCOUNT TYPES USING SET
+# ==========================================================
+
+def unique_account_types():
+
+    if not accounts:
+
+        print("\nNo accounts available.")
+
+        return
+
+    types = set()
+
+    for account in accounts:
+
+        types.add(
+            account["account_type"]
+        )
+
+    print("\nUnique Account Types:")
+
+    for account_type in types:
+
+        print("-", account_type)
+
+
+# ==========================================================
+# 19. NUMPY BALANCE ANALYSIS
+# ==========================================================
+
+def numpy_balance_analysis():
+
+    if not accounts:
+
+        print("\nNo accounts available.")
+
+        return
+
+    balances = []
+
+    for account in accounts:
+
+        balances.append(
+            account["balance"]
+        )
+
+    balance_array = np.array(
+        balances
+    )
+
+    print("\n" + "=" * 50)
+
+    print("NUMPY BALANCE ANALYSIS")
+
+    print("=" * 50)
+
+    print(
+        "Balance Array:",
+        balance_array
+    )
+
+    print(
+        "Total Balance: ₹",
+        np.sum(balance_array)
+    )
+
+    print(
+        "Average Balance: ₹",
+        np.mean(balance_array)
+    )
+
+    print(
+        "Highest Balance: ₹",
+        np.max(balance_array)
+    )
+
+    print(
+        "Lowest Balance: ₹",
+        np.min(balance_array)
+    )
+
+    print(
+        "Standard Deviation:",
+        np.std(balance_array)
+    )
+
+
+# ==========================================================
+# 20. SORT ACCOUNTS BY BALANCE
+# ==========================================================
+
+def sort_by_balance():
+
+    if not accounts:
+
+        print("\nNo accounts available.")
+
+        return
+
+    sorted_accounts = sorted(
+        accounts,
+        key=lambda x: x["balance"],
+        reverse=True
+    )
+
+    print("\n" + "=" * 60)
+
+    print("ACCOUNTS SORTED BY BALANCE")
+
+    print("=" * 60)
+
+    for account in sorted_accounts:
+
+        print(
+            account["account_number"],
+            "|",
+            account["name"],
+            "| ₹",
+            account["balance"]
+        )
+
+
+# ==========================================================
+# 21. MAIN MENU
+# ==========================================================
+
+def main():
+
+    load_accounts()
+
+    while True:
+
+        print("\n")
+
+        print("=" * 60)
+
+        print(
+            "        🏦 BANK ACCOUNT MANAGEMENT SYSTEM"
+        )
+
+        print("=" * 60)
+
+        print("1.  Create Account")
+        print("2.  View All Accounts")
+        print("3.  Search Account")
+        print("4.  Deposit Money")
+        print("5.  Withdraw Money")
+        print("6.  Transfer Money")
+        print("7.  Check Balance")
+        print("8.  Transaction History")
+        print("9.  Delete Account")
+        print("10. Highest Balance")
+        print("11. Lowest Balance")
+        print("12. Bank Statistics")
+        print("13. Show Account Types")
+        print("14. Unique Account Types")
+        print("15. NumPy Balance Analysis")
+        print("16. Sort by Balance")
+        print("17. Save Data")
+        print("18. Exit")
+
+        print("=" * 60)
+
+        choice = input(
+            "\nEnter your choice: "
+        ).strip()
+
+        # --------------------------------------
+        # MENU
+        # --------------------------------------
+
+        if choice == "1":
+
+            create_account()
+
+        elif choice == "2":
+
+            view_accounts()
+
+        elif choice == "3":
+
+            search_account()
+
+        elif choice == "4":
+
+            deposit_money()
+
+        elif choice == "5":
+
+            withdraw_money()
+
+        elif choice == "6":
+
+            transfer_money()
+
+        elif choice == "7":
+
+            check_balance()
+
+        elif choice == "8":
+
+            transaction_history()
+
+        elif choice == "9":
+
+            delete_account()
+
+        elif choice == "10":
+
+            highest_balance()
+
+        elif choice == "11":
+
+            lowest_balance()
+
+        elif choice == "12":
+
+            bank_statistics()
+
+        elif choice == "13":
+
+            show_account_types()
+
+        elif choice == "14":
+
+            unique_account_types()
+
+        elif choice == "15":
+
+            numpy_balance_analysis()
+
+        elif choice == "16":
+
+            sort_by_balance()
+
+        elif choice == "17":
+
+            save_accounts()
+
+        elif choice == "18":
+
+            save_accounts()
+
+            print(
+                "\nThank you for using "
+                "Bank Account Management System!"
+            )
+
+            break
+
+        else:
+
+            print(
+                "\nInvalid choice. "
+                "Please select 1-18."
+            )
+
+
+# ==========================================================
+# PROGRAM START
+# ==========================================================
+
+main()
+
+
+

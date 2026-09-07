@@ -1,0 +1,183 @@
+# ==========================================
+# STUDENT CONTACT BOOK
+# ==========================================
+
+students = []
+
+
+# Tuple
+courses = (
+    "Python",
+    "Java",
+    "SQL",
+    "Data Science"
+)
+
+
+# ==========================================
+# 1. ADD STUDENT
+# ==========================================
+
+def add_student():
+
+    name = input("Enter student name: ").strip().title()
+    phone = input("Enter phone number: ").strip()
+
+    print("\nAvailable Courses:")
+
+    for course in courses:
+        print("-", course)
+
+    course = input("Enter course: ").strip().title()
+
+    if course not in courses:
+        print("Invalid course!")
+        return
+
+    # Dictionary
+    student = {
+        "name": name,
+        "phone": phone,
+        "course": course
+    }
+
+    # Add dictionary to list
+    students.append(student)
+
+    print("\nStudent added successfully!")
+
+
+# ==========================================
+# 2. VIEW STUDENTS
+# ==========================================
+
+def view_students():
+
+    if not students:
+        print("\nNo students found.")
+        return
+
+    print("\n----- STUDENT LIST -----")
+
+    for index, student in enumerate(students, start=1):
+
+        print(
+            index,
+            student["name"],
+            "|",
+            student["phone"],
+            "|",
+            student["course"]
+        )
+
+
+# ==========================================
+# 3. SEARCH STUDENT
+# ==========================================
+
+def search_student():
+
+    name = input(
+        "Enter student name to search: "
+    ).strip().title()
+
+    found = False
+
+    for student in students:
+
+        if student["name"] == name:
+
+            print("\nStudent Found")
+
+            print("Name:", student["name"])
+            print("Phone:", student["phone"])
+            print("Course:", student["course"])
+
+            found = True
+
+    if not found:
+        print("\nStudent not found.")
+
+
+# ==========================================
+# 4. DELETE STUDENT
+# ==========================================
+
+def delete_student():
+
+    name = input(
+        "Enter student name to delete: "
+    ).strip().title()
+
+    for student in students:
+
+        if student["name"] == name:
+
+            students.remove(student)
+
+            print("\nStudent deleted successfully!")
+
+            return
+
+    print("\nStudent not found.")
+
+
+# ==========================================
+# 5. MAIN MENU
+# ==========================================
+
+def main():
+
+    while True:
+
+        print("\n==============================")
+        print("     STUDENT CONTACT BOOK")
+        print("==============================")
+
+        print("1. Add Student")
+        print("2. View Students")
+        print("3. Search Student")
+        print("4. Delete Student")
+        print("5. Show Courses")
+        print("6. Exit")
+
+        choice = input("\nEnter your choice: ")
+
+        if choice == "1":
+
+            add_student()
+
+        elif choice == "2":
+
+            view_students()
+
+        elif choice == "3":
+
+            search_student()
+
+        elif choice == "4":
+
+            delete_student()
+
+        elif choice == "5":
+
+            print("\nAvailable Courses:")
+
+            for course in courses:
+                print("-", course)
+
+        elif choice == "6":
+
+            print("\nThank you!")
+            break
+
+        else:
+
+            print("\nInvalid choice!")
+
+
+# ==========================================
+# START PROGRAM
+# ==========================================
+
+main()

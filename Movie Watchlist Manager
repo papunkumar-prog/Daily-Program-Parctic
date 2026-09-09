@@ -1,0 +1,339 @@
+# ==========================================
+# MOVIE WATCHLIST MANAGER
+# ==========================================
+
+movies = []
+
+
+# Tuple
+genres = (
+    "Action",
+    "Comedy",
+    "Drama",
+    "Horror",
+    "Sci-Fi"
+)
+
+
+# ==========================================
+# 1. ADD MOVIE
+# ==========================================
+
+def add_movie():
+
+    name = input(
+        "Enter movie name: "
+    ).strip().title()
+
+    print("\nAvailable Genres:")
+
+    for genre in genres:
+        print("-", genre)
+
+    genre = input(
+        "Enter genre: "
+    ).strip().title()
+
+    if genre not in genres:
+
+        print("Invalid genre!")
+
+        return
+
+    movie = {
+        "name": name,
+        "genre": genre,
+        "watched": "No"
+    }
+
+    movies.append(movie)
+
+    print("\nMovie added successfully!")
+
+
+# ==========================================
+# 2. VIEW MOVIES
+# ==========================================
+
+def view_movies():
+
+    if not movies:
+
+        print("\nNo movies in your watchlist.")
+
+        return
+
+    print("\n========== MOVIE LIST ==========")
+
+    for index, movie in enumerate(
+        movies,
+        start=1
+    ):
+
+        print(
+            index,
+            "|",
+            movie["name"],
+            "|",
+            movie["genre"],
+            "| Watched:",
+            movie["watched"]
+        )
+
+
+# ==========================================
+# 3. MARK MOVIE AS WATCHED
+# ==========================================
+
+def mark_watched():
+
+    if not movies:
+
+        print("\nNo movies available.")
+
+        return
+
+    view_movies()
+
+    try:
+
+        number = int(
+            input(
+                "\nEnter movie number: "
+            )
+        )
+
+        if 1 <= number <= len(movies):
+
+            movies[number - 1]["watched"] = "Yes"
+
+            print(
+                "\nMovie marked as watched!"
+            )
+
+        else:
+
+            print("Invalid movie number.")
+
+    except ValueError:
+
+        print("Please enter a number.")
+
+
+# ==========================================
+# 4. SEARCH MOVIE
+# ==========================================
+
+def search_movie():
+
+    name = input(
+        "\nEnter movie name: "
+    ).strip().title()
+
+    found = False
+
+    for movie in movies:
+
+        if movie["name"] == name:
+
+            print("\nMovie Found!")
+
+            print("Name:", movie["name"])
+            print("Genre:", movie["genre"])
+            print("Watched:", movie["watched"])
+
+            found = True
+
+    if not found:
+
+        print("\nMovie not found.")
+
+
+# ==========================================
+# 5. DELETE MOVIE
+# ==========================================
+
+def delete_movie():
+
+    if not movies:
+
+        print("\nNo movies available.")
+
+        return
+
+    view_movies()
+
+    try:
+
+        number = int(
+            input(
+                "\nEnter movie number to delete: "
+            )
+        )
+
+        if 1 <= number <= len(movies):
+
+            deleted_movie = movies.pop(
+                number - 1
+            )
+
+            print(
+                "\nDeleted:",
+                deleted_movie["name"]
+            )
+
+        else:
+
+            print("Invalid movie number.")
+
+    except ValueError:
+
+        print("Please enter a number.")
+
+
+# ==========================================
+# 6. SHOW MOVIES BY GENRE
+# ==========================================
+
+def movies_by_genre():
+
+    print("\nAvailable Genres:")
+
+    for genre in genres:
+
+        print("-", genre)
+
+    selected_genre = input(
+        "\nEnter genre: "
+    ).strip().title()
+
+    found = False
+
+    for movie in movies:
+
+        if movie["genre"] == selected_genre:
+
+            print(
+                "-",
+                movie["name"]
+            )
+
+            found = True
+
+    if not found:
+
+        print(
+            "\nNo movies found in this genre."
+        )
+
+
+# ==========================================
+# 7. SHOW WATCHED / UNWATCHED
+# ==========================================
+
+def show_status():
+
+    watched = []
+    unwatched = []
+
+    for movie in movies:
+
+        if movie["watched"] == "Yes":
+
+            watched.append(
+                movie["name"]
+            )
+
+        else:
+
+            unwatched.append(
+                movie["name"]
+            )
+
+    print("\n===== WATCHED =====")
+
+    for movie in watched:
+
+        print("-", movie)
+
+    print("\n===== NOT WATCHED =====")
+
+    for movie in unwatched:
+
+        print("-", movie)
+
+
+# ==========================================
+# 8. MAIN MENU
+# ==========================================
+
+def main():
+
+    while True:
+
+        print("\n================================")
+        print("       MOVIE WATCHLIST")
+        print("================================")
+
+        print("1. Add Movie")
+        print("2. View Movies")
+        print("3. Mark as Watched")
+        print("4. Search Movie")
+        print("5. Delete Movie")
+        print("6. Movies by Genre")
+        print("7. Watched / Not Watched")
+        print("8. Exit")
+
+        choice = input(
+            "\nEnter your choice: "
+        ).strip()
+
+        if choice == "1":
+
+            add_movie()
+
+        elif choice == "2":
+
+            view_movies()
+
+        elif choice == "3":
+
+            mark_watched()
+
+        elif choice == "4":
+
+            search_movie()
+
+        elif choice == "5":
+
+            delete_movie()
+
+        elif choice == "6":
+
+            movies_by_genre()
+
+        elif choice == "7":
+
+            show_status()
+
+        elif choice == "8":
+
+            print(
+                "\nThank you for using "
+                "Movie Watchlist!"
+            )
+
+            break
+
+        else:
+
+            print(
+                "\nInvalid choice!"
+            )
+
+
+# ==========================================
+# PROGRAM START
+# ==========================================
+
+main()

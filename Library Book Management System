@@ -1,0 +1,448 @@
+# ==========================================================
+# LIBRARY BOOK MANAGEMENT SYSTEM
+# ==========================================================
+
+books = []
+
+
+# Tuple - fixed book categories
+categories = (
+    "Python",
+    "Java",
+    "SQL",
+    "Database",
+    "Web Development"
+)
+
+
+# ==========================================================
+# 1. ADD BOOK
+# ==========================================================
+
+def add_book():
+
+    print("\n========== ADD BOOK ==========")
+
+    title = input(
+        "Enter book title: "
+    ).strip().title()
+
+    author = input(
+        "Enter author name: "
+    ).strip().title()
+
+    print("\nAvailable Categories:")
+
+    for category in categories:
+        print("-", category)
+
+    category = input(
+        "Enter category: "
+    ).strip().title()
+
+    if category not in categories:
+
+        print("Invalid category!")
+
+        return
+
+    book = {
+        "title": title,
+        "author": author,
+        "category": category,
+        "status": "Available"
+    }
+
+    books.append(book)
+
+    print("\nBook added successfully!")
+
+
+# ==========================================================
+# 2. VIEW BOOKS
+# ==========================================================
+
+def view_books():
+
+    if not books:
+
+        print("\nNo books available.")
+
+        return
+
+    print("\n========== BOOK LIST ==========")
+
+    for index, book in enumerate(
+        books,
+        start=1
+    ):
+
+        print(
+            index,
+            "|",
+            book["title"],
+            "|",
+            book["author"],
+            "|",
+            book["category"],
+            "|",
+            book["status"]
+        )
+
+
+# ==========================================================
+# 3. SEARCH BOOK
+# ==========================================================
+
+def search_book():
+
+    search = input(
+        "\nEnter book title: "
+    ).strip().lower()
+
+    found = False
+
+    for book in books:
+
+        if search in book["title"].lower():
+
+            print("\nBook Found!")
+
+            print(
+                "Title:",
+                book["title"]
+            )
+
+            print(
+                "Author:",
+                book["author"]
+            )
+
+            print(
+                "Category:",
+                book["category"]
+            )
+
+            print(
+                "Status:",
+                book["status"]
+            )
+
+            found = True
+
+    if not found:
+
+        print("\nBook not found.")
+
+
+# ==========================================================
+# 4. ISSUE BOOK
+# ==========================================================
+
+def issue_book():
+
+    if not books:
+
+        print("\nNo books available.")
+
+        return
+
+    view_books()
+
+    try:
+
+        number = int(
+            input(
+                "\nEnter book number to issue: "
+            )
+        )
+
+        if number < 1 or number > len(books):
+
+            print("Invalid book number.")
+
+            return
+
+        book = books[number - 1]
+
+        if book["status"] == "Issued":
+
+            print("\nThis book is already issued.")
+
+        else:
+
+            book["status"] = "Issued"
+
+            print(
+                "\nBook issued successfully!"
+            )
+
+    except ValueError:
+
+        print(
+            "\nPlease enter a valid number."
+        )
+
+
+# ==========================================================
+# 5. RETURN BOOK
+# ==========================================================
+
+def return_book():
+
+    if not books:
+
+        print("\nNo books available.")
+
+        return
+
+    view_books()
+
+    try:
+
+        number = int(
+            input(
+                "\nEnter book number to return: "
+            )
+        )
+
+        if number < 1 or number > len(books):
+
+            print("Invalid book number.")
+
+            return
+
+        book = books[number - 1]
+
+        if book["status"] == "Available":
+
+            print(
+                "\nThis book is already available."
+            )
+
+        else:
+
+            book["status"] = "Available"
+
+            print(
+                "\nBook returned successfully!"
+            )
+
+    except ValueError:
+
+        print(
+            "\nPlease enter a valid number."
+        )
+
+
+# ==========================================================
+# 6. DELETE BOOK
+# ==========================================================
+
+def delete_book():
+
+    if not books:
+
+        print("\nNo books available.")
+
+        return
+
+    view_books()
+
+    try:
+
+        number = int(
+            input(
+                "\nEnter book number to delete: "
+            )
+        )
+
+        if number < 1 or number > len(books):
+
+            print("Invalid book number.")
+
+            return
+
+        book = books[number - 1]
+
+        if book["status"] == "Issued":
+
+            print(
+                "\nYou cannot delete an issued book."
+            )
+
+            return
+
+        deleted = books.pop(
+            number - 1
+        )
+
+        print(
+            "\nDeleted:",
+            deleted["title"]
+        )
+
+    except ValueError:
+
+        print(
+            "\nPlease enter a valid number."
+        )
+
+
+# ==========================================================
+# 7. SHOW BOOKS BY CATEGORY
+# ==========================================================
+
+def books_by_category():
+
+    print("\nAvailable Categories:")
+
+    for category in categories:
+
+        print("-", category)
+
+    selected = input(
+        "\nEnter category: "
+    ).strip().title()
+
+    found = False
+
+    for book in books:
+
+        if book["category"] == selected:
+
+            print(
+                "-",
+                book["title"],
+                "|",
+                book["author"]
+            )
+
+            found = True
+
+    if not found:
+
+        print(
+            "\nNo books found in this category."
+        )
+
+
+# ==========================================================
+# 8. LIBRARY STATISTICS
+# ==========================================================
+
+def library_statistics():
+
+    total = len(books)
+
+    available = 0
+    issued = 0
+
+    for book in books:
+
+        if book["status"] == "Available":
+
+            available += 1
+
+        elif book["status"] == "Issued":
+
+            issued += 1
+
+    print("\n========== STATISTICS ==========")
+
+    print(
+        "Total Books:",
+        total
+    )
+
+    print(
+        "Available Books:",
+        available
+    )
+
+    print(
+        "Issued Books:",
+        issued
+    )
+
+
+# ==========================================================
+# 9. MAIN MENU
+# ==========================================================
+
+def main():
+
+    while True:
+
+        print("\n")
+        print("=" * 45)
+        print("    📚 LIBRARY MANAGEMENT SYSTEM")
+        print("=" * 45)
+
+        print("1. Add Book")
+        print("2. View Books")
+        print("3. Search Book")
+        print("4. Issue Book")
+        print("5. Return Book")
+        print("6. Delete Book")
+        print("7. Books by Category")
+        print("8. Library Statistics")
+        print("9. Exit")
+
+        choice = input(
+            "\nEnter your choice: "
+        ).strip()
+
+        if choice == "1":
+
+            add_book()
+
+        elif choice == "2":
+
+            view_books()
+
+        elif choice == "3":
+
+            search_book()
+
+        elif choice == "4":
+
+            issue_book()
+
+        elif choice == "5":
+
+            return_book()
+
+        elif choice == "6":
+
+            delete_book()
+
+        elif choice == "7":
+
+            books_by_category()
+
+        elif choice == "8":
+
+            library_statistics()
+
+        elif choice == "9":
+
+            print(
+                "\nThank you for using "
+                "Library Management System!"
+            )
+
+            break
+
+        else:
+
+            print(
+                "\nInvalid choice!"
+            )
+
+
+# ==========================================================
+# PROGRAM START
+# ==========================================================
+
+main()

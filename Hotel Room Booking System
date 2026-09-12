@@ -1,0 +1,504 @@
+# ==========================================================
+# HOTEL ROOM BOOKING SYSTEM
+# ==========================================================
+
+rooms = []
+
+
+# Tuple - fixed room types
+room_types = (
+    "Single",
+    "Double",
+    "Deluxe",
+    "Suite"
+)
+
+
+# ==========================================================
+# 1. ADD ROOMS
+# ==========================================================
+
+def add_rooms():
+
+    if rooms:
+
+        print("\nRooms are already added.")
+
+        return
+
+    for number in range(101, 111):
+
+        room = {
+            "room_number": number,
+            "room_type": "Single",
+            "price": 1500,
+            "customer": "",
+            "status": "Available"
+        }
+
+        rooms.append(room)
+
+    print("\n10 rooms added successfully!")
+
+
+# ==========================================================
+# 2. VIEW ROOMS
+# ==========================================================
+
+def view_rooms():
+
+    if not rooms:
+
+        print("\nPlease add rooms first.")
+
+        return
+
+    print("\n" + "=" * 80)
+
+    print(
+        f"{'Room':<10}"
+        f"{'Type':<15}"
+        f"{'Price':<15}"
+        f"{'Customer':<20}"
+        f"{'Status':<15}"
+    )
+
+    print("=" * 80)
+
+    for room in rooms:
+
+        print(
+            f"{room['room_number']:<10}"
+            f"{room['room_type']:<15}"
+            f"₹{room['price']:<14}"
+            f"{room['customer']:<20}"
+            f"{room['status']:<15}"
+        )
+
+
+# ==========================================================
+# 3. BOOK ROOM
+# ==========================================================
+
+def book_room():
+
+    if not rooms:
+
+        print("\nPlease add rooms first.")
+
+        return
+
+    view_rooms()
+
+    try:
+
+        room_number = int(
+            input(
+                "\nEnter room number: "
+            )
+        )
+
+    except ValueError:
+
+        print("\nEnter a valid room number.")
+
+        return
+
+    for room in rooms:
+
+        if room["room_number"] == room_number:
+
+            if room["status"] == "Booked":
+
+                print("\nRoom is already booked.")
+
+                return
+
+            customer = input(
+                "Enter customer name: "
+            ).strip().title()
+
+            if not customer:
+
+                print("\nCustomer name cannot be empty.")
+
+                return
+
+            room["customer"] = customer
+
+            room["status"] = "Booked"
+
+            print(
+                "\nRoom booked successfully!"
+            )
+
+            print(
+                "Customer:",
+                customer
+            )
+
+            print(
+                "Room:",
+                room_number
+            )
+
+            return
+
+    print("\nRoom not found.")
+
+
+# ==========================================================
+# 4. CHECK OUT
+# ==========================================================
+
+def checkout():
+
+    if not rooms:
+
+        print("\nPlease add rooms first.")
+
+        return
+
+    try:
+
+        room_number = int(
+            input(
+                "\nEnter room number: "
+            )
+        )
+
+    except ValueError:
+
+        print("\nEnter a valid room number.")
+
+        return
+
+    for room in rooms:
+
+        if room["room_number"] == room_number:
+
+            if room["status"] == "Available":
+
+                print(
+                    "\nThis room is already available."
+                )
+
+                return
+
+            print(
+                "\nCustomer:",
+                room["customer"]
+            )
+
+            room["customer"] = ""
+
+            room["status"] = "Available"
+
+            print(
+                "\nCheckout completed successfully!"
+            )
+
+            return
+
+    print("\nRoom not found.")
+
+
+# ==========================================================
+# 5. SEARCH CUSTOMER
+# ==========================================================
+
+def search_customer():
+
+    name = input(
+        "\nEnter customer name: "
+    ).strip().lower()
+
+    found = False
+
+    for room in rooms:
+
+        if name in room["customer"].lower():
+
+            print("\nBooking Found")
+
+            print(
+                "Customer:",
+                room["customer"]
+            )
+
+            print(
+                "Room:",
+                room["room_number"]
+            )
+
+            print(
+                "Room Type:",
+                room["room_type"]
+            )
+
+            print(
+                "Price:",
+                room["price"]
+            )
+
+            found = True
+
+    if not found:
+
+        print("\nCustomer not found.")
+
+
+# ==========================================================
+# 6. AVAILABLE ROOMS
+# ==========================================================
+
+def available_rooms():
+
+    found = False
+
+    print("\n========== AVAILABLE ROOMS ==========")
+
+    for room in rooms:
+
+        if room["status"] == "Available":
+
+            print(
+                "Room:",
+                room["room_number"],
+                "| Type:",
+                room["room_type"],
+                "| Price: ₹",
+                room["price"]
+            )
+
+            found = True
+
+    if not found:
+
+        print("\nNo rooms are available.")
+
+
+# ==========================================================
+# 7. CHANGE ROOM TYPE
+# ==========================================================
+
+def change_room_type():
+
+    if not rooms:
+
+        print("\nPlease add rooms first.")
+
+        return
+
+    try:
+
+        room_number = int(
+            input(
+                "\nEnter room number: "
+            )
+        )
+
+    except ValueError:
+
+        print("\nEnter a valid room number.")
+
+        return
+
+    for room in rooms:
+
+        if room["room_number"] == room_number:
+
+            if room["status"] == "Booked":
+
+                print(
+                    "\nCannot change a booked room."
+                )
+
+                return
+
+            print("\nRoom Types:")
+
+            for room_type in room_types:
+
+                print("-", room_type)
+
+            new_type = input(
+                "Enter new room type: "
+            ).strip().title()
+
+            if new_type not in room_types:
+
+                print("\nInvalid room type.")
+
+                return
+
+            room["room_type"] = new_type
+
+            # Change price according to type
+
+            if new_type == "Single":
+
+                room["price"] = 1500
+
+            elif new_type == "Double":
+
+                room["price"] = 2500
+
+            elif new_type == "Deluxe":
+
+                room["price"] = 3500
+
+            elif new_type == "Suite":
+
+                room["price"] = 5000
+
+            print(
+                "\nRoom type updated successfully!"
+            )
+
+            return
+
+    print("\nRoom not found.")
+
+
+# ==========================================================
+# 8. HOTEL STATISTICS
+# ==========================================================
+
+def hotel_statistics():
+
+    total = len(rooms)
+
+    available = 0
+    booked = 0
+
+    for room in rooms:
+
+        if room["status"] == "Available":
+
+            available += 1
+
+        elif room["status"] == "Booked":
+
+            booked += 1
+
+    print("\n" + "=" * 40)
+
+    print("HOTEL STATISTICS")
+
+    print("=" * 40)
+
+    print(
+        "Total Rooms:",
+        total
+    )
+
+    print(
+        "Available Rooms:",
+        available
+    )
+
+    print(
+        "Booked Rooms:",
+        booked
+    )
+
+
+# ==========================================================
+# 9. SHOW ROOM TYPES
+# ==========================================================
+
+def show_room_types():
+
+    print("\n========== ROOM TYPES ==========")
+
+    for room_type in room_types:
+
+        print("-", room_type)
+
+
+# ==========================================================
+# 10. MAIN MENU
+# ==========================================================
+
+def main():
+
+    while True:
+
+        print("\n")
+        print("=" * 50)
+        print("      🏨 HOTEL ROOM BOOKING SYSTEM")
+        print("=" * 50)
+
+        print("1. Add Rooms")
+        print("2. View All Rooms")
+        print("3. Book Room")
+        print("4. Checkout")
+        print("5. Search Customer")
+        print("6. Show Available Rooms")
+        print("7. Change Room Type")
+        print("8. Hotel Statistics")
+        print("9. Show Room Types")
+        print("10. Exit")
+
+        choice = input(
+            "\nEnter your choice: "
+        ).strip()
+
+        if choice == "1":
+
+            add_rooms()
+
+        elif choice == "2":
+
+            view_rooms()
+
+        elif choice == "3":
+
+            book_room()
+
+        elif choice == "4":
+
+            checkout()
+
+        elif choice == "5":
+
+            search_customer()
+
+        elif choice == "6":
+
+            available_rooms()
+
+        elif choice == "7":
+
+            change_room_type()
+
+        elif choice == "8":
+
+            hotel_statistics()
+
+        elif choice == "9":
+
+            show_room_types()
+
+        elif choice == "10":
+
+            print(
+                "\nThank you for using "
+                "Hotel Room Booking System!"
+            )
+
+            break
+
+        else:
+
+            print(
+                "\nInvalid choice!"
+            )
+
+
+# ==========================================================
+# PROGRAM START
+# ==========================================================
+
+main()

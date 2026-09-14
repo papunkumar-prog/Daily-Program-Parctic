@@ -1,0 +1,355 @@
+# ============================================================
+
+# 🏫 STUDENT PERFORMANCE ANALYZER
+
+# ============================================================
+
+# Concepts:
+
+# String, if/else, for loop, while loop,
+
+# function, list, dictionary, tuple and NumPy
+
+# ============================================================
+
+import numpy as np
+
+# ============================================================
+
+# SUBJECTS
+
+# ============================================================
+
+subjects = ("Python", "SQL", "Flask", "NumPy")
+
+# ============================================================
+
+# STUDENT LIST
+
+# ============================================================
+
+students = []
+
+# ============================================================
+
+# FUNCTION 1: ADD STUDENT
+
+# ============================================================
+
+def add_student():
+
+```
+print("\n========== ADD STUDENT ==========")
+
+name = input("Enter student name: ").strip().title()
+
+# Check empty name
+if name == "":
+    print("Name cannot be empty.")
+    return
+
+marks = []
+
+# Get marks for every subject
+for subject in subjects:
+
+    while True:
+
+        try:
+            mark = float(input(f"Enter marks for {subject}: "))
+
+            if mark >= 0 and mark <= 100:
+                marks.append(mark)
+                break
+
+            else:
+                print("Marks must be between 0 and 100.")
+
+        except ValueError:
+            print("Please enter a valid number.")
+
+# Convert list into NumPy array
+marks_array = np.array(marks)
+
+# Calculate average
+average = np.mean(marks_array)
+
+# Calculate grade
+if average >= 90:
+    grade = "A+"
+
+elif average >= 80:
+    grade = "A"
+
+elif average >= 70:
+    grade = "B"
+
+elif average >= 60:
+    grade = "C"
+
+elif average >= 50:
+    grade = "D"
+
+else:
+    grade = "F"
+
+# Student dictionary
+student = {
+    "name": name,
+    "marks": marks,
+    "average": average,
+    "grade": grade
+}
+
+# Add dictionary to list
+students.append(student)
+
+print("\nStudent added successfully!")
+print("Name:", name)
+print("Average:", round(average, 2))
+print("Grade:", grade)
+```
+
+# ============================================================
+
+# FUNCTION 2: DISPLAY ALL STUDENTS
+
+# ============================================================
+
+def display_students():
+
+```
+print("\n========== ALL STUDENTS ==========")
+
+if len(students) == 0:
+    print("No students found.")
+    return
+
+for index, student in enumerate(students, start=1):
+
+    print("\nStudent", index)
+    print("Name:", student["name"])
+
+    print("Marks:")
+
+    for i in range(len(subjects)):
+        print(subjects[i], ":", student["marks"][i])
+
+    print("Average:", round(student["average"], 2))
+    print("Grade:", student["grade"])
+```
+
+# ============================================================
+
+# FUNCTION 3: SEARCH STUDENT
+
+# ============================================================
+
+def search_student():
+
+```
+print("\n========== SEARCH STUDENT ==========")
+
+search_name = input("Enter student name: ").strip().lower()
+
+found = False
+
+for student in students:
+
+    if student["name"].lower() == search_name:
+
+        print("\nStudent Found!")
+        print("Name:", student["name"])
+
+        for i in range(len(subjects)):
+            print(
+                subjects[i],
+                ":",
+                student["marks"][i]
+            )
+
+        print("Average:", round(student["average"], 2))
+        print("Grade:", student["grade"])
+
+        found = True
+        break
+
+if found == False:
+    print("Student not found.")
+```
+
+# ============================================================
+
+# FUNCTION 4: HIGHEST PERFORMER
+
+# ============================================================
+
+def highest_performer():
+
+```
+print("\n========== HIGHEST PERFORMER ==========")
+
+if len(students) == 0:
+    print("No students available.")
+    return
+
+highest = students[0]
+
+for student in students:
+
+    if student["average"] > highest["average"]:
+        highest = student
+
+print("Highest Performer:", highest["name"])
+print("Average:", round(highest["average"], 2))
+print("Grade:", highest["grade"])
+```
+
+# ============================================================
+
+# FUNCTION 5: LOWEST PERFORMER
+
+# ============================================================
+
+def lowest_performer():
+
+```
+print("\n========== LOWEST PERFORMER ==========")
+
+if len(students) == 0:
+    print("No students available.")
+    return
+
+lowest = students[0]
+
+for student in students:
+
+    if student["average"] < lowest["average"]:
+        lowest = student
+
+print("Lowest Performer:", lowest["name"])
+print("Average:", round(lowest["average"], 2))
+print("Grade:", lowest["grade"])
+```
+
+# ============================================================
+
+# FUNCTION 6: CLASS STATISTICS
+
+# ============================================================
+
+def class_statistics():
+
+```
+print("\n========== CLASS STATISTICS ==========")
+
+if len(students) == 0:
+    print("No students available.")
+    return
+
+averages = []
+
+for student in students:
+    averages.append(student["average"])
+
+# Convert list to NumPy array
+average_array = np.array(averages)
+
+print("Class Average:", round(np.mean(average_array), 2))
+print("Highest Average:", round(np.max(average_array), 2))
+print("Lowest Average:", round(np.min(average_array), 2))
+```
+
+# ============================================================
+
+# FUNCTION 7: SUBJECT STATISTICS
+
+# ============================================================
+
+def subject_statistics():
+
+```
+print("\n========== SUBJECT STATISTICS ==========")
+
+if len(students) == 0:
+    print("No students available.")
+    return
+
+for i in range(len(subjects)):
+
+    subject_marks = []
+
+    for student in students:
+        subject_marks.append(student["marks"][i])
+
+    marks_array = np.array(subject_marks)
+
+    print("\nSubject:", subjects[i])
+    print("Average:", round(np.mean(marks_array), 2))
+    print("Highest:", np.max(marks_array))
+    print("Lowest:", np.min(marks_array))
+```
+
+# ============================================================
+
+# FUNCTION 8: MAIN MENU
+
+# ============================================================
+
+def main():
+
+```
+while True:
+
+    print("\n")
+    print("========================================")
+    print("   🏫 STUDENT PERFORMANCE ANALYZER")
+    print("========================================")
+
+    print("1. Add Student")
+    print("2. Display Students")
+    print("3. Search Student")
+    print("4. Highest Performer")
+    print("5. Lowest Performer")
+    print("6. Class Statistics")
+    print("7. Subject Statistics")
+    print("8. Exit")
+
+    choice = input("Enter your choice: ").strip()
+
+    if choice == "1":
+        add_student()
+
+    elif choice == "2":
+        display_students()
+
+    elif choice == "3":
+        search_student()
+
+    elif choice == "4":
+        highest_performer()
+
+    elif choice == "5":
+        lowest_performer()
+
+    elif choice == "6":
+        class_statistics()
+
+    elif choice == "7":
+        subject_statistics()
+
+    elif choice == "8":
+        print("Thank you for using Student Performance Analyzer!")
+        break
+
+    else:
+        print("Invalid choice. Please try again.")
+```
+
+# ============================================================
+
+# PROGRAM START
+
+# ============================================================
+
+main()

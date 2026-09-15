@@ -1,0 +1,438 @@
+# ============================================================
+
+# 🏦 ATM & BANK TRANSACTION SYSTEM
+
+# ============================================================
+
+# Concepts Used:
+
+# String
+
+# if / elif / else
+
+# for loop
+
+# while loop
+
+# NumPy
+
+# Functions
+
+# Dictionary
+
+# List
+
+# Tuple
+
+# ============================================================
+
+import numpy as np
+
+# ============================================================
+
+# ACCOUNT TYPES - TUPLE
+
+# ============================================================
+
+account_types = ("Savings", "Current")
+
+# ============================================================
+
+# BANK ACCOUNTS - LIST
+
+# ============================================================
+
+accounts = []
+
+# ============================================================
+
+# FUNCTION 1: CREATE ACCOUNT
+
+# ============================================================
+
+def create_account():
+
+```
+print("\n========== CREATE ACCOUNT ==========")
+
+name = input("Enter account holder name: ").strip().title()
+
+if name == "":
+    print("Name cannot be empty.")
+    return
+
+# Ask account type
+print("\nAccount Types:")
+
+for i in range(len(account_types)):
+    print(i + 1, ".", account_types[i])
+
+while True:
+
+    choice = input("Choose account type: ").strip()
+
+    if choice == "1":
+        account_type = account_types[0]
+        break
+
+    elif choice == "2":
+        account_type = account_types[1]
+        break
+
+    else:
+        print("Invalid account type.")
+
+# Create account number
+account_number = 1001 + len(accounts)
+
+# Create dictionary
+account = {
+    "account_number": account_number,
+    "name": name,
+    "account_type": account_type,
+    "balance": 0,
+    "transactions": []
+}
+
+# Add dictionary to list
+accounts.append(account)
+
+print("\nAccount created successfully!")
+print("Account Number:", account_number)
+print("Name:", name)
+print("Account Type:", account_type)
+```
+
+# ============================================================
+
+# FUNCTION 2: FIND ACCOUNT
+
+# ============================================================
+
+def find_account(account_number):
+
+```
+for account in accounts:
+
+    if account["account_number"] == account_number:
+        return account
+
+return None
+```
+
+# ============================================================
+
+# FUNCTION 3: DEPOSIT MONEY
+
+# ============================================================
+
+def deposit_money():
+
+```
+print("\n========== DEPOSIT MONEY ==========")
+
+try:
+    account_number = int(input("Enter account number: "))
+except ValueError:
+    print("Invalid account number.")
+    return
+
+account = find_account(account_number)
+
+if account is None:
+    print("Account not found.")
+    return
+
+try:
+    amount = float(input("Enter deposit amount: "))
+except ValueError:
+    print("Please enter a valid amount.")
+    return
+
+if amount <= 0:
+    print("Amount must be greater than zero.")
+    return
+
+# Update balance
+account["balance"] += amount
+
+# Add transaction
+transaction = {
+    "type": "Deposit",
+    "amount": amount
+}
+
+account["transactions"].append(transaction)
+
+print("\nDeposit successful!")
+print("Deposited:", amount)
+print("New Balance:", account["balance"])
+```
+
+# ============================================================
+
+# FUNCTION 4: WITHDRAW MONEY
+
+# ============================================================
+
+def withdraw_money():
+
+```
+print("\n========== WITHDRAW MONEY ==========")
+
+try:
+    account_number = int(input("Enter account number: "))
+except ValueError:
+    print("Invalid account number.")
+    return
+
+account = find_account(account_number)
+
+if account is None:
+    print("Account not found.")
+    return
+
+try:
+    amount = float(input("Enter withdrawal amount: "))
+except ValueError:
+    print("Please enter a valid amount.")
+    return
+
+if amount <= 0:
+    print("Amount must be greater than zero.")
+    return
+
+if amount > account["balance"]:
+    print("Insufficient balance.")
+    return
+
+# Update balance
+account["balance"] -= amount
+
+# Add transaction
+transaction = {
+    "type": "Withdrawal",
+    "amount": amount
+}
+
+account["transactions"].append(transaction)
+
+print("\nWithdrawal successful!")
+print("Withdrawn:", amount)
+print("Remaining Balance:", account["balance"])
+```
+
+# ============================================================
+
+# FUNCTION 5: CHECK BALANCE
+
+# ============================================================
+
+def check_balance():
+
+```
+print("\n========== CHECK BALANCE ==========")
+
+try:
+    account_number = int(input("Enter account number: "))
+except ValueError:
+    print("Invalid account number.")
+    return
+
+account = find_account(account_number)
+
+if account is None:
+    print("Account not found.")
+    return
+
+print("\nAccount Holder:", account["name"])
+print("Account Number:", account["account_number"])
+print("Account Type:", account["account_type"])
+print("Balance:", account["balance"])
+```
+
+# ============================================================
+
+# FUNCTION 6: TRANSACTION HISTORY
+
+# ============================================================
+
+def transaction_history():
+
+```
+print("\n========== TRANSACTION HISTORY ==========")
+
+try:
+    account_number = int(input("Enter account number: "))
+except ValueError:
+    print("Invalid account number.")
+    return
+
+account = find_account(account_number)
+
+if account is None:
+    print("Account not found.")
+    return
+
+if len(account["transactions"]) == 0:
+    print("No transactions found.")
+    return
+
+print("\nAccount Holder:", account["name"])
+
+for i, transaction in enumerate(
+    account["transactions"],
+    start=1
+):
+
+    print(
+        i,
+        ".",
+        transaction["type"],
+        "-",
+        transaction["amount"]
+    )
+```
+
+# ============================================================
+
+# FUNCTION 7: TRANSACTION STATISTICS
+
+# ============================================================
+
+def transaction_statistics():
+
+```
+print("\n========== TRANSACTION STATISTICS ==========")
+
+try:
+    account_number = int(input("Enter account number: "))
+except ValueError:
+    print("Invalid account number.")
+    return
+
+account = find_account(account_number)
+
+if account is None:
+    print("Account not found.")
+    return
+
+if len(account["transactions"]) == 0:
+    print("No transactions available.")
+    return
+
+amounts = []
+
+for transaction in account["transactions"]:
+    amounts.append(transaction["amount"])
+
+# Convert list into NumPy array
+amounts_array = np.array(amounts)
+
+print("\nAccount Holder:", account["name"])
+
+print(
+    "Total Transaction Amount:",
+    np.sum(amounts_array)
+)
+
+print(
+    "Average Transaction:",
+    round(np.mean(amounts_array), 2)
+)
+
+print(
+    "Highest Transaction:",
+    np.max(amounts_array)
+)
+
+print(
+    "Lowest Transaction:",
+    np.min(amounts_array)
+)
+```
+
+# ============================================================
+
+# FUNCTION 8: DISPLAY ALL ACCOUNTS
+
+# ============================================================
+
+def display_accounts():
+
+```
+print("\n========== ALL ACCOUNTS ==========")
+
+if len(accounts) == 0:
+    print("No accounts found.")
+    return
+
+for account in accounts:
+
+    print("\n-----------------------------")
+
+    print(
+        "Account Number:",
+        account["account_number"]
+    )
+
+    print(
+        "Name:",
+        account["name"]
+    )
+
+    print(
+        "Account Type:",
+        account["account_type"]
+    )
+
+    print(
+        "Balance:",
+        account["balance"]
+    )
+```
+
+# ============================================================
+
+# FUNCTION 9: MAIN MENU
+
+# ============================================================
+
+def main():
+
+```
+while True:
+
+    print("\n")
+    print("========================================")
+    print("       🏦 ATM & BANK SYSTEM")
+    print("========================================")
+
+    print("1. Create Account")
+    print("2. Deposit Money")
+    print("3. Withdraw Money")
+    print("4. Check Balance")
+    print("5. Transaction History")
+    print("6. Transaction Statistics")
+    print("7. Display All Accounts")
+    print("8. Exit")
+
+    choice = input("Enter your choice: ").strip()
+
+    if choice == "1":
+        create_account()
+
+    elif choice == "2":
+        deposit_money()
+
+    elif choice == "3":
+        withdraw_money()
+
+    elif choice == "4":
+        check_balance()
+
+    elif choice == "5":
+        transaction_history()
+
+   
+```

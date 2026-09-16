@@ -1,0 +1,446 @@
+# ============================================================
+
+# 🛒 SUPERMARKET BILLING & SALES ANALYZER
+
+# ============================================================
+
+# Concepts Used:
+
+# String
+
+# if / elif / else
+
+# for loop
+
+# while loop
+
+# Functions
+
+# List
+
+# Dictionary
+
+# Tuple
+
+# NumPy
+
+# ============================================================
+
+import numpy as np
+
+# ============================================================
+
+# PRODUCT CATEGORIES - TUPLE
+
+# ============================================================
+
+categories = ("Food", "Electronics", "Clothing", "Grocery")
+
+# ============================================================
+
+# PRODUCT LIST
+
+# ============================================================
+
+products = []
+
+# ============================================================
+
+# SALES LIST
+
+# ============================================================
+
+sales = []
+
+# ============================================================
+
+# FUNCTION 1: ADD PRODUCT
+
+# ============================================================
+
+def add_product():
+
+```
+print("\n========== ADD PRODUCT ==========")
+
+name = input("Enter product name: ").strip().title()
+
+if name == "":
+    print("Product name cannot be empty.")
+    return
+
+# Display categories
+print("\nCategories:")
+
+for i in range(len(categories)):
+    print(i + 1, ".", categories[i])
+
+while True:
+
+    choice = input("Select category: ").strip()
+
+    if choice == "1":
+        category = categories[0]
+        break
+
+    elif choice == "2":
+        category = categories[1]
+        break
+
+    elif choice == "3":
+        category = categories[2]
+        break
+
+    elif choice == "4":
+        category = categories[3]
+        break
+
+    else:
+        print("Invalid category.")
+
+try:
+    price = float(input("Enter product price: "))
+    quantity = int(input("Enter quantity: "))
+
+except ValueError:
+    print("Please enter valid numbers.")
+    return
+
+if price <= 0:
+    print("Price must be greater than zero.")
+    return
+
+if quantity <= 0:
+    print("Quantity must be greater than zero.")
+    return
+
+# Product dictionary
+product = {
+    "name": name,
+    "category": category,
+    "price": price,
+    "quantity": quantity
+}
+
+products.append(product)
+
+print("\nProduct added successfully!")
+```
+
+# ============================================================
+
+# FUNCTION 2: DISPLAY PRODUCTS
+
+# ============================================================
+
+def display_products():
+
+```
+print("\n========== PRODUCT LIST ==========")
+
+if len(products) == 0:
+    print("No products available.")
+    return
+
+for index, product in enumerate(products, start=1):
+
+    print("\nProduct", index)
+    print("Name:", product["name"])
+    print("Category:", product["category"])
+    print("Price:", product["price"])
+    print("Quantity:", product["quantity"])
+```
+
+# ============================================================
+
+# FUNCTION 3: SEARCH PRODUCT
+
+# ============================================================
+
+def search_product():
+
+```
+print("\n========== SEARCH PRODUCT ==========")
+
+search = input("Enter product name: ").strip().lower()
+
+found = False
+
+for product in products:
+
+    if product["name"].lower() == search:
+
+        print("\nProduct Found!")
+        print("Name:", product["name"])
+        print("Category:", product["category"])
+        print("Price:", product["price"])
+        print("Quantity:", product["quantity"])
+
+        found = True
+        break
+
+if found == False:
+    print("Product not found.")
+```
+
+# ============================================================
+
+# FUNCTION 4: GENERATE BILL
+
+# ============================================================
+
+def generate_bill():
+
+```
+print("\n========== GENERATE BILL ==========")
+
+if len(products) == 0:
+    print("No products available.")
+    return
+
+customer = input("Enter customer name: ").strip().title()
+
+if customer == "":
+    print("Customer name cannot be empty.")
+    return
+
+bill_items = []
+total = 0
+
+while True:
+
+    display_products()
+
+    try:
+        product_number = int(
+            input("\nEnter product number (0 to finish): ")
+        )
+
+    except ValueError:
+        print("Enter a valid number.")
+        continue
+
+    if product_number == 0:
+        break
+
+    if product_number < 1 or product_number > len(products):
+        print("Invalid product number.")
+        continue
+
+    product = products[product_number - 1]
+
+    try:
+        quantity = int(
+            input("Enter quantity to buy: ")
+        )
+
+    except ValueError:
+        print("Enter a valid quantity.")
+        continue
+
+    if quantity <= 0:
+        print("Quantity must be greater than zero.")
+        continue
+
+    if quantity > product["quantity"]:
+        print("Not enough stock available.")
+        continue
+
+    amount = product["price"] * quantity
+
+    # Reduce stock
+    product["quantity"] -= quantity
+
+    # Add to bill
+    bill_item = {
+        "name": product["name"],
+        "quantity": quantity,
+        "amount": amount
+    }
+
+    bill_items.append(bill_item)
+
+    total += amount
+
+    print("Product added to bill.")
+
+if len(bill_items) == 0:
+    print("No items selected.")
+    return
+
+# Discount
+if total >= 5000:
+    discount = total * 0.10
+
+elif total >= 3000:
+    discount = total * 0.05
+
+else:
+    discount = 0
+
+final_amount = total - discount
+
+# Store sale
+sale = {
+    "customer": customer,
+    "total": total,
+    "discount": discount,
+    "final_amount": final_amount,
+    "items": bill_items
+}
+
+sales.append(sale)
+
+# Print bill
+print("\n")
+print("========================================")
+print("              🛒 BILL")
+print("========================================")
+
+print("Customer:", customer)
+
+for item in bill_items:
+
+    print(
+        item["name"],
+        "x",
+        item["quantity"],
+        "=",
+        item["amount"]
+    )
+
+print("----------------------------------------")
+print("Total:", round(total, 2))
+print("Discount:", round(discount, 2))
+print("Final Amount:", round(final_amount, 2))
+print("========================================")
+```
+
+# ============================================================
+
+# FUNCTION 5: SALES ANALYSIS
+
+# ============================================================
+
+def sales_analysis():
+
+```
+print("\n========== SALES ANALYSIS ==========")
+
+if len(sales) == 0:
+    print("No sales available.")
+    return
+
+amounts = []
+
+for sale in sales:
+    amounts.append(sale["final_amount"])
+
+# Convert list to NumPy array
+sales_array = np.array(amounts)
+
+print(
+    "Total Sales:",
+    round(np.sum(sales_array), 2)
+)
+
+print(
+    "Average Bill:",
+    round(np.mean(sales_array), 2)
+)
+
+print(
+    "Highest Bill:",
+    round(np.max(sales_array), 2)
+)
+
+print(
+    "Lowest Bill:",
+    round(np.min(sales_array), 2)
+)
+```
+
+# ============================================================
+
+# FUNCTION 6: DISPLAY SALES
+
+# ============================================================
+
+def display_sales():
+
+```
+print("\n========== SALES HISTORY ==========")
+
+if len(sales) == 0:
+    print("No sales found.")
+    return
+
+for index, sale in enumerate(sales, start=1):
+
+    print("\nSale", index)
+
+    print("Customer:", sale["customer"])
+    print("Total:", round(sale["total"], 2))
+    print("Discount:", round(sale["discount"], 2))
+    print("Final Amount:", round(sale["final_amount"], 2))
+```
+
+# ============================================================
+
+# FUNCTION 7: MAIN MENU
+
+# ============================================================
+
+def main():
+
+```
+while True:
+
+    print("\n")
+    print("========================================")
+    print("     🛒 SUPERMARKET BILLING SYSTEM")
+    print("========================================")
+
+    print("1. Add Product")
+    print("2. Display Products")
+    print("3. Search Product")
+    print("4. Generate Bill")
+    print("5. Sales Analysis")
+    print("6. Display Sales")
+    print("7. Exit")
+
+    choice = input("Enter your choice: ").strip()
+
+    if choice == "1":
+        add_product()
+
+    elif choice == "2":
+        display_products()
+
+    elif choice == "3":
+        search_product()
+
+    elif choice == "4":
+        generate_bill()
+
+    elif choice == "5":
+        sales_analysis()
+
+    elif choice == "6":
+        display_sales()
+
+    elif choice == "7":
+        print("\nThank you for using the supermarket system!")
+        break
+
+    else:
+        print("\nInvalid choice. Please try again.")
+```
+
+# ============================================================
+
+# PROGRAM START
+
+# ============================================================
+
+main()

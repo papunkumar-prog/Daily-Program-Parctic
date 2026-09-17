@@ -1,0 +1,489 @@
+# ============================================================
+
+# 🎬 MOVIE TICKET BOOKING & SALES ANALYZER
+
+# ============================================================
+
+# Concepts Used:
+
+# String, If/Else, For Loop, While Loop,
+
+# Functions, List, Tuple, Dictionary, NumPy
+
+# ============================================================
+
+import numpy as np
+
+# ============================================================
+
+# MOVIE DATA
+
+# ============================================================
+
+movies = [
+{
+"id": 101,
+"name": "Avengers",
+"language": "English",
+"price": 250,
+"available_seats": 50
+},
+{
+"id": 102,
+"name": "Leo",
+"language": "Tamil",
+"price": 200,
+"available_seats": 40
+},
+{
+"id": 103,
+"name": "RRR",
+"language": "Telugu",
+"price": 180,
+"available_seats": 35
+},
+{
+"id": 104,
+"name": "3 Idiots",
+"language": "Hindi",
+"price": 150,
+"available_seats": 30
+}
+]
+
+# Tuple
+
+languages = ("English", "Tamil", "Telugu", "Hindi")
+
+# List to store bookings
+
+bookings = []
+
+# ============================================================
+
+# 1. DISPLAY MOVIES
+
+# ============================================================
+
+def display_movies():
+
+```
+print("\n========== 🎬 AVAILABLE MOVIES ==========")
+
+for movie in movies:
+
+    print(
+        f'ID: {movie["id"]} | '
+        f'Movie: {movie["name"]} | '
+        f'Language: {movie["language"]} | '
+        f'Ticket: ₹{movie["price"]} | '
+        f'Seats: {movie["available_seats"]}'
+    )
+```
+
+# ============================================================
+
+# 2. ADD NEW MOVIE
+
+# ============================================================
+
+def add_movie():
+
+```
+print("\n========== ➕ ADD MOVIE ==========")
+
+try:
+
+    movie_id = int(input("Enter Movie ID: "))
+
+    name = input("Enter Movie Name: ").strip().title()
+
+    print("\nAvailable Languages:")
+
+    for language in languages:
+        print("-", language)
+
+    language = input("Enter Language: ").strip().title()
+
+    if language not in languages:
+
+        print("❌ Invalid language.")
+        return
+
+    price = float(input("Enter Ticket Price: "))
+
+    seats = int(input("Enter Number of Seats: "))
+
+    if price <= 0:
+
+        print("❌ Price must be greater than 0.")
+        return
+
+    if seats <= 0:
+
+        print("❌ Seats must be greater than 0.")
+        return
+
+    # Check duplicate ID
+    for movie in movies:
+
+        if movie["id"] == movie_id:
+
+            print("❌ Movie ID already exists.")
+            return
+
+    new_movie = {
+        "id": movie_id,
+        "name": name,
+        "language": language,
+        "price": price,
+        "available_seats": seats
+    }
+
+    movies.append(new_movie)
+
+    print("✅ Movie added successfully.")
+
+except ValueError:
+
+    print("❌ Please enter valid values.")
+```
+
+# ============================================================
+
+# 3. SEARCH MOVIE
+
+# ============================================================
+
+def search_movie():
+
+```
+print("\n========== 🔍 SEARCH MOVIE ==========")
+
+search = input("Enter movie name: ").strip().lower()
+
+found = False
+
+for movie in movies:
+
+    if search in movie["name"].lower():
+
+        print("\nMovie Found")
+        print("ID:", movie["id"])
+        print("Name:", movie["name"])
+        print("Language:", movie["language"])
+        print("Price:", movie["price"])
+        print("Available Seats:", movie["available_seats"])
+
+        found = True
+
+if not found:
+
+    print("❌ Movie not found.")
+```
+
+# ============================================================
+
+# 4. BOOK TICKETS
+
+# ============================================================
+
+def book_ticket():
+
+```
+print("\n========== 🎟️ BOOK TICKETS ==========")
+
+try:
+
+    movie_id = int(input("Enter Movie ID: "))
+
+    customer = input("Enter Customer Name: ").strip().title()
+
+    quantity = int(input("Enter Number of Tickets: "))
+
+    if quantity <= 0:
+
+        print("❌ Number of tickets must be greater than 0.")
+        return
+
+    for movie in movies:
+
+        if movie["id"] == movie_id:
+
+            if movie["available_seats"] >= quantity:
+
+                total = movie["price"] * quantity
+
+                movie["available_seats"] -= quantity
+
+                booking = {
+                    "customer": customer,
+                    "movie": movie["name"],
+                    "tickets": quantity,
+                    "price": movie["price"],
+                    "total": total
+                }
+
+                bookings.append(booking)
+
+                print("\n✅ Booking successful!")
+                print("Customer:", customer)
+                print("Movie:", movie["name"])
+                print("Tickets:", quantity)
+                print("Total Amount: ₹", total)
+
+                return
+
+            else:
+
+                print("❌ Not enough seats available.")
+                return
+
+    print("❌ Movie ID not found.")
+
+except ValueError:
+
+    print("❌ Please enter valid numbers.")
+```
+
+# ============================================================
+
+# 5. CANCEL BOOKING
+
+# ============================================================
+
+def cancel_booking():
+
+```
+print("\n========== ❌ CANCEL BOOKING ==========")
+
+if len(bookings) == 0:
+
+    print("No bookings available.")
+    return
+
+customer = input("Enter Customer Name: ").strip().title()
+
+found = False
+
+for booking in bookings:
+
+    if booking["customer"] == customer:
+
+        # Return seats to movie
+        for movie in movies:
+
+            if movie["name"] == booking["movie"]:
+
+                movie["available_seats"] += booking["tickets"]
+
+        bookings.remove(booking)
+
+        print("✅ Booking cancelled successfully.")
+
+        found = True
+
+        return
+
+if not found:
+
+    print("❌ Booking not found.")
+```
+
+# ============================================================
+
+# 6. DISPLAY BOOKINGS
+
+# ============================================================
+
+def display_bookings():
+
+```
+print("\n========== 🎟️ ALL BOOKINGS ==========")
+
+if len(bookings) == 0:
+
+    print("No bookings available.")
+    return
+
+for booking in bookings:
+
+    print(
+        f'Customer: {booking["customer"]} | '
+        f'Movie: {booking["movie"]} | '
+        f'Tickets: {booking["tickets"]} | '
+        f'Total: ₹{booking["total"]}'
+    )
+```
+
+# ============================================================
+
+# 7. SALES ANALYSIS USING NUMPY
+
+# ============================================================
+
+def sales_analysis():
+
+```
+print("\n========== 📊 SALES ANALYSIS ==========")
+
+if len(bookings) == 0:
+
+    print("No sales data available.")
+    return
+
+# Take ticket totals from every booking
+sales = np.array(
+    [booking["total"] for booking in bookings]
+)
+
+tickets = np.array(
+    [booking["tickets"] for booking in bookings]
+)
+
+print("Total Revenue:", np.sum(sales))
+
+print("Average Booking Amount:", np.mean(sales))
+
+print("Highest Booking:", np.max(sales))
+
+print("Lowest Booking:", np.min(sales))
+
+print("Total Tickets Sold:", np.sum(tickets))
+```
+
+# ============================================================
+
+# 8. MOVIE-WISE SALES
+
+# ============================================================
+
+def movie_sales():
+
+```
+print("\n========== 🎬 MOVIE-WISE SALES ==========")
+
+for movie in movies:
+
+    total_tickets = 0
+    total_revenue = 0
+
+    for booking in bookings:
+
+        if booking["movie"] == movie["name"]:
+
+            total_tickets += booking["tickets"]
+            total_revenue += booking["total"]
+
+    print("\nMovie:", movie["name"])
+    print("Tickets Sold:", total_tickets)
+    print("Revenue: ₹", total_revenue)
+```
+
+# ============================================================
+
+# 9. LANGUAGE ANALYSIS
+
+# ============================================================
+
+def language_analysis():
+
+```
+print("\n========== 🌐 LANGUAGE ANALYSIS ==========")
+
+for language in languages:
+
+    count = 0
+
+    for movie in movies:
+
+        if movie["language"] == language:
+
+            count += 1
+
+    print(language, ":", count, "movie(s)")
+```
+
+# ============================================================
+
+# 10. MAIN MENU
+
+# ============================================================
+
+def main():
+
+```
+# while loop keeps the application running
+while True:
+
+    print("\n")
+    print("=" * 55)
+    print("       🎬 MOVIE TICKET BOOKING SYSTEM")
+    print("=" * 55)
+
+    print("1. Display Movies")
+    print("2. Add Movie")
+    print("3. Search Movie")
+    print("4. Book Tickets")
+    print("5. Cancel Booking")
+    print("6. Display Bookings")
+    print("7. Sales Analysis")
+    print("8. Movie-wise Sales")
+    print("9. Language Analysis")
+    print("10. Exit")
+
+    choice = input("\nEnter your choice: ").strip()
+
+    if choice == "1":
+
+        display_movies()
+
+    elif choice == "2":
+
+        add_movie()
+
+    elif choice == "3":
+
+        search_movie()
+
+    elif choice == "4":
+
+        book_ticket()
+
+    elif choice == "5":
+
+        cancel_booking()
+
+    elif choice == "6":
+
+        display_bookings()
+
+    elif choice == "7":
+
+        sales_analysis()
+
+    elif choice == "8":
+
+        movie_sales()
+
+    elif choice == "9":
+
+        language_analysis()
+
+    elif choice == "10":
+
+        print("\n🎬 Thank you for using the Movie Booking System!")
+        break
+
+    else:
+
+        print("❌ Invalid choice. Try again.")
+```
+
+# ============================================================
+
+# PROGRAM START
+
+# ============================================================
+
+main()

@@ -1,0 +1,583 @@
+# ============================================================
+
+# 🏥 HOSPITAL PATIENT MANAGEMENT & BILLING SYSTEM
+
+# ============================================================
+
+# Concepts Used:
+
+# String
+
+# If / Elif / Else
+
+# For Loop
+
+# While Loop
+
+# Functions
+
+# List
+
+# Tuple
+
+# Dictionary
+
+# NumPy
+
+# ============================================================
+
+import numpy as np
+
+# ============================================================
+
+# DEPARTMENT DATA
+
+# ============================================================
+
+# Tuple = fixed collection of departments
+
+departments = (
+"General",
+"Cardiology",
+"Neurology",
+"Orthopedic",
+"Pediatrics"
+)
+
+# ============================================================
+
+# PATIENT DATA
+
+# ============================================================
+
+# List containing dictionaries
+
+patients = [
+
+```
+{
+    "id": 101,
+    "name": "Rahul",
+    "age": 35,
+    "gender": "Male",
+    "department": "General",
+    "bill": 1500,
+    "status": "Admitted"
+},
+
+{
+    "id": 102,
+    "name": "Priya",
+    "age": 28,
+    "gender": "Female",
+    "department": "Cardiology",
+    "bill": 5000,
+    "status": "Admitted"
+},
+
+{
+    "id": 103,
+    "name": "Amit",
+    "age": 45,
+    "gender": "Male",
+    "department": "Neurology",
+    "bill": 3500,
+    "status": "Discharged"
+}
+```
+
+]
+
+# ============================================================
+
+# 1. DISPLAY ALL PATIENTS
+
+# ============================================================
+
+def display_patients():
+
+```
+print("\n========== 🏥 ALL PATIENTS ==========")
+
+if len(patients) == 0:
+
+    print("No patient records available.")
+    return
+
+# for loop reads every patient
+for patient in patients:
+
+    print(
+        f'ID: {patient["id"]} | '
+        f'Name: {patient["name"]} | '
+        f'Age: {patient["age"]} | '
+        f'Gender: {patient["gender"]} | '
+        f'Department: {patient["department"]} | '
+        f'Bill: ₹{patient["bill"]} | '
+        f'Status: {patient["status"]}'
+    )
+```
+
+# ============================================================
+
+# 2. ADD NEW PATIENT
+
+# ============================================================
+
+def add_patient():
+
+```
+print("\n========== ➕ ADD PATIENT ==========")
+
+try:
+
+    patient_id = int(input("Enter Patient ID: "))
+
+    name = input("Enter Patient Name: ").strip().title()
+
+    age = int(input("Enter Age: "))
+
+    gender = input("Enter Gender: ").strip().title()
+
+    print("\nAvailable Departments:")
+
+    for department in departments:
+
+        print("-", department)
+
+    department = input("Enter Department: ").strip().title()
+
+    # Validate department
+    if department not in departments:
+
+        print("❌ Invalid department.")
+        return
+
+    if age <= 0:
+
+        print("❌ Age must be greater than 0.")
+        return
+
+    # Check duplicate patient ID
+    for patient in patients:
+
+        if patient["id"] == patient_id:
+
+            print("❌ Patient ID already exists.")
+            return
+
+    new_patient = {
+
+        "id": patient_id,
+        "name": name,
+        "age": age,
+        "gender": gender,
+        "department": department,
+        "bill": 0,
+        "status": "Admitted"
+    }
+
+    patients.append(new_patient)
+
+    print("✅ Patient added successfully.")
+
+
+except ValueError:
+
+    print("❌ Please enter valid values.")
+```
+
+# ============================================================
+
+# 3. SEARCH PATIENT
+
+# ============================================================
+
+def search_patient():
+
+```
+print("\n========== 🔍 SEARCH PATIENT ==========")
+
+search = input("Enter patient name: ").strip().lower()
+
+found = False
+
+for patient in patients:
+
+    if search in patient["name"].lower():
+
+        print("\nPatient Found")
+
+        print("Patient ID:", patient["id"])
+        print("Name:", patient["name"])
+        print("Age:", patient["age"])
+        print("Gender:", patient["gender"])
+        print("Department:", patient["department"])
+        print("Bill:", patient["bill"])
+        print("Status:", patient["status"])
+
+        found = True
+
+if not found:
+
+    print("❌ Patient not found.")
+```
+
+# ============================================================
+
+# 4. ADD BILL
+
+# ============================================================
+
+def add_bill():
+
+```
+print("\n========== 💰 ADD PATIENT BILL ==========")
+
+try:
+
+    patient_id = int(input("Enter Patient ID: "))
+
+    amount = float(input("Enter Bill Amount: "))
+
+    if amount <= 0:
+
+        print("❌ Amount must be greater than 0.")
+        return
+
+    for patient in patients:
+
+        if patient["id"] == patient_id:
+
+            patient["bill"] += amount
+
+            print("✅ Bill added successfully.")
+
+            print(
+                "Current Bill: ₹",
+                patient["bill"]
+            )
+
+            return
+
+    print("❌ Patient ID not found.")
+
+
+except ValueError:
+
+    print("❌ Please enter valid numbers.")
+```
+
+# ============================================================
+
+# 5. DISCHARGE PATIENT
+
+# ============================================================
+
+def discharge_patient():
+
+```
+print("\n========== 🚪 DISCHARGE PATIENT ==========")
+
+try:
+
+    patient_id = int(input("Enter Patient ID: "))
+
+    for patient in patients:
+
+        if patient["id"] == patient_id:
+
+            if patient["status"] == "Admitted":
+
+                patient["status"] = "Discharged"
+
+                print(
+                    "✅ Patient discharged successfully."
+                )
+
+            else:
+
+                print("❌ Patient is already discharged.")
+
+            return
+
+    print("❌ Patient ID not found.")
+
+
+except ValueError:
+
+    print("❌ Enter a valid Patient ID.")
+```
+
+# ============================================================
+
+# 6. PATIENT BILL DETAILS
+
+# ============================================================
+
+def patient_bill():
+
+```
+print("\n========== 💳 PATIENT BILL ==========")
+
+try:
+
+    patient_id = int(input("Enter Patient ID: "))
+
+    for patient in patients:
+
+        if patient["id"] == patient_id:
+
+            print("\n========== BILL ==========")
+
+            print("Patient:", patient["name"])
+            print("Department:", patient["department"])
+            print("Total Bill: ₹", patient["bill"])
+
+            if patient["bill"] == 0:
+
+                print("No bill generated.")
+
+            elif patient["bill"] < 2000:
+
+                print("Bill Category: Low")
+
+            elif patient["bill"] <= 5000:
+
+                print("Bill Category: Medium")
+
+            else:
+
+                print("Bill Category: High")
+
+            return
+
+    print("❌ Patient ID not found.")
+
+
+except ValueError:
+
+    print("❌ Enter a valid Patient ID.")
+```
+
+# ============================================================
+
+# 7. DISPLAY ADMITTED PATIENTS
+
+# ============================================================
+
+def admitted_patients():
+
+```
+print("\n========== 🏥 ADMITTED PATIENTS ==========")
+
+found = False
+
+for patient in patients:
+
+    if patient["status"] == "Admitted":
+
+        print(
+            f'ID: {patient["id"]} | '
+            f'Name: {patient["name"]} | '
+            f'Department: {patient["department"]}'
+        )
+
+        found = True
+
+if not found:
+
+    print("No patients currently admitted.")
+```
+
+# ============================================================
+
+# 8. HOSPITAL BILL ANALYSIS USING NUMPY
+
+# ============================================================
+
+def bill_analysis():
+
+```
+print("\n========== 📊 BILL ANALYSIS ==========")
+
+if len(patients) == 0:
+
+    print("No patient data available.")
+
+    return
+
+# Get all patient bills
+bills = np.array(
+    [patient["bill"] for patient in patients]
+)
+
+print("Total Hospital Billing: ₹", np.sum(bills))
+
+print(
+    "Average Patient Bill: ₹",
+    np.mean(bills)
+)
+
+print(
+    "Highest Patient Bill: ₹",
+    np.max(bills)
+)
+
+print(
+    "Lowest Patient Bill: ₹",
+    np.min(bills)
+)
+```
+
+# ============================================================
+
+# 9. DEPARTMENT ANALYSIS
+
+# ============================================================
+
+def department_analysis():
+
+```
+print("\n========== 📊 DEPARTMENT ANALYSIS ==========")
+
+for department in departments:
+
+    count = 0
+
+    for patient in patients:
+
+        if patient["department"] == department:
+
+            count += 1
+
+    print(
+        department,
+        ":",
+        count,
+        "patient(s)"
+    )
+```
+
+# ============================================================
+
+# 10. DELETE PATIENT
+
+# ============================================================
+
+def delete_patient():
+
+```
+print("\n========== 🗑️ DELETE PATIENT ==========")
+
+try:
+
+    patient_id = int(input("Enter Patient ID: "))
+
+    for patient in patients:
+
+        if patient["id"] == patient_id:
+
+            patients.remove(patient)
+
+            print("✅ Patient record deleted.")
+
+            return
+
+    print("❌ Patient ID not found.")
+
+
+except ValueError:
+
+    print("❌ Enter a valid Patient ID.")
+```
+
+# ============================================================
+
+# 11. MAIN MENU
+
+# ============================================================
+
+def main():
+
+```
+# while loop keeps the program running
+while True:
+
+    print("\n")
+    print("=" * 55)
+    print("      🏥 HOSPITAL MANAGEMENT SYSTEM")
+    print("=" * 55)
+
+    print("1. Display All Patients")
+    print("2. Add Patient")
+    print("3. Search Patient")
+    print("4. Add Bill")
+    print("5. Discharge Patient")
+    print("6. Patient Bill")
+    print("7. Admitted Patients")
+    print("8. Bill Analysis")
+    print("9. Department Analysis")
+    print("10. Delete Patient")
+    print("11. Exit")
+
+    choice = input("\nEnter your choice: ").strip()
+
+    if choice == "1":
+
+        display_patients()
+
+    elif choice == "2":
+
+        add_patient()
+
+    elif choice == "3":
+
+        search_patient()
+
+    elif choice == "4":
+
+        add_bill()
+
+    elif choice == "5":
+
+        discharge_patient()
+
+    elif choice == "6":
+
+        patient_bill()
+
+    elif choice == "7":
+
+        admitted_patients()
+
+    elif choice == "8":
+
+        bill_analysis()
+
+    elif choice == "9":
+
+        department_analysis()
+
+    elif choice == "10":
+
+        delete_patient()
+
+    elif choice == "11":
+
+        print("\nThank you for using the Hospital Management System! 🏥")
+
+        break
+
+    else:
+
+        print("❌ Invalid choice. Please try again.")
+```
+
+# ============================================================
+
+# PROGRAM START
+
+# ============================================================
+
+main()

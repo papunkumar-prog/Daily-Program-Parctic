@@ -1,0 +1,767 @@
+# ============================================================
+
+# 🚌 BUS TICKET BOOKING & PASSENGER MANAGEMENT SYSTEM
+
+# ============================================================
+
+# Concepts Used:
+
+# String
+
+# If / Elif / Else
+
+# For Loop
+
+# While Loop
+
+# Functions
+
+# List
+
+# Tuple
+
+# Dictionary
+
+# NumPy
+
+# ============================================================
+
+import numpy as np
+
+# ============================================================
+
+# BUS ROUTES
+
+# ============================================================
+
+# Tuple = fixed list of routes
+
+routes = (
+"Chennai",
+"Bangalore",
+"Coimbatore",
+"Madurai",
+"Trichy"
+)
+
+# ============================================================
+
+# BUS DATA
+
+# ============================================================
+
+buses = [
+
+```
+{
+    "bus_id": 101,
+    "bus_name": "Express 1",
+    "route": "Chennai",
+    "price": 500,
+    "seats": 40
+},
+
+{
+    "bus_id": 102,
+    "bus_name": "Express 2",
+    "route": "Bangalore",
+    "price": 700,
+    "seats": 35
+},
+
+{
+    "bus_id": 103,
+    "bus_name": "Express 3",
+    "route": "Coimbatore",
+    "price": 600,
+    "seats": 30
+},
+
+{
+    "bus_id": 104,
+    "bus_name": "Express 4",
+    "route": "Madurai",
+    "price": 450,
+    "seats": 45
+},
+
+{
+    "bus_id": 105,
+    "bus_name": "Express 5",
+    "route": "Trichy",
+    "price": 400,
+    "seats": 50
+}
+```
+
+]
+
+# ============================================================
+
+# PASSENGER BOOKING DATA
+
+# ============================================================
+
+bookings = []
+
+# ============================================================
+
+# 1. DISPLAY ALL BUSES
+
+# ============================================================
+
+def display_buses():
+
+```
+print("\n========== 🚌 AVAILABLE BUSES ==========")
+
+for bus in buses:
+
+    print(
+        f'ID: {bus["bus_id"]} | '
+        f'Bus: {bus["bus_name"]} | '
+        f'Route: {bus["route"]} | '
+        f'Price: ₹{bus["price"]} | '
+        f'Available Seats: {bus["seats"]}'
+    )
+```
+
+# ============================================================
+
+# 2. SEARCH BUS
+
+# ============================================================
+
+def search_bus():
+
+```
+print("\n========== 🔍 SEARCH BUS ==========")
+
+print("\nAvailable Routes:")
+
+for route in routes:
+
+    print("-", route)
+
+search_route = input(
+    "\nEnter destination: "
+).strip().title()
+
+found = False
+
+for bus in buses:
+
+    if bus["route"] == search_route:
+
+        print(
+            f'\nBus ID: {bus["bus_id"]}'
+        )
+
+        print(
+            f'Bus Name: {bus["bus_name"]}'
+        )
+
+        print(
+            f'Route: {bus["route"]}'
+        )
+
+        print(
+            f'Ticket Price: ₹{bus["price"]}'
+        )
+
+        print(
+            f'Available Seats: {bus["seats"]}'
+        )
+
+        found = True
+
+if not found:
+
+    print("❌ No bus found for this route.")
+```
+
+# ============================================================
+
+# 3. BOOK TICKET
+
+# ============================================================
+
+def book_ticket():
+
+```
+print("\n========== 🎟️ BOOK TICKET ==========")
+
+try:
+
+    bus_id = int(
+        input("Enter Bus ID: ")
+    )
+
+    passenger = input(
+        "Enter Passenger Name: "
+    ).strip().title()
+
+    age = int(
+        input("Enter Passenger Age: ")
+    )
+
+    ticket_count = int(
+        input("Enter Number of Tickets: ")
+    )
+
+    if age <= 0:
+
+        print("❌ Invalid age.")
+        return
+
+    if ticket_count <= 0:
+
+        print("❌ Ticket count must be greater than 0.")
+        return
+
+    # Find bus
+    for bus in buses:
+
+        if bus["bus_id"] == bus_id:
+
+            # Check available seats
+            if bus["seats"] >= ticket_count:
+
+                total = (
+                    bus["price"] * ticket_count
+                )
+
+                # Reduce available seats
+                bus["seats"] -= ticket_count
+
+                booking = {
+
+                    "passenger": passenger,
+                    "age": age,
+                    "bus_id": bus_id,
+                    "bus_name": bus["bus_name"],
+                    "route": bus["route"],
+                    "tickets": ticket_count,
+                    "price": bus["price"],
+                    "total": total
+                }
+
+                bookings.append(booking)
+
+                print(
+                    "\n✅ Ticket booked successfully!"
+                )
+
+                print(
+                    "Passenger:",
+                    passenger
+                )
+
+                print(
+                    "Bus:",
+                    bus["bus_name"]
+                )
+
+                print(
+                    "Destination:",
+                    bus["route"]
+                )
+
+                print(
+                    "Tickets:",
+                    ticket_count
+                )
+
+                print(
+                    "Total Amount: ₹",
+                    total
+                )
+
+                return
+
+            else:
+
+                print(
+                    "❌ Not enough seats available."
+                )
+
+                return
+
+    print("❌ Bus ID not found.")
+
+except ValueError:
+
+    print("❌ Please enter valid values.")
+```
+
+# ============================================================
+
+# 4. CANCEL TICKET
+
+# ============================================================
+
+def cancel_ticket():
+
+```
+print("\n========== ❌ CANCEL TICKET ==========")
+
+if len(bookings) == 0:
+
+    print("No bookings available.")
+
+    return
+
+passenger = input(
+    "Enter Passenger Name: "
+).strip().title()
+
+found = False
+
+for booking in bookings:
+
+    if booking["passenger"] == passenger:
+
+        # Return seats to the bus
+        for bus in buses:
+
+            if bus["bus_id"] == booking["bus_id"]:
+
+                bus["seats"] += booking["tickets"]
+
+                break
+
+        bookings.remove(booking)
+
+        print(
+            "✅ Ticket cancelled successfully."
+        )
+
+        found = True
+
+        return
+
+if not found:
+
+    print("❌ Booking not found.")
+```
+
+# ============================================================
+
+# 5. DISPLAY BOOKINGS
+
+# ============================================================
+
+def display_bookings():
+
+```
+print("\n========== 📋 ALL BOOKINGS ==========")
+
+if len(bookings) == 0:
+
+    print("No bookings available.")
+
+    return
+
+for booking in bookings:
+
+    print(
+        f'Passenger: {booking["passenger"]} | '
+        f'Bus: {booking["bus_name"]} | '
+        f'Route: {booking["route"]} | '
+        f'Tickets: {booking["tickets"]} | '
+        f'Total: ₹{booking["total"]}'
+    )
+```
+
+# ============================================================
+
+# 6. PASSENGER SEARCH
+
+# ============================================================
+
+def search_passenger():
+
+```
+print("\n========== 👤 SEARCH PASSENGER ==========")
+
+name = input(
+    "Enter Passenger Name: "
+).strip().title()
+
+found = False
+
+for booking in bookings:
+
+    if booking["passenger"] == name:
+
+        print("\nPassenger Found!")
+
+        print(
+            "Name:",
+            booking["passenger"]
+        )
+
+        print(
+            "Age:",
+            booking["age"]
+        )
+
+        print(
+            "Bus:",
+            booking["bus_name"]
+        )
+
+        print(
+            "Destination:",
+            booking["route"]
+        )
+
+        print(
+            "Tickets:",
+            booking["tickets"]
+        )
+
+        print(
+            "Total:",
+            booking["total"]
+        )
+
+        found = True
+
+if not found:
+
+    print("❌ Passenger not found.")
+```
+
+# ============================================================
+
+# 7. REVENUE ANALYSIS USING NUMPY
+
+# ============================================================
+
+def revenue_analysis():
+
+```
+print("\n========== 📊 REVENUE ANALYSIS ==========")
+
+if len(bookings) == 0:
+
+    print("No booking data available.")
+
+    return
+
+# Extract total amount from each booking
+revenue = np.array(
+    [booking["total"] for booking in bookings]
+)
+
+# Extract number of tickets
+tickets = np.array(
+    [booking["tickets"] for booking in bookings]
+)
+
+print(
+    "Total Revenue: ₹",
+    np.sum(revenue)
+)
+
+print(
+    "Average Booking: ₹",
+    np.mean(revenue)
+)
+
+print(
+    "Highest Booking: ₹",
+    np.max(revenue)
+)
+
+print(
+    "Lowest Booking: ₹",
+    np.min(revenue)
+)
+
+print(
+    "Total Tickets Sold:",
+    np.sum(tickets)
+)
+```
+
+# ============================================================
+
+# 8. ROUTE-WISE ANALYSIS
+
+# ============================================================
+
+def route_analysis():
+
+```
+print("\n========== 📊 ROUTE ANALYSIS ==========")
+
+for route in routes:
+
+    ticket_count = 0
+    revenue = 0
+
+    for booking in bookings:
+
+        if booking["route"] == route:
+
+            ticket_count += booking["tickets"]
+
+            revenue += booking["total"]
+
+    print("\nRoute:", route)
+
+    print(
+        "Tickets Sold:",
+        ticket_count
+    )
+
+    print(
+        "Revenue: ₹",
+        revenue
+    )
+```
+
+# ============================================================
+
+# 9. BUS SUMMARY
+
+# ============================================================
+
+def bus_summary():
+
+```
+print("\n========== 🚌 BUS SUMMARY ==========")
+
+total_seats = 0
+available_seats = 0
+
+for bus in buses:
+
+    total_seats += 50
+
+    available_seats += bus["seats"]
+
+booked_seats = (
+    total_seats - available_seats
+)
+
+print(
+    "Total Bus Capacity:",
+    total_seats
+)
+
+print(
+    "Available Seats:",
+    available_seats
+)
+
+print(
+    "Booked Seats:",
+    booked_seats
+)
+
+if total_seats > 0:
+
+    occupancy = (
+        booked_seats / total_seats
+    ) * 100
+
+    print(
+        "Occupancy:",
+        round(occupancy, 2),
+        "%"
+    )
+```
+
+# ============================================================
+
+# 10. ADD NEW BUS
+
+# ============================================================
+
+def add_bus():
+
+```
+print("\n========== ➕ ADD NEW BUS ==========")
+
+try:
+
+    bus_id = int(
+        input("Enter Bus ID: ")
+    )
+
+    bus_name = input(
+        "Enter Bus Name: "
+    ).strip().title()
+
+    print("\nAvailable Routes:")
+
+    for route in routes:
+
+        print("-", route)
+
+    route = input(
+        "Enter Route: "
+    ).strip().title()
+
+    if route not in routes:
+
+        print("❌ Invalid route.")
+
+        return
+
+    price = float(
+        input("Enter Ticket Price: ")
+    )
+
+    seats = int(
+        input("Enter Total Seats: ")
+    )
+
+    if price <= 0:
+
+        print("❌ Price must be greater than 0.")
+
+        return
+
+    if seats <= 0:
+
+        print("❌ Seats must be greater than 0.")
+
+        return
+
+    # Check duplicate ID
+    for bus in buses:
+
+        if bus["bus_id"] == bus_id:
+
+            print(
+                "❌ Bus ID already exists."
+            )
+
+            return
+
+    new_bus = {
+
+        "bus_id": bus_id,
+        "bus_name": bus_name,
+        "route": route,
+        "price": price,
+        "seats": seats
+    }
+
+    buses.append(new_bus)
+
+    print(
+        "✅ New bus added successfully."
+    )
+
+except ValueError:
+
+    print(
+        "❌ Please enter valid values."
+    )
+```
+
+# ============================================================
+
+# 11. MAIN MENU
+
+# ============================================================
+
+def main():
+
+```
+# while loop keeps the program running
+while True:
+
+    print("\n")
+    print("=" * 60)
+
+    print(
+        "      🚌 BUS TICKET BOOKING SYSTEM"
+    )
+
+    print("=" * 60)
+
+    print("1. Display All Buses")
+    print("2. Search Bus")
+    print("3. Book Ticket")
+    print("4. Cancel Ticket")
+    print("5. Display Bookings")
+    print("6. Search Passenger")
+    print("7. Revenue Analysis")
+    print("8. Route Analysis")
+    print("9. Bus Summary")
+    print("10. Add New Bus")
+    print("11. Exit")
+
+    choice = input(
+        "\nEnter your choice: "
+    ).strip()
+
+    if choice == "1":
+
+        display_buses()
+
+    elif choice == "2":
+
+        search_bus()
+
+    elif choice == "3":
+
+        book_ticket()
+
+    elif choice == "4":
+
+        cancel_ticket()
+
+    elif choice == "5":
+
+        display_bookings()
+
+    elif choice == "6":
+
+        search_passenger()
+
+    elif choice == "7":
+
+        revenue_analysis()
+
+    elif choice == "8":
+
+        route_analysis()
+
+    elif choice == "9":
+
+        bus_summary()
+
+    elif choice == "10":
+
+        add_bus()
+
+    elif choice == "11":
+
+        print(
+            "\nThank you for using "
+            "the Bus Ticket Booking System! 🚌"
+        )
+
+        break
+
+    else:
+
+        print(
+            "❌ Invalid choice. Please try again."
+        )
+```
+
+# ============================================================
+
+# PROGRAM START
+
+# ============================================================
+
+main()

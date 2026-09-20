@@ -1,0 +1,656 @@
+# ============================================================
+
+# 🏏 CRICKET MATCH SCORE ANALYZER
+
+# ============================================================
+
+# Concepts Used:
+
+# String
+
+# If / Elif / Else
+
+# For Loop
+
+# While Loop
+
+# Functions
+
+# List
+
+# Tuple
+
+# Dictionary
+
+# NumPy
+
+# ============================================================
+
+import numpy as np
+
+# ============================================================
+
+# TEAM DATA
+
+# ============================================================
+
+# Tuple = fixed team names
+
+teams = (
+"India",
+"Australia",
+"England",
+"South Africa"
+)
+
+# ============================================================
+
+# PLAYER DATA
+
+# ============================================================
+
+# List containing dictionaries
+
+players = [
+
+```
+{
+    "id": 101,
+    "name": "Rohit",
+    "team": "India",
+    "runs": 85,
+    "balls": 60,
+    "wickets": 0
+},
+
+{
+    "id": 102,
+    "name": "Virat",
+    "team": "India",
+    "runs": 72,
+    "balls": 55,
+    "wickets": 0
+},
+
+{
+    "id": 103,
+    "name": "Bumrah",
+    "team": "India",
+    "runs": 12,
+    "balls": 15,
+    "wickets": 3
+},
+
+{
+    "id": 104,
+    "name": "Warner",
+    "team": "Australia",
+    "runs": 65,
+    "balls": 48,
+    "wickets": 0
+},
+
+{
+    "id": 105,
+    "name": "Smith",
+    "team": "Australia",
+    "runs": 54,
+    "balls": 50,
+    "wickets": 1
+}
+```
+
+]
+
+# ============================================================
+
+# MATCH DATA
+
+# ============================================================
+
+matches = []
+
+# ============================================================
+
+# 1. DISPLAY PLAYERS
+
+# ============================================================
+
+def display_players():
+
+```
+print("\n========== 🏏 ALL PLAYERS ==========")
+
+for player in players:
+
+    print(
+        f'ID: {player["id"]} | '
+        f'Name: {player["name"]} | '
+        f'Team: {player["team"]} | '
+        f'Runs: {player["runs"]} | '
+        f'Balls: {player["balls"]} | '
+        f'Wickets: {player["wickets"]}'
+    )
+```
+
+# ============================================================
+
+# 2. SEARCH PLAYER
+
+# ============================================================
+
+def search_player():
+
+```
+print("\n========== 🔍 SEARCH PLAYER ==========")
+
+name = input(
+    "Enter player name: "
+).strip().lower()
+
+found = False
+
+for player in players:
+
+    if name in player["name"].lower():
+
+        print("\nPlayer Found!")
+
+        print("Name:", player["name"])
+        print("Team:", player["team"])
+        print("Runs:", player["runs"])
+        print("Balls:", player["balls"])
+        print("Wickets:", player["wickets"])
+
+        found = True
+
+if not found:
+
+    print("❌ Player not found.")
+```
+
+# ============================================================
+
+# 3. ADD PLAYER
+
+# ============================================================
+
+def add_player():
+
+```
+print("\n========== ➕ ADD PLAYER ==========")
+
+try:
+
+    player_id = int(
+        input("Enter Player ID: ")
+    )
+
+    name = input(
+        "Enter Player Name: "
+    ).strip().title()
+
+    print("\nAvailable Teams:")
+
+    for team in teams:
+
+        print("-", team)
+
+    team = input(
+        "Enter Team: "
+    ).strip().title()
+
+    if team not in teams:
+
+        print("❌ Invalid team.")
+
+        return
+
+    # Check duplicate ID
+    for player in players:
+
+        if player["id"] == player_id:
+
+            print(
+                "❌ Player ID already exists."
+            )
+
+            return
+
+    new_player = {
+
+        "id": player_id,
+        "name": name,
+        "team": team,
+        "runs": 0,
+        "balls": 0,
+        "wickets": 0
+    }
+
+    players.append(new_player)
+
+    print(
+        "✅ Player added successfully."
+    )
+
+except ValueError:
+
+    print(
+        "❌ Please enter valid values."
+    )
+```
+
+# ============================================================
+
+# 4. UPDATE PLAYER SCORE
+
+# ============================================================
+
+def update_score():
+
+```
+print("\n========== 📝 UPDATE PLAYER SCORE ==========")
+
+try:
+
+    player_id = int(
+        input("Enter Player ID: ")
+    )
+
+    for player in players:
+
+        if player["id"] == player_id:
+
+            runs = int(
+                input("Enter Runs: ")
+            )
+
+            balls = int(
+                input("Enter Balls Faced: ")
+            )
+
+            wickets = int(
+                input("Enter Wickets: ")
+            )
+
+            if runs < 0 or balls < 0 or wickets < 0:
+
+                print(
+                    "❌ Values cannot be negative."
+                )
+
+                return
+
+            player["runs"] = runs
+            player["balls"] = balls
+            player["wickets"] = wickets
+
+            print(
+                "✅ Player score updated."
+            )
+
+            return
+
+    print(
+        "❌ Player ID not found."
+    )
+
+except ValueError:
+
+    print(
+        "❌ Please enter numbers only."
+    )
+```
+
+# ============================================================
+
+# 5. CALCULATE STRIKE RATE
+
+# ============================================================
+
+def strike_rate():
+
+```
+print("\n========== ⚡ STRIKE RATE ==========")
+
+found = False
+
+for player in players:
+
+    if player["balls"] > 0:
+
+        rate = (
+            player["runs"]
+            / player["balls"]
+        ) * 100
+
+        print(
+            player["name"],
+            "→",
+            round(rate, 2)
+        )
+
+        found = True
+
+if not found:
+
+    print("No batting data available.")
+```
+
+# ============================================================
+
+# 6. HIGHEST RUN SCORER
+
+# ============================================================
+
+def highest_scorer():
+
+```
+print("\n========== 🏆 HIGHEST RUN SCORER ==========")
+
+if len(players) == 0:
+
+    print("No players available.")
+
+    return
+
+highest = players[0]
+
+for player in players:
+
+    if player["runs"] > highest["runs"]:
+
+        highest = player
+
+print(
+    "Player:",
+    highest["name"]
+)
+
+print(
+    "Team:",
+    highest["team"]
+)
+
+print(
+    "Runs:",
+    highest["runs"]
+)
+```
+
+# ============================================================
+
+# 7. BOWLING ANALYSIS
+
+# ============================================================
+
+def bowling_analysis():
+
+```
+print("\n========== 🎯 BOWLING ANALYSIS ==========")
+
+found = False
+
+for player in players:
+
+    if player["wickets"] > 0:
+
+        print(
+            player["name"],
+            "→",
+            player["wickets"],
+            "wicket(s)"
+        )
+
+        found = True
+
+if not found:
+
+    print(
+        "No wickets recorded."
+    )
+```
+
+# ============================================================
+
+# 8. NUMPY SCORE ANALYSIS
+
+# ============================================================
+
+def score_analysis():
+
+```
+print("\n========== 📊 NUMPY SCORE ANALYSIS ==========")
+
+if len(players) == 0:
+
+    print(
+        "No player data available."
+    )
+
+    return
+
+# Create NumPy array of runs
+runs = np.array(
+    [player["runs"] for player in players]
+)
+
+print(
+    "Total Runs:",
+    np.sum(runs)
+)
+
+print(
+    "Average Runs:",
+    round(np.mean(runs), 2)
+)
+
+print(
+    "Highest Runs:",
+    np.max(runs)
+)
+
+print(
+    "Lowest Runs:",
+    np.min(runs)
+)
+```
+
+# ============================================================
+
+# 9. TEAM ANALYSIS
+
+# ============================================================
+
+def team_analysis():
+
+```
+print("\n========== 📊 TEAM ANALYSIS ==========")
+
+for team in teams:
+
+    total_runs = 0
+    total_wickets = 0
+    player_count = 0
+
+    for player in players:
+
+        if player["team"] == team:
+
+            total_runs += player["runs"]
+
+            total_wickets += player["wickets"]
+
+            player_count += 1
+
+    print("\nTeam:", team)
+    print("Players:", player_count)
+    print("Total Runs:", total_runs)
+    print("Total Wickets:", total_wickets)
+```
+
+# ============================================================
+
+# 10. MATCH RESULT
+
+# ============================================================
+
+def match_result():
+
+```
+print("\n========== 🏆 MATCH RESULT ==========")
+
+team1 = input(
+    "Enter Team 1: "
+).strip().title()
+
+team2 = input(
+    "Enter Team 2: "
+).strip().title()
+
+if team1 not in teams or team2 not in teams:
+
+    print(
+        "❌ Invalid team name."
+    )
+
+    return
+
+if team1 == team2:
+
+    print(
+        "❌ Teams must be different."
+    )
+
+    return
+
+score1 = int(
+    input(
+        f"Enter {team1} Score: "
+    )
+)
+
+score2 = int(
+    input(
+        f"Enter {team2} Score: "
+    )
+)
+
+if score1 > score2:
+
+    print(
+        f"🏆 {team1} won the match!"
+    )
+
+elif score2 > score1:
+
+    print(
+        f"🏆 {team2} won the match!"
+    )
+
+else:
+
+    print(
+        "🤝 Match Draw!"
+    )
+```
+
+# ============================================================
+
+# 11. MAIN MENU
+
+# ============================================================
+
+def main():
+
+```
+while True:
+
+    print("\n")
+    print("=" * 60)
+
+    print(
+        "       🏏 CRICKET SCORE ANALYZER"
+    )
+
+    print("=" * 60)
+
+    print("1. Display Players")
+    print("2. Search Player")
+    print("3. Add Player")
+    print("4. Update Player Score")
+    print("5. Calculate Strike Rate")
+    print("6. Highest Run Scorer")
+    print("7. Bowling Analysis")
+    print("8. NumPy Score Analysis")
+    print("9. Team Analysis")
+    print("10. Match Result")
+    print("11. Exit")
+
+    choice = input(
+        "\nEnter your choice: "
+    ).strip()
+
+    if choice == "1":
+
+        display_players()
+
+    elif choice == "2":
+
+        search_player()
+
+    elif choice == "3":
+
+        add_player()
+
+    elif choice == "4":
+
+        update_score()
+
+    elif choice == "5":
+
+        strike_rate()
+
+    elif choice == "6":
+
+        highest_scorer()
+
+    elif choice == "7":
+
+        bowling_analysis()
+
+    elif choice == "8":
+
+        score_analysis()
+
+    elif choice == "9":
+
+        team_analysis()
+
+    elif choice == "10":
+
+        match_result()
+
+    elif choice == "11":
+
+        print(
+            "\nThank you for using "
+            "Cricket Score Analyzer! 🏏"
+        )
+
+        break
+
+    else:
+
+        print(
+            "❌ Invalid choice."
+        )
+```
+
+# ============================================================
+
+# PROGRAM START
+
+# ============================================================
+
+main()

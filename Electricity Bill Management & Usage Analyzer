@@ -1,0 +1,608 @@
+# ⚡ Electricity Bill Management & Usage Analyzer
+
+# ============================================================
+
+# PROJECT FEATURES
+
+# ============================================================
+
+# 1. Add Customer
+
+# 2. View All Customers
+
+# 3. Search Customer
+
+# 4. Calculate Electricity Bill
+
+# 5. Update Units
+
+# 6. Highest Electricity Usage
+
+# 7. Lowest Electricity Usage
+
+# 8. Average Electricity Usage
+
+# 9. Total Revenue
+
+# 10. Delete Customer
+
+# 11. Exit
+
+#
+
+# Concepts Used:
+
+# String, if/elif/else, for loop, while loop,
+
+# function, list, tuple, dictionary, NumPy
+
+# ============================================================
+
+import numpy as np
+
+# ============================================================
+
+# FIXED ELECTRICITY CONNECTION TYPES
+
+# ============================================================
+
+connection_types = ("Domestic", "Commercial", "Industrial")
+
+# ============================================================
+
+# CUSTOMER DATA
+
+# ============================================================
+
+customers = [
+{
+"id": 101,
+"name": "Papun",
+"connection": "Domestic",
+"units": 120
+},
+{
+"id": 102,
+"name": "Amit",
+"connection": "Commercial",
+"units": 350
+},
+{
+"id": 103,
+"name": "Rahul",
+"connection": "Domestic",
+"units": 200
+}
+]
+
+# ============================================================
+
+# FUNCTION 1: CALCULATE BILL
+
+# ============================================================
+
+def calculate_bill(units):
+"""
+Execution Flow:
+1. Receive electricity units.
+2. Check the number of units.
+3. Apply different rates.
+4. Return the final bill amount.
+"""
+
+```
+if units <= 100:
+    bill = units * 3
+
+elif units <= 200:
+    bill = (100 * 3) + ((units - 100) * 5)
+
+elif units <= 500:
+    bill = (100 * 3) + (100 * 5) + ((units - 200) * 7)
+
+else:
+    bill = (100 * 3) + (100 * 5) + (300 * 7) + ((units - 500) * 10)
+
+return bill
+```
+
+# ============================================================
+
+# FUNCTION 2: GET USAGE CATEGORY
+
+# ============================================================
+
+def usage_category(units):
+"""
+Execution Flow:
+1. Receive units.
+2. Compare units with limits.
+3. Return the usage category.
+"""
+
+```
+if units <= 100:
+    return "Low Usage"
+
+elif units <= 300:
+    return "Medium Usage"
+
+elif units <= 500:
+    return "High Usage"
+
+else:
+    return "Very High Usage"
+```
+
+# ============================================================
+
+# FUNCTION 3: DISPLAY ALL CUSTOMERS
+
+# ============================================================
+
+def view_customers():
+"""
+Execution Flow:
+1. Check whether customer list is empty.
+2. Use for loop to read every customer.
+3. Calculate the bill.
+4. Display customer information.
+"""
+
+```
+if len(customers) == 0:
+    print("\nNo customers found.")
+    return
+
+print("\n========== CUSTOMER LIST ==========")
+
+for customer in customers:
+
+    bill = calculate_bill(customer["units"])
+
+    category = usage_category(customer["units"])
+
+    print("-----------------------------------")
+    print("Customer ID :", customer["id"])
+    print("Name        :", customer["name"])
+    print("Connection  :", customer["connection"])
+    print("Units       :", customer["units"])
+    print("Usage       :", category)
+    print("Bill        : ₹", bill)
+
+print("-----------------------------------")
+```
+
+# ============================================================
+
+# FUNCTION 4: ADD CUSTOMER
+
+# ============================================================
+
+def add_customer():
+"""
+Execution Flow:
+1. Ask for customer ID.
+2. Check whether ID already exists.
+3. Ask for name, connection type and units.
+4. Validate the input.
+5. Store data inside dictionary.
+6. Add dictionary to customer list.
+"""
+
+```
+print("\n========== ADD CUSTOMER ==========")
+
+try:
+    customer_id = int(input("Enter customer ID: "))
+
+    # Check duplicate ID
+    for customer in customers:
+
+        if customer["id"] == customer_id:
+            print("Customer ID already exists.")
+            return
+
+    name = input("Enter customer name: ").strip().title()
+
+    if name == "":
+        print("Name cannot be empty.")
+        return
+
+    print("\nConnection Types:")
+
+    for connection in connection_types:
+        print("-", connection)
+
+    connection = input("Enter connection type: ").strip().title()
+
+    if connection not in connection_types:
+        print("Invalid connection type.")
+        return
+
+    units = int(input("Enter electricity units: "))
+
+    if units < 0:
+        print("Units cannot be negative.")
+        return
+
+    new_customer = {
+        "id": customer_id,
+        "name": name,
+        "connection": connection,
+        "units": units
+    }
+
+    customers.append(new_customer)
+
+    print("\nCustomer added successfully.")
+
+except ValueError:
+    print("Please enter valid numeric values.")
+```
+
+# ============================================================
+
+# FUNCTION 5: SEARCH CUSTOMER
+
+# ============================================================
+
+def search_customer():
+"""
+Execution Flow:
+1. Ask for customer name.
+2. Search the list.
+3. Compare names.
+4. Display matching customer.
+"""
+
+```
+search_name = input("\nEnter customer name: ").strip().lower()
+
+found = False
+
+for customer in customers:
+
+    if customer["name"].lower() == search_name:
+
+        bill = calculate_bill(customer["units"])
+
+        print("\n========== CUSTOMER FOUND ==========")
+        print("ID         :", customer["id"])
+        print("Name       :", customer["name"])
+        print("Connection :", customer["connection"])
+        print("Units      :", customer["units"])
+        print("Bill       : ₹", bill)
+
+        found = True
+        break
+
+if not found:
+    print("Customer not found.")
+```
+
+# ============================================================
+
+# FUNCTION 6: UPDATE UNITS
+
+# ============================================================
+
+def update_units():
+"""
+Execution Flow:
+1. Ask for customer ID.
+2. Search customer.
+3. Ask for new units.
+4. Update the dictionary.
+"""
+
+```
+try:
+
+    customer_id = int(input("\nEnter customer ID: "))
+
+    for customer in customers:
+
+        if customer["id"] == customer_id:
+
+            new_units = int(input("Enter new units: "))
+
+            if new_units < 0:
+                print("Units cannot be negative.")
+                return
+
+            customer["units"] = new_units
+
+            print("Units updated successfully.")
+            return
+
+    print("Customer ID not found.")
+
+except ValueError:
+    print("Please enter a valid number.")
+```
+
+# ============================================================
+
+# FUNCTION 7: HIGHEST USAGE
+
+# ============================================================
+
+def highest_usage():
+"""
+Execution Flow:
+1. Get all units.
+2. Convert them into NumPy array.
+3. Find maximum units.
+4. Find the customer having maximum usage.
+"""
+
+```
+if len(customers) == 0:
+    print("No customer data available.")
+    return
+
+units = []
+
+for customer in customers:
+    units.append(customer["units"])
+
+units_array = np.array(units)
+
+highest = np.max(units_array)
+
+print("\n========== HIGHEST USAGE ==========")
+
+for customer in customers:
+
+    if customer["units"] == highest:
+        print("Customer :", customer["name"])
+        print("Units    :", highest)
+        print("Bill     : ₹", calculate_bill(highest))
+```
+
+# ============================================================
+
+# FUNCTION 8: LOWEST USAGE
+
+# ============================================================
+
+def lowest_usage():
+"""
+Execution Flow:
+1. Get all electricity units.
+2. Convert them into NumPy array.
+3. Find minimum units.
+4. Display the customer.
+"""
+
+```
+if len(customers) == 0:
+    print("No customer data available.")
+    return
+
+units = []
+
+for customer in customers:
+    units.append(customer["units"])
+
+units_array = np.array(units)
+
+lowest = np.min(units_array)
+
+print("\n========== LOWEST USAGE ==========")
+
+for customer in customers:
+
+    if customer["units"] == lowest:
+        print("Customer :", customer["name"])
+        print("Units    :", lowest)
+        print("Bill     : ₹", calculate_bill(lowest))
+```
+
+# ============================================================
+
+# FUNCTION 9: AVERAGE USAGE
+
+# ============================================================
+
+def average_usage():
+"""
+Execution Flow:
+1. Collect all customer units.
+2. Create NumPy array.
+3. Calculate average using NumPy.
+"""
+
+```
+if len(customers) == 0:
+    print("No customer data available.")
+    return
+
+units = []
+
+for customer in customers:
+    units.append(customer["units"])
+
+units_array = np.array(units)
+
+average = np.mean(units_array)
+
+print("\n========== AVERAGE USAGE ==========")
+print("Average electricity usage:", round(average, 2), "units")
+```
+
+# ============================================================
+
+# FUNCTION 10: TOTAL REVENUE
+
+# ============================================================
+
+def total_revenue():
+"""
+Execution Flow:
+1. Start total at zero.
+2. Visit every customer.
+3. Calculate each customer's bill.
+4. Add bill to total.
+5. Display total revenue.
+"""
+
+```
+total = 0
+
+for customer in customers:
+
+    bill = calculate_bill(customer["units"])
+
+    total = total + bill
+
+print("\n========== TOTAL REVENUE ==========")
+print("Total electricity revenue: ₹", total)
+```
+
+# ============================================================
+
+# FUNCTION 11: DELETE CUSTOMER
+
+# ============================================================
+
+def delete_customer():
+"""
+Execution Flow:
+1. Ask for customer ID.
+2. Search customer.
+3. Ask for confirmation.
+4. Delete customer from list.
+"""
+
+```
+try:
+
+    customer_id = int(input("\nEnter customer ID to delete: "))
+
+    for customer in customers:
+
+        if customer["id"] == customer_id:
+
+            confirm = input(
+                f"Delete {customer['name']}? (y/n): "
+            ).strip().lower()
+
+            if confirm == "y":
+
+                customers.remove(customer)
+
+                print("Customer deleted successfully.")
+
+            else:
+                print("Delete operation cancelled.")
+
+            return
+
+    print("Customer ID not found.")
+
+except ValueError:
+    print("Please enter a valid customer ID.")
+```
+
+# ============================================================
+
+# FUNCTION 12: MAIN MENU
+
+# ============================================================
+
+def main():
+"""
+Execution Flow:
+1. Display menu.
+2. Ask the user for choice.
+3. Call the required function.
+4. Repeat using while loop.
+5. Exit when user selects 11.
+"""
+
+```
+while True:
+
+    print("\n")
+    print("==========================================")
+    print(" ELECTRICITY BILL MANAGEMENT SYSTEM")
+    print("==========================================")
+    print("1. Add Customer")
+    print("2. View All Customers")
+    print("3. Search Customer")
+    print("4. Update Units")
+    print("5. Highest Electricity Usage")
+    print("6. Lowest Electricity Usage")
+    print("7. Average Electricity Usage")
+    print("8. Total Revenue")
+    print("9. Calculate Bill")
+    print("10. Delete Customer")
+    print("11. Exit")
+    print("==========================================")
+
+    choice = input("Enter your choice: ").strip()
+
+    if choice == "1":
+        add_customer()
+
+    elif choice == "2":
+        view_customers()
+
+    elif choice == "3":
+        search_customer()
+
+    elif choice == "4":
+        update_units()
+
+    elif choice == "5":
+        highest_usage()
+
+    elif choice == "6":
+        lowest_usage()
+
+    elif choice == "7":
+        average_usage()
+
+    elif choice == "8":
+        total_revenue()
+
+    elif choice == "9":
+
+        try:
+            units = int(input("Enter electricity units: "))
+
+            if units < 0:
+                print("Units cannot be negative.")
+
+            else:
+                bill = calculate_bill(units)
+                category = usage_category(units)
+
+                print("\n========== BILL DETAILS ==========")
+                print("Units    :", units)
+                print("Category :", category)
+                print("Bill     : ₹", bill)
+
+        except ValueError:
+            print("Please enter a valid number.")
+
+    elif choice == "10":
+        delete_customer()
+
+    elif choice == "11":
+        print("\nThank you for using the system.")
+        break
+
+    else:
+        print("Invalid choice. Please select 1-11.")
+```
+
+# ============================================================
+
+# PROGRAM START
+
+# ============================================================
+
+main()

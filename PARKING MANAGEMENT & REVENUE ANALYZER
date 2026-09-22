@@ -1,0 +1,716 @@
+# ============================================================
+
+# 🚗 PARKING MANAGEMENT & REVENUE ANALYZER
+
+# ============================================================
+
+# Features:
+
+# 1. Park Vehicle
+
+# 2. View All Vehicles
+
+# 3. Search Vehicle
+
+# 4. Calculate Parking Fee
+
+# 5. Exit Vehicle
+
+# 6. Highest Parking Fee
+
+# 7. Lowest Parking Fee
+
+# 8. Average Parking Fee
+
+# 9. Total Revenue
+
+# 10. Vehicle Type Summary
+
+# 11. Delete Record
+
+# 12. Exit
+
+#
+
+# Concepts Used:
+
+# String, if/elif/else, for loop, while loop,
+
+# function, list, tuple, dictionary, NumPy
+
+# ============================================================
+
+import numpy as np
+
+# ============================================================
+
+# FIXED VEHICLE TYPES
+
+# ============================================================
+
+vehicle_types = ("Car", "Bike", "Auto", "Truck")
+
+# ============================================================
+
+# PARKING RECORDS
+
+# ============================================================
+
+parking_records = [
+{
+"ticket_id": 101,
+"vehicle_no": "TN01AB1234",
+"owner": "Papun",
+"vehicle_type": "Car",
+"hours": 3
+},
+{
+"ticket_id": 102,
+"vehicle_no": "TN02CD5678",
+"owner": "Amit",
+"vehicle_type": "Bike",
+"hours": 5
+},
+{
+"ticket_id": 103,
+"vehicle_no": "TN03EF9012",
+"owner": "Rahul",
+"vehicle_type": "Truck",
+"hours": 2
+}
+]
+
+# ============================================================
+
+# FUNCTION 1: CALCULATE PARKING FEE
+
+# ============================================================
+
+def calculate_fee(vehicle_type, hours):
+"""
+Execution Flow:
+1. Receive vehicle type and parking hours.
+2. Select the hourly rate.
+3. Multiply rate by hours.
+4. Return the parking fee.
+"""
+
+```
+if vehicle_type == "Car":
+    rate = 30
+
+elif vehicle_type == "Bike":
+    rate = 15
+
+elif vehicle_type == "Auto":
+    rate = 20
+
+elif vehicle_type == "Truck":
+    rate = 50
+
+else:
+    rate = 0
+
+return rate * hours
+```
+
+# ============================================================
+
+# FUNCTION 2: PARK VEHICLE
+
+# ============================================================
+
+def park_vehicle():
+"""
+Execution Flow:
+1. Get ticket ID.
+2. Check duplicate ticket ID.
+3. Get vehicle number and owner name.
+4. Select vehicle type.
+5. Get parking hours.
+6. Validate data.
+7. Store record in the list.
+"""
+
+```
+print("\n========== PARK VEHICLE ==========")
+
+try:
+    ticket_id = int(input("Enter ticket ID: "))
+
+    # Check whether ticket already exists
+    for record in parking_records:
+        if record["ticket_id"] == ticket_id:
+            print("Ticket ID already exists.")
+            return
+
+    vehicle_no = input("Enter vehicle number: ").strip().upper()
+    owner = input("Enter owner name: ").strip().title()
+
+    if vehicle_no == "" or owner == "":
+        print("Vehicle number and owner name cannot be empty.")
+        return
+
+    print("\nVehicle Types:")
+    for vehicle in vehicle_types:
+        print("-", vehicle)
+
+    vehicle_type = input("Enter vehicle type: ").strip().title()
+
+    if vehicle_type not in vehicle_types:
+        print("Invalid vehicle type.")
+        return
+
+    hours = float(input("Enter parking hours: "))
+
+    if hours <= 0:
+        print("Parking hours must be greater than 0.")
+        return
+
+    new_record = {
+        "ticket_id": ticket_id,
+        "vehicle_no": vehicle_no,
+        "owner": owner,
+        "vehicle_type": vehicle_type,
+        "hours": hours
+    }
+
+    parking_records.append(new_record)
+
+    fee = calculate_fee(vehicle_type, hours)
+
+    print("\nVehicle parked successfully.")
+    print("Parking Fee: ₹", fee)
+
+except ValueError:
+    print("Please enter valid numeric values.")
+```
+
+# ============================================================
+
+# FUNCTION 3: VIEW ALL VEHICLES
+
+# ============================================================
+
+def view_vehicles():
+"""
+Execution Flow:
+1. Check whether records exist.
+2. Use for loop to read each record.
+3. Calculate parking fee.
+4. Display all details.
+"""
+
+```
+if len(parking_records) == 0:
+    print("\nNo parking records found.")
+    return
+
+print("\n========== ALL PARKING RECORDS ==========")
+
+for record in parking_records:
+
+    fee = calculate_fee(
+        record["vehicle_type"],
+        record["hours"]
+    )
+
+    print("------------------------------------------")
+    print("Ticket ID   :", record["ticket_id"])
+    print("Vehicle No  :", record["vehicle_no"])
+    print("Owner       :", record["owner"])
+    print("Vehicle Type:", record["vehicle_type"])
+    print("Hours       :", record["hours"])
+    print("Parking Fee : ₹", fee)
+
+print("------------------------------------------")
+```
+
+# ============================================================
+
+# FUNCTION 4: SEARCH VEHICLE
+
+# ============================================================
+
+def search_vehicle():
+"""
+Execution Flow:
+1. Ask for vehicle number.
+2. Search through the list.
+3. Compare vehicle numbers.
+4. Display matching record.
+"""
+
+```
+vehicle_no = input(
+    "\nEnter vehicle number to search: "
+).strip().upper()
+
+found = False
+
+for record in parking_records:
+
+    if record["vehicle_no"] == vehicle_no:
+
+        fee = calculate_fee(
+            record["vehicle_type"],
+            record["hours"]
+        )
+
+        print("\n========== VEHICLE FOUND ==========")
+        print("Ticket ID   :", record["ticket_id"])
+        print("Vehicle No  :", record["vehicle_no"])
+        print("Owner       :", record["owner"])
+        print("Vehicle Type:", record["vehicle_type"])
+        print("Hours       :", record["hours"])
+        print("Parking Fee : ₹", fee)
+
+        found = True
+        break
+
+if not found:
+    print("Vehicle not found.")
+```
+
+# ============================================================
+
+# FUNCTION 5: CALCULATE PARKING FEE
+
+# ============================================================
+
+def show_fee():
+"""
+Execution Flow:
+1. Ask vehicle type.
+2. Ask parking hours.
+3. Validate input.
+4. Calculate and display fee.
+"""
+
+```
+print("\n========== CALCULATE PARKING FEE ==========")
+
+print("Vehicle Types:")
+
+for vehicle in vehicle_types:
+    print("-", vehicle)
+
+vehicle_type = input(
+    "Enter vehicle type: "
+).strip().title()
+
+if vehicle_type not in vehicle_types:
+    print("Invalid vehicle type.")
+    return
+
+try:
+    hours = float(input("Enter parking hours: "))
+
+    if hours <= 0:
+        print("Hours must be greater than 0.")
+        return
+
+    fee = calculate_fee(vehicle_type, hours)
+
+    print("\nVehicle Type :", vehicle_type)
+    print("Parking Hours:", hours)
+    print("Parking Fee  : ₹", fee)
+
+except ValueError:
+    print("Please enter a valid number.")
+```
+
+# ============================================================
+
+# FUNCTION 6: EXIT VEHICLE
+
+# ============================================================
+
+def exit_vehicle():
+"""
+Execution Flow:
+1. Ask for ticket ID.
+2. Search the record.
+3. Calculate final parking fee.
+4. Confirm vehicle exit.
+5. Remove the record.
+"""
+
+```
+try:
+    ticket_id = int(input("\nEnter ticket ID: "))
+
+    for record in parking_records:
+
+        if record["ticket_id"] == ticket_id:
+
+            fee = calculate_fee(
+                record["vehicle_type"],
+                record["hours"]
+            )
+
+            print("\n========== EXIT DETAILS ==========")
+            print("Vehicle No  :", record["vehicle_no"])
+            print("Owner       :", record["owner"])
+            print("Vehicle Type:", record["vehicle_type"])
+            print("Hours       :", record["hours"])
+            print("Final Fee   : ₹", fee)
+
+            confirm = input(
+                "Confirm vehicle exit? (y/n): "
+            ).strip().lower()
+
+            if confirm == "y":
+                parking_records.remove(record)
+                print("Vehicle exited successfully.")
+            else:
+                print("Exit cancelled.")
+
+            return
+
+    print("Ticket ID not found.")
+
+except ValueError:
+    print("Please enter a valid ticket ID.")
+```
+
+# ============================================================
+
+# FUNCTION 7: HIGHEST PARKING FEE
+
+# ============================================================
+
+def highest_fee():
+"""
+Execution Flow:
+1. Collect all parking fees.
+2. Convert fees into NumPy array.
+3. Find maximum fee.
+4. Display matching vehicle.
+"""
+
+```
+if len(parking_records) == 0:
+    print("No parking data available.")
+    return
+
+fees = []
+
+for record in parking_records:
+
+    fee = calculate_fee(
+        record["vehicle_type"],
+        record["hours"]
+    )
+
+    fees.append(fee)
+
+fee_array = np.array(fees)
+
+highest = np.max(fee_array)
+
+print("\n========== HIGHEST PARKING FEE ==========")
+
+for record in parking_records:
+
+    fee = calculate_fee(
+        record["vehicle_type"],
+        record["hours"]
+    )
+
+    if fee == highest:
+        print("Vehicle No :", record["vehicle_no"])
+        print("Owner      :", record["owner"])
+        print("Fee        : ₹", highest)
+```
+
+# ============================================================
+
+# FUNCTION 8: LOWEST PARKING FEE
+
+# ============================================================
+
+def lowest_fee():
+"""
+Execution Flow:
+1. Collect parking fees.
+2. Create NumPy array.
+3. Find minimum fee.
+4. Display matching vehicle.
+"""
+
+```
+if len(parking_records) == 0:
+    print("No parking data available.")
+    return
+
+fees = []
+
+for record in parking_records:
+
+    fee = calculate_fee(
+        record["vehicle_type"],
+        record["hours"]
+    )
+
+    fees.append(fee)
+
+fee_array = np.array(fees)
+
+lowest = np.min(fee_array)
+
+print("\n========== LOWEST PARKING FEE ==========")
+
+for record in parking_records:
+
+    fee = calculate_fee(
+        record["vehicle_type"],
+        record["hours"]
+    )
+
+    if fee == lowest:
+        print("Vehicle No :", record["vehicle_no"])
+        print("Owner      :", record["owner"])
+        print("Fee        : ₹", lowest)
+```
+
+# ============================================================
+
+# FUNCTION 9: AVERAGE PARKING FEE
+
+# ============================================================
+
+def average_fee():
+"""
+Execution Flow:
+1. Collect all parking fees.
+2. Convert to NumPy array.
+3. Calculate average.
+4. Display result.
+"""
+
+```
+if len(parking_records) == 0:
+    print("No parking data available.")
+    return
+
+fees = []
+
+for record in parking_records:
+
+    fee = calculate_fee(
+        record["vehicle_type"],
+        record["hours"]
+    )
+
+    fees.append(fee)
+
+fee_array = np.array(fees)
+
+average = np.mean(fee_array)
+
+print("\n========== AVERAGE PARKING FEE ==========")
+print("Average Parking Fee: ₹", round(average, 2))
+```
+
+# ============================================================
+
+# FUNCTION 10: TOTAL REVENUE
+
+# ============================================================
+
+def total_revenue():
+"""
+Execution Flow:
+1. Start total revenue at zero.
+2. Visit every parking record.
+3. Calculate each fee.
+4. Add each fee to total.
+5. Display total revenue.
+"""
+
+```
+total = 0
+
+for record in parking_records:
+
+    fee = calculate_fee(
+        record["vehicle_type"],
+        record["hours"]
+    )
+
+    total = total + fee
+
+print("\n========== TOTAL REVENUE ==========")
+print("Total Parking Revenue: ₹", total)
+```
+
+# ============================================================
+
+# FUNCTION 11: VEHICLE TYPE SUMMARY
+
+# ============================================================
+
+def vehicle_summary():
+"""
+Execution Flow:
+1. Count each vehicle type.
+2. Use dictionary to store counts.
+3. Display the summary.
+"""
+
+```
+summary = {
+    "Car": 0,
+    "Bike": 0,
+    "Auto": 0,
+    "Truck": 0
+}
+
+for record in parking_records:
+
+    vehicle_type = record["vehicle_type"]
+
+    summary[vehicle_type] = summary[vehicle_type] + 1
+
+print("\n========== VEHICLE TYPE SUMMARY ==========")
+
+for vehicle_type, count in summary.items():
+
+    print(vehicle_type, ":", count)
+```
+
+# ============================================================
+
+# FUNCTION 12: DELETE RECORD
+
+# ============================================================
+
+def delete_record():
+"""
+Execution Flow:
+1. Ask for ticket ID.
+2. Search the parking list.
+3. Ask for confirmation.
+4. Delete the record.
+"""
+
+```
+try:
+
+    ticket_id = int(
+        input("\nEnter ticket ID to delete: ")
+    )
+
+    for record in parking_records:
+
+        if record["ticket_id"] == ticket_id:
+
+            confirm = input(
+                f"Delete record for {record['vehicle_no']}? (y/n): "
+            ).strip().lower()
+
+            if confirm == "y":
+
+                parking_records.remove(record)
+
+                print("Record deleted successfully.")
+
+            else:
+                print("Delete operation cancelled.")
+
+            return
+
+    print("Ticket ID not found.")
+
+except ValueError:
+    print("Please enter a valid ticket ID.")
+```
+
+# ============================================================
+
+# FUNCTION 13: MAIN MENU
+
+# ============================================================
+
+def main():
+"""
+Execution Flow:
+1. Display the menu.
+2. Take user choice.
+3. Call the required function.
+4. Repeat using while loop.
+5. Stop when user selects 12.
+"""
+
+```
+while True:
+
+    print("\n")
+    print("============================================")
+    print("   🚗 PARKING MANAGEMENT SYSTEM")
+    print("============================================")
+    print("1. Park Vehicle")
+    print("2. View All Vehicles")
+    print("3. Search Vehicle")
+    print("4. Calculate Parking Fee")
+    print("5. Exit Vehicle")
+    print("6. Highest Parking Fee")
+    print("7. Lowest Parking Fee")
+    print("8. Average Parking Fee")
+    print("9. Total Revenue")
+    print("10. Vehicle Type Summary")
+    print("11. Delete Record")
+    print("12. Exit")
+    print("============================================")
+
+    choice = input("Enter your choice: ").strip()
+
+    if choice == "1":
+        park_vehicle()
+
+    elif choice == "2":
+        view_vehicles()
+
+    elif choice == "3":
+        search_vehicle()
+
+    elif choice == "4":
+        show_fee()
+
+    elif choice == "5":
+        exit_vehicle()
+
+    elif choice == "6":
+        highest_fee()
+
+    elif choice == "7":
+        lowest_fee()
+
+    elif choice == "8":
+        average_fee()
+
+    elif choice == "9":
+        total_revenue()
+
+    elif choice == "10":
+        vehicle_summary()
+
+    elif choice == "11":
+        delete_record()
+
+    elif choice == "12":
+        print("\nThank you for using Parking Management System.")
+        break
+
+    else:
+        print("Invalid choice. Please select 1-12.")
+```
+
+# ============================================================
+
+# PROGRAM START
+
+# ============================================================
+
+main()

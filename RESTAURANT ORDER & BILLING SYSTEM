@@ -1,0 +1,545 @@
+# ============================================================
+
+# RESTAURANT ORDER & BILLING SYSTEM
+
+# ============================================================
+
+import numpy as np
+
+# Menu items
+
+menu = {
+"Burger": 120,
+"Pizza": 250,
+"Biryani": 180,
+"Fried Rice": 140,
+"Noodles": 130,
+"Sandwich": 100,
+"Coffee": 60,
+"Juice": 80
+}
+
+# Available food types
+
+food_types = tuple(menu.keys())
+
+# Customer orders
+
+orders = [
+{
+"order_id": 101,
+"customer": "Papun",
+"item": "Burger",
+"quantity": 2
+},
+{
+"order_id": 102,
+"customer": "Amit",
+"item": "Biryani",
+"quantity": 1
+},
+{
+"order_id": 103,
+"customer": "Rahul",
+"item": "Pizza",
+"quantity": 2
+}
+]
+
+# Calculate total for one order
+
+def calculate_total(item, quantity):
+
+```
+price = menu[item]
+
+total = price * quantity
+
+return total
+```
+
+# Show restaurant menu
+
+def show_menu():
+
+```
+print("\n----------- MENU -----------")
+
+for item, price in menu.items():
+    print(item, "- ₹", price)
+
+print("----------------------------")
+```
+
+# Add a new order
+
+def add_order():
+
+```
+print("\n----------- ADD ORDER -----------")
+
+try:
+    order_id = int(input("Enter order ID: "))
+
+    # Check whether the order ID already exists
+    for order in orders:
+
+        if order["order_id"] == order_id:
+            print("Order ID already exists.")
+            return
+
+    customer = input("Enter customer name: ").strip().title()
+
+    if customer == "":
+        print("Customer name is required.")
+        return
+
+    show_menu()
+
+    item = input("Enter item name: ").strip().title()
+
+    if item not in food_types:
+        print("Item not available.")
+        return
+
+    quantity = int(input("Enter quantity: "))
+
+    if quantity <= 0:
+        print("Quantity must be greater than zero.")
+        return
+
+    order = {
+        "order_id": order_id,
+        "customer": customer,
+        "item": item,
+        "quantity": quantity
+    }
+
+    orders.append(order)
+
+    total = calculate_total(item, quantity)
+
+    print("\nOrder added successfully.")
+    print("Total amount: ₹", total)
+
+except ValueError:
+
+    print("Please enter a valid number.")
+```
+
+# Show all orders
+
+def show_orders():
+
+```
+print("\n----------- ALL ORDERS -----------")
+
+if len(orders) == 0:
+    print("No orders found.")
+    return
+
+for order in orders:
+
+    total = calculate_total(
+        order["item"],
+        order["quantity"]
+    )
+
+    print("--------------------------------")
+    print("Order ID :", order["order_id"])
+    print("Customer :", order["customer"])
+    print("Item     :", order["item"])
+    print("Quantity :", order["quantity"])
+    print("Total    : ₹", total)
+```
+
+# Search order by customer name
+
+def search_order():
+
+```
+print("\n----------- SEARCH ORDER -----------")
+
+name = input("Enter customer name: ").strip().lower()
+
+found = False
+
+for order in orders:
+
+    if order["customer"].lower() == name:
+
+        total = calculate_total(
+            order["item"],
+            order["quantity"]
+        )
+
+        print("\nOrder found")
+        print("Order ID :", order["order_id"])
+        print("Customer :", order["customer"])
+        print("Item     :", order["item"])
+        print("Quantity :", order["quantity"])
+        print("Total    : ₹", total)
+
+        found = True
+
+if not found:
+    print("No order found for this customer.")
+```
+
+# Update order quantity
+
+def update_order():
+
+```
+print("\n----------- UPDATE ORDER -----------")
+
+try:
+
+    order_id = int(input("Enter order ID: "))
+
+    for order in orders:
+
+        if order["order_id"] == order_id:
+
+            print("Customer :", order["customer"])
+            print("Item     :", order["item"])
+            print("Quantity :", order["quantity"])
+
+            quantity = int(input("Enter new quantity: "))
+
+            if quantity <= 0:
+                print("Quantity must be greater than zero.")
+                return
+
+            order["quantity"] = quantity
+
+            print("Order updated successfully.")
+
+            total = calculate_total(
+                order["item"],
+                order["quantity"]
+            )
+
+            print("New total: ₹", total)
+
+            return
+
+    print("Order ID not found.")
+
+except ValueError:
+
+    print("Enter a valid order ID and quantity.")
+```
+
+# Print bill for one order
+
+def print_bill():
+
+```
+print("\n----------- BILL -----------")
+
+try:
+
+    order_id = int(input("Enter order ID: "))
+
+    for order in orders:
+
+        if order["order_id"] == order_id:
+
+            price = menu[order["item"]]
+
+            total = calculate_total(
+                order["item"],
+                order["quantity"]
+            )
+
+            print("\n==========================")
+            print("       RESTAURANT")
+            print("==========================")
+            print("Order ID :", order["order_id"])
+            print("Customer :", order["customer"])
+            print("Item     :", order["item"])
+            print("Price    : ₹", price)
+            print("Quantity :", order["quantity"])
+            print("--------------------------")
+            print("Total    : ₹", total)
+            print("==========================")
+
+            return
+
+    print("Order not found.")
+
+except ValueError:
+
+    print("Enter a valid order ID.")
+```
+
+# Find highest order amount
+
+def highest_order():
+
+```
+print("\n----------- HIGHEST ORDER -----------")
+
+if len(orders) == 0:
+    print("No orders found.")
+    return
+
+totals = []
+
+for order in orders:
+
+    total = calculate_total(
+        order["item"],
+        order["quantity"]
+    )
+
+    totals.append(total)
+
+total_array = np.array(totals)
+
+highest = np.max(total_array)
+
+for order in orders:
+
+    total = calculate_total(
+        order["item"],
+        order["quantity"]
+    )
+
+    if total == highest:
+
+        print("Customer :", order["customer"])
+        print("Item     :", order["item"])
+        print("Amount   : ₹", highest)
+```
+
+# Find lowest order amount
+
+def lowest_order():
+
+```
+print("\n----------- LOWEST ORDER -----------")
+
+if len(orders) == 0:
+    print("No orders found.")
+    return
+
+totals = []
+
+for order in orders:
+
+    total = calculate_total(
+        order["item"],
+        order["quantity"]
+    )
+
+    totals.append(total)
+
+total_array = np.array(totals)
+
+lowest = np.min(total_array)
+
+for order in orders:
+
+    total = calculate_total(
+        order["item"],
+        order["quantity"]
+    )
+
+    if total == lowest:
+
+        print("Customer :", order["customer"])
+        print("Item     :", order["item"])
+        print("Amount   : ₹", lowest)
+```
+
+# Find average order amount
+
+def average_order():
+
+```
+print("\n----------- AVERAGE ORDER -----------")
+
+if len(orders) == 0:
+    print("No orders found.")
+    return
+
+totals = []
+
+for order in orders:
+
+    total = calculate_total(
+        order["item"],
+        order["quantity"]
+    )
+
+    totals.append(total)
+
+total_array = np.array(totals)
+
+average = np.mean(total_array)
+
+print("Average order amount: ₹", round(average, 2))
+```
+
+# Calculate total restaurant sales
+
+def total_sales():
+
+```
+print("\n----------- TOTAL SALES -----------")
+
+total = 0
+
+for order in orders:
+
+    amount = calculate_total(
+        order["item"],
+        order["quantity"]
+    )
+
+    total = total + amount
+
+print("Total sales: ₹", total)
+```
+
+# Show item-wise order count
+
+def item_summary():
+
+```
+print("\n----------- ITEM SUMMARY -----------")
+
+summary = {}
+
+for item in food_types:
+    summary[item] = 0
+
+for order in orders:
+
+    item = order["item"]
+
+    summary[item] = summary[item] + order["quantity"]
+
+for item, quantity in summary.items():
+
+    print(item, ":", quantity)
+```
+
+# Delete an order
+
+def delete_order():
+
+```
+print("\n----------- DELETE ORDER -----------")
+
+try:
+
+    order_id = int(input("Enter order ID: "))
+
+    for order in orders:
+
+        if order["order_id"] == order_id:
+
+            print("Customer :", order["customer"])
+            print("Item     :", order["item"])
+
+            confirm = input(
+                "Delete this order? (y/n): "
+            ).strip().lower()
+
+            if confirm == "y":
+
+                orders.remove(order)
+
+                print("Order deleted.")
+
+            else:
+
+                print("Delete cancelled.")
+
+            return
+
+    print("Order ID not found.")
+
+except ValueError:
+
+    print("Enter a valid order ID.")
+```
+
+# Main menu
+
+def main():
+
+```
+while True:
+
+    print("\n")
+    print("====================================")
+    print("     RESTAURANT ORDER SYSTEM")
+    print("====================================")
+    print("1. Show Menu")
+    print("2. Add Order")
+    print("3. Show All Orders")
+    print("4. Search Order")
+    print("5. Update Order")
+    print("6. Print Bill")
+    print("7. Highest Order")
+    print("8. Lowest Order")
+    print("9. Average Order")
+    print("10. Total Sales")
+    print("11. Item Summary")
+    print("12. Delete Order")
+    print("13. Exit")
+    print("====================================")
+
+    choice = input("Enter your choice: ").strip()
+
+    if choice == "1":
+        show_menu()
+
+    elif choice == "2":
+        add_order()
+
+    elif choice == "3":
+        show_orders()
+
+    elif choice == "4":
+        search_order()
+
+    elif choice == "5":
+        update_order()
+
+    elif choice == "6":
+        print_bill()
+
+    elif choice == "7":
+        highest_order()
+
+    elif choice == "8":
+        lowest_order()
+
+    elif choice == "9":
+        average_order()
+
+    elif choice == "10":
+        total_sales()
+
+    elif choice == "11":
+        item_summary()
+
+    elif choice == "12":
+        delete_order()
+
+    elif choice == "13":
+        print("\nThank you. Program closed.")
+        break
+
+    else:
+        print("Invalid choice. Please try again.")
+```
+
+# Start program
+
+main()

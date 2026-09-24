@@ -1,0 +1,295 @@
+# ============================================================
+
+# COURIER & PARCEL TRACKING SYSTEM
+
+# Simple CLI project using Python basics and NumPy
+
+# ============================================================
+
+import numpy as np
+
+# Available parcel statuses
+
+statuses = ("Booked", "In Transit", "Out for Delivery", "Delivered")
+
+# Parcel records
+
+parcels = [
+{
+"parcel_id": 101,
+"customer": "Papun",
+"phone": "9876543210",
+"destination": "Chennai",
+"weight": 2.5,
+"status": "In Transit"
+},
+{
+"parcel_id": 102,
+"customer": "Amit",
+"phone": "9123456780",
+"destination": "Bangalore",
+"weight": 1.5,
+"status": "Delivered"
+},
+{
+"parcel_id": 103,
+"customer": "Rahul",
+"phone": "9988776655",
+"destination": "Hyderabad",
+"weight": 5.0,
+"status": "Out for Delivery"
+}
+]
+
+# Calculate delivery charge
+
+def calculate_charge(weight):
+
+```
+if weight <= 1:
+    rate = 50
+
+elif weight <= 3:
+    rate = 80
+
+elif weight <= 5:
+    rate = 120
+
+else:
+    rate = 150
+
+return rate * weight
+```
+
+# Show available statuses
+
+def show_statuses():
+
+```
+print("\nAvailable Status:")
+
+for status in statuses:
+    print("-", status)
+```
+
+# Add a new parcel
+
+def add_parcel():
+
+```
+print("\n----------- ADD PARCEL -----------")
+
+try:
+
+    parcel_id = int(input("Enter parcel ID: "))
+
+    # Check duplicate parcel ID
+    for parcel in parcels:
+
+        if parcel["parcel_id"] == parcel_id:
+            print("Parcel ID already exists.")
+            return
+
+    customer = input("Enter customer name: ").strip().title()
+    phone = input("Enter phone number: ").strip()
+    destination = input("Enter destination: ").strip().title()
+
+    if customer == "" or phone == "" or destination == "":
+        print("Please fill all details.")
+        return
+
+    weight = float(input("Enter parcel weight (kg): "))
+
+    if weight <= 0:
+        print("Weight must be greater than zero.")
+        return
+
+    parcel = {
+        "parcel_id": parcel_id,
+        "customer": customer,
+        "phone": phone,
+        "destination": destination,
+        "weight": weight,
+        "status": "Booked"
+    }
+
+    parcels.append(parcel)
+
+    charge = calculate_charge(weight)
+
+    print("\nParcel booked successfully.")
+    print("Delivery charge: ₹", charge)
+
+except ValueError:
+
+    print("Please enter valid details.")
+```
+
+# Show all parcels
+
+def show_parcels():
+
+```
+print("\n----------- ALL PARCELS -----------")
+
+if len(parcels) == 0:
+    print("No parcel records found.")
+    return
+
+for parcel in parcels:
+
+    charge = calculate_charge(parcel["weight"])
+
+    print("-----------------------------------")
+    print("Parcel ID   :", parcel["parcel_id"])
+    print("Customer    :", parcel["customer"])
+    print("Phone       :", parcel["phone"])
+    print("Destination :", parcel["destination"])
+    print("Weight      :", parcel["weight"], "kg")
+    print("Status      :", parcel["status"])
+    print("Charge      : ₹", charge)
+```
+
+# Search parcel by ID
+
+def search_parcel():
+
+```
+print("\n----------- SEARCH PARCEL -----------")
+
+try:
+
+    parcel_id = int(input("Enter parcel ID: "))
+
+    for parcel in parcels:
+
+        if parcel["parcel_id"] == parcel_id:
+
+            charge = calculate_charge(parcel["weight"])
+
+            print("\nParcel found")
+            print("Parcel ID   :", parcel["parcel_id"])
+            print("Customer    :", parcel["customer"])
+            print("Phone       :", parcel["phone"])
+            print("Destination :", parcel["destination"])
+            print("Weight      :", parcel["weight"], "kg")
+            print("Status      :", parcel["status"])
+            print("Charge      : ₹", charge)
+
+            return
+
+    print("Parcel not found.")
+
+except ValueError:
+
+    print("Enter a valid parcel ID.")
+```
+
+# Update parcel status
+
+def update_status():
+
+```
+print("\n----------- UPDATE STATUS -----------")
+
+try:
+
+    parcel_id = int(input("Enter parcel ID: "))
+
+    for parcel in parcels:
+
+        if parcel["parcel_id"] == parcel_id:
+
+            print("Current status:", parcel["status"])
+
+            show_statuses()
+
+            new_status = input(
+                "Enter new status: "
+            ).strip().title()
+
+            if new_status not in statuses:
+                print("Invalid status.")
+                return
+
+            parcel["status"] = new_status
+
+            print("Parcel status updated.")
+
+            return
+
+    print("Parcel ID not found.")
+
+except ValueError:
+
+    print("Enter a valid parcel ID.")
+```
+
+# Calculate charge for a parcel
+
+def show_charge():
+
+```
+print("\n----------- CHARGE CALCULATOR -----------")
+
+try:
+
+    weight = float(input("Enter parcel weight (kg): "))
+
+    if weight <= 0:
+        print("Weight must be greater than zero.")
+        return
+
+    charge = calculate_charge(weight)
+
+    print("Weight :", weight, "kg")
+    print("Charge : ₹", charge)
+
+except ValueError:
+
+    print("Enter a valid weight.")
+```
+
+# Show delivered parcels
+
+def delivered_parcels():
+
+```
+print("\n----------- DELIVERED PARCELS -----------")
+
+found = False
+
+for parcel in parcels:
+
+    if parcel["status"] == "Delivered":
+
+        print(
+            parcel["parcel_id"],
+            "-",
+            parcel["customer"],
+            "-",
+            parcel["destination"]
+        )
+
+        found = True
+
+if not found:
+    print("No delivered parcels.")
+```
+
+# Show parcels still in delivery process
+
+def pending_parcels():
+
+```
+print("\n----------- PENDING PARCELS -----------")
+
+found = False
+
+for parcel in parcels:
+
+    if parcel["status"] != "Delivered":
+
+        print(
+            parce
+```

@@ -1,0 +1,643 @@
+# ============================================================
+
+# EMPLOYEE SALARY & PAYROLL MANAGEMENT SYSTEM
+
+# Simple CLI project using Python basics and NumPy
+
+# ============================================================
+
+import numpy as np
+
+# Departments in the company
+
+departments = (
+"IT",
+"HR",
+"Finance",
+"Sales",
+"Support"
+)
+
+# Employee details
+
+employees = [
+{
+"id": 101,
+"name": "Papun",
+"department": "IT",
+"salary": 35000,
+"attendance": 26
+},
+{
+"id": 102,
+"name": "Amit",
+"department": "HR",
+"salary": 30000,
+"attendance": 24
+},
+{
+"id": 103,
+"name": "Rahul",
+"department": "Sales",
+"salary": 28000,
+"attendance": 22
+}
+]
+
+# ============================================================
+
+# FIND EMPLOYEE
+
+# ============================================================
+
+def find_employee(employee_id):
+
+```
+for employee in employees:
+
+    if employee["id"] == employee_id:
+        return employee
+
+return None
+```
+
+# ============================================================
+
+# CALCULATE NET SALARY
+
+# ============================================================
+
+def calculate_salary(basic_salary, attendance):
+
+```
+# Less attendance means some deduction
+if attendance >= 26:
+    deduction = 0
+
+elif attendance >= 24:
+    deduction = basic_salary * 0.02
+
+elif attendance >= 20:
+    deduction = basic_salary * 0.05
+
+else:
+    deduction = basic_salary * 0.10
+
+net_salary = basic_salary - deduction
+
+return net_salary
+```
+
+# ============================================================
+
+# ADD EMPLOYEE
+
+# ============================================================
+
+def add_employee():
+
+```
+print("\n----------- ADD EMPLOYEE -----------")
+
+try:
+
+    employee_id = int(input("Enter employee ID: "))
+
+    # Check duplicate employee ID
+    for employee in employees:
+
+        if employee["id"] == employee_id:
+            print("Employee ID already exists.")
+            return
+
+    name = input("Enter employee name: ").strip().title()
+
+    if name == "":
+        print("Employee name is required.")
+        return
+
+    print("\nDepartments:")
+
+    for department in departments:
+        print("-", department)
+
+    department = input(
+        "Enter department: "
+    ).strip().upper()
+
+    if department not in departments:
+        print("Invalid department.")
+        return
+
+    salary = float(input("Enter basic salary: "))
+
+    if salary <= 0:
+        print("Salary must be greater than zero.")
+        return
+
+    attendance = int(
+        input("Enter attendance days: ")
+    )
+
+    if attendance < 0 or attendance > 26:
+        print("Attendance should be between 0 and 26.")
+        return
+
+    employee = {
+        "id": employee_id,
+        "name": name,
+        "department": department,
+        "salary": salary,
+        "attendance": attendance
+    }
+
+    employees.append(employee)
+
+    print("Employee added successfully.")
+
+
+except ValueError:
+
+    print("Please enter valid values.")
+```
+
+# ============================================================
+
+# SHOW ALL EMPLOYEES
+
+# ============================================================
+
+def show_employees():
+
+```
+print("\n----------- ALL EMPLOYEES -----------")
+
+if len(employees) == 0:
+    print("No employees found.")
+    return
+
+for employee in employees:
+
+    net_salary = calculate_salary(
+        employee["salary"],
+        employee["attendance"]
+    )
+
+    print("-------------------------------------")
+    print("ID         :", employee["id"])
+    print("Name       :", employee["name"])
+    print("Department :", employee["department"])
+    print("Basic Salary:", employee["salary"])
+    print("Attendance :", employee["attendance"])
+    print("Net Salary : ₹", round(net_salary, 2))
+```
+
+# ============================================================
+
+# SEARCH EMPLOYEE
+
+# ============================================================
+
+def search_employee():
+
+```
+print("\n----------- SEARCH EMPLOYEE -----------")
+
+try:
+
+    employee_id = int(input("Enter employee ID: "))
+
+    employee = find_employee(employee_id)
+
+    if employee is None:
+        print("Employee not found.")
+        return
+
+    net_salary = calculate_salary(
+        employee["salary"],
+        employee["attendance"]
+    )
+
+    print("\nEmployee found")
+    print("ID         :", employee["id"])
+    print("Name       :", employee["name"])
+    print("Department :", employee["department"])
+    print("Basic Salary:", employee["salary"])
+    print("Attendance :", employee["attendance"])
+    print("Net Salary : ₹", round(net_salary, 2))
+
+
+except ValueError:
+
+    print("Enter a valid employee ID.")
+```
+
+# ============================================================
+
+# UPDATE ATTENDANCE
+
+# ============================================================
+
+def update_attendance():
+
+```
+print("\n----------- UPDATE ATTENDANCE -----------")
+
+try:
+
+    employee_id = int(input("Enter employee ID: "))
+
+    employee = find_employee(employee_id)
+
+    if employee is None:
+        print("Employee not found.")
+        return
+
+    print("Employee:", employee["name"])
+    print("Current attendance:", employee["attendance"])
+
+    attendance = int(
+        input("Enter new attendance: ")
+    )
+
+    if attendance < 0 or attendance > 26:
+        print("Attendance should be between 0 and 26.")
+        return
+
+    employee["attendance"] = attendance
+
+    print("Attendance updated successfully.")
+
+
+except ValueError:
+
+    print("Enter a valid number.")
+```
+
+# ============================================================
+
+# UPDATE SALARY
+
+# ============================================================
+
+def update_salary():
+
+```
+print("\n----------- UPDATE SALARY -----------")
+
+try:
+
+    employee_id = int(input("Enter employee ID: "))
+
+    employee = find_employee(employee_id)
+
+    if employee is None:
+        print("Employee not found.")
+        return
+
+    print("Employee:", employee["name"])
+    print("Current salary:", employee["salary"])
+
+    salary = float(
+        input("Enter new salary: ")
+    )
+
+    if salary <= 0:
+        print("Salary must be greater than zero.")
+        return
+
+    employee["salary"] = salary
+
+    print("Salary updated successfully.")
+
+
+except ValueError:
+
+    print("Enter a valid salary.")
+```
+
+# ============================================================
+
+# PRINT SALARY SLIP
+
+# ============================================================
+
+def salary_slip():
+
+```
+print("\n----------- SALARY SLIP -----------")
+
+try:
+
+    employee_id = int(input("Enter employee ID: "))
+
+    employee = find_employee(employee_id)
+
+    if employee is None:
+        print("Employee not found.")
+        return
+
+    basic = employee["salary"]
+    attendance = employee["attendance"]
+
+    net_salary = calculate_salary(
+        basic,
+        attendance
+    )
+
+    deduction = basic - net_salary
+
+    print("\n================================")
+    print("         SALARY SLIP")
+    print("================================")
+    print("Employee ID :", employee["id"])
+    print("Name        :", employee["name"])
+    print("Department  :", employee["department"])
+    print("Attendance  :", attendance)
+    print("Basic Salary: ₹", basic)
+    print("Deduction   : ₹", round(deduction, 2))
+    print("--------------------------------")
+    print("Net Salary  : ₹", round(net_salary, 2))
+    print("================================")
+
+
+except ValueError:
+
+    print("Enter a valid employee ID.")
+```
+
+# ============================================================
+
+# HIGHEST SALARY
+
+# ============================================================
+
+def highest_salary():
+
+```
+print("\n----------- HIGHEST SALARY -----------")
+
+if len(employees) == 0:
+    print("No employees found.")
+    return
+
+salaries = []
+
+for employee in employees:
+
+    salaries.append(employee["salary"])
+
+salary_array = np.array(salaries)
+
+highest = np.max(salary_array)
+
+for employee in employees:
+
+    if employee["salary"] == highest:
+
+        print("Employee :", employee["name"])
+        print("Department:", employee["department"])
+        print("Salary   : ₹", highest)
+```
+
+# ============================================================
+
+# LOWEST SALARY
+
+# ============================================================
+
+def lowest_salary():
+
+```
+print("\n----------- LOWEST SALARY -----------")
+
+if len(employees) == 0:
+    print("No employees found.")
+    return
+
+salaries = []
+
+for employee in employees:
+
+    salaries.append(employee["salary"])
+
+salary_array = np.array(salaries)
+
+lowest = np.min(salary_array)
+
+for employee in employees:
+
+    if employee["salary"] == lowest:
+
+        print("Employee :", employee["name"])
+        print("Department:", employee["department"])
+        print("Salary   : ₹", lowest)
+```
+
+# ============================================================
+
+# AVERAGE SALARY
+
+# ============================================================
+
+def average_salary():
+
+```
+print("\n----------- AVERAGE SALARY -----------")
+
+if len(employees) == 0:
+    print("No employees found.")
+    return
+
+salaries = []
+
+for employee in employees:
+
+    salaries.append(employee["salary"])
+
+salary_array = np.array(salaries)
+
+average = np.mean(salary_array)
+
+print("Average salary: ₹", round(average, 2))
+```
+
+# ============================================================
+
+# TOTAL PAYROLL
+
+# ============================================================
+
+def total_payroll():
+
+```
+print("\n----------- TOTAL PAYROLL -----------")
+
+total = 0
+
+for employee in employees:
+
+    net_salary = calculate_salary(
+        employee["salary"],
+        employee["attendance"]
+    )
+
+    total = total + net_salary
+
+print("Total monthly payroll: ₹", round(total, 2))
+```
+
+# ============================================================
+
+# DEPARTMENT SUMMARY
+
+# ============================================================
+
+def department_summary():
+
+```
+print("\n----------- DEPARTMENT SUMMARY -----------")
+
+summary = {}
+
+# Start all departments with zero employees
+for department in departments:
+
+    summary[department] = 0
+
+# Count employees
+for employee in employees:
+
+    department = employee["department"]
+
+    summary[department] = (
+        summary[department] + 1
+    )
+
+for department, count in summary.items():
+
+    print(department, ":", count)
+```
+
+# ============================================================
+
+# DELETE EMPLOYEE
+
+# ============================================================
+
+def delete_employee():
+
+```
+print("\n----------- DELETE EMPLOYEE -----------")
+
+try:
+
+    employee_id = int(input("Enter employee ID: "))
+
+    employee = find_employee(employee_id)
+
+    if employee is None:
+        print("Employee not found.")
+        return
+
+    print("Employee:", employee["name"])
+
+    confirm = input(
+        "Delete this employee? (y/n): "
+    ).strip().lower()
+
+    if confirm == "y":
+
+        employees.remove(employee)
+
+        print("Employee deleted.")
+
+    else:
+
+        print("Delete cancelled.")
+
+
+except ValueError:
+
+    print("Enter a valid employee ID.")
+```
+
+# ============================================================
+
+# MAIN MENU
+
+# ============================================================
+
+def main():
+
+```
+while True:
+
+    print("\n")
+    print("==========================================")
+    print("      EMPLOYEE PAYROLL SYSTEM")
+    print("==========================================")
+    print("1. Add Employee")
+    print("2. Show Employees")
+    print("3. Search Employee")
+    print("4. Update Attendance")
+    print("5. Update Salary")
+    print("6. Salary Slip")
+    print("7. Highest Salary")
+    print("8. Lowest Salary")
+    print("9. Average Salary")
+    print("10. Total Payroll")
+    print("11. Department Summary")
+    print("12. Delete Employee")
+    print("13. Exit")
+    print("==========================================")
+
+    choice = input("Enter your choice: ").strip()
+
+    if choice == "1":
+        add_employee()
+
+    elif choice == "2":
+        show_employees()
+
+    elif choice == "3":
+        search_employee()
+
+    elif choice == "4":
+        update_attendance()
+
+    elif choice == "5":
+        update_salary()
+
+    elif choice == "6":
+        salary_slip()
+
+    elif choice == "7":
+        highest_salary()
+
+    elif choice == "8":
+        lowest_salary()
+
+    elif choice == "9":
+        average_salary()
+
+    elif choice == "10":
+        total_payroll()
+
+    elif choice == "11":
+        department_summary()
+
+    elif choice == "12":
+        delete_employee()
+
+    elif choice == "13":
+        print("\nThank you. Program closed.")
+        break
+
+    else:
+        print("Invalid choice. Please try again.")
+```
+
+# Start the program
+
+main()

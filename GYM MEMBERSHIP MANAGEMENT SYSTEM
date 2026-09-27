@@ -1,0 +1,678 @@
+# ============================================================
+
+# GYM MEMBERSHIP MANAGEMENT SYSTEM
+
+# Simple CLI project using Python basics and NumPy
+
+# ============================================================
+
+import numpy as np
+
+# Available membership plans
+
+plans = (
+"Monthly",
+"Quarterly",
+"Half Yearly",
+"Yearly"
+)
+
+# Membership price
+
+plan_price = {
+"Monthly": 1000,
+"Quarterly": 2700,
+"Half Yearly": 5000,
+"Yearly": 9000
+}
+
+# Member details
+
+members = [
+{
+"id": 101,
+"name": "Papun",
+"age": 30,
+"plan": "Monthly",
+"days": 20
+},
+{
+"id": 102,
+"name": "Amit",
+"age": 25,
+"plan": "Quarterly",
+"days": 35
+},
+{
+"id": 103,
+"name": "Rahul",
+"age": 28,
+"plan": "Yearly",
+"days": 80
+}
+]
+
+# ============================================================
+
+# FIND MEMBER
+
+# ============================================================
+
+def find_member(member_id):
+
+```
+for member in members:
+
+    if member["id"] == member_id:
+        return member
+
+return None
+```
+
+# ============================================================
+
+# ADD MEMBER
+
+# ============================================================
+
+def add_member():
+
+```
+print("\n----------- ADD MEMBER -----------")
+
+try:
+
+    member_id = int(input("Enter member ID: "))
+
+    # Check duplicate ID
+    for member in members:
+
+        if member["id"] == member_id:
+            print("Member ID already exists.")
+            return
+
+    name = input("Enter member name: ").strip().title()
+
+    if name == "":
+        print("Member name is required.")
+        return
+
+    age = int(input("Enter age: "))
+
+    if age < 15:
+        print("Minimum age is 15.")
+        return
+
+    print("\nMembership Plans:")
+
+    for plan in plans:
+
+        print(
+            plan,
+            "- ₹",
+            plan_price[plan]
+        )
+
+    plan = input(
+        "Enter membership plan: "
+    ).strip().title()
+
+    if plan not in plans:
+        print("Invalid membership plan.")
+        return
+
+    days = int(
+        input("Enter gym attendance days: ")
+    )
+
+    if days < 0:
+        print("Attendance cannot be negative.")
+        return
+
+    member = {
+        "id": member_id,
+        "name": name,
+        "age": age,
+        "plan": plan,
+        "days": days
+    }
+
+    members.append(member)
+
+    print("Member added successfully.")
+
+
+except ValueError:
+
+    print("Please enter valid values.")
+```
+
+# ============================================================
+
+# SHOW ALL MEMBERS
+
+# ============================================================
+
+def show_members():
+
+```
+print("\n----------- ALL MEMBERS -----------")
+
+if len(members) == 0:
+
+    print("No members found.")
+    return
+
+for member in members:
+
+    fee = plan_price[member["plan"]]
+
+    print("----------------------------------")
+    print("ID         :", member["id"])
+    print("Name       :", member["name"])
+    print("Age        :", member["age"])
+    print("Plan       :", member["plan"])
+    print("Attendance :", member["days"], "days")
+    print("Membership : ₹", fee)
+```
+
+# ============================================================
+
+# SEARCH MEMBER
+
+# ============================================================
+
+def search_member():
+
+```
+print("\n----------- SEARCH MEMBER -----------")
+
+try:
+
+    member_id = int(
+        input("Enter member ID: ")
+    )
+
+    member = find_member(member_id)
+
+    if member is None:
+
+        print("Member not found.")
+        return
+
+    fee = plan_price[member["plan"]]
+
+    print("\nMember found")
+    print("ID         :", member["id"])
+    print("Name       :", member["name"])
+    print("Age        :", member["age"])
+    print("Plan       :", member["plan"])
+    print("Attendance :", member["days"], "days")
+    print("Membership : ₹", fee)
+
+
+except ValueError:
+
+    print("Enter a valid member ID.")
+```
+
+# ============================================================
+
+# UPDATE MEMBERSHIP PLAN
+
+# ============================================================
+
+def update_plan():
+
+```
+print("\n----------- UPDATE PLAN -----------")
+
+try:
+
+    member_id = int(
+        input("Enter member ID: ")
+    )
+
+    member = find_member(member_id)
+
+    if member is None:
+
+        print("Member not found.")
+        return
+
+    print("Current plan:", member["plan"])
+
+    print("\nAvailable Plans:")
+
+    for plan in plans:
+
+        print(
+            plan,
+            "- ₹",
+            plan_price[plan]
+        )
+
+    new_plan = input(
+        "Enter new plan: "
+    ).strip().title()
+
+    if new_plan not in plans:
+
+        print("Invalid plan.")
+        return
+
+    member["plan"] = new_plan
+
+    print("Membership plan updated.")
+
+
+except ValueError:
+
+    print("Enter a valid member ID.")
+```
+
+# ============================================================
+
+# UPDATE ATTENDANCE
+
+# ============================================================
+
+def update_attendance():
+
+```
+print("\n----------- UPDATE ATTENDANCE -----------")
+
+try:
+
+    member_id = int(
+        input("Enter member ID: ")
+    )
+
+    member = find_member(member_id)
+
+    if member is None:
+
+        print("Member not found.")
+        return
+
+    print(
+        "Current attendance:",
+        member["days"]
+    )
+
+    days = int(
+        input("Enter new attendance days: ")
+    )
+
+    if days < 0:
+
+        print("Attendance cannot be negative.")
+        return
+
+    member["days"] = days
+
+    print("Attendance updated.")
+
+
+except ValueError:
+
+    print("Enter a valid number.")
+```
+
+# ============================================================
+
+# MEMBER ATTENDANCE CATEGORY
+
+# ============================================================
+
+def attendance_category(days):
+
+```
+if days >= 50:
+
+    return "Excellent"
+
+elif days >= 30:
+
+    return "Good"
+
+elif days >= 15:
+
+    return "Average"
+
+else:
+
+    return "Low"
+```
+
+# ============================================================
+
+# SHOW ATTENDANCE REPORT
+
+# ============================================================
+
+def attendance_report():
+
+```
+print("\n----------- ATTENDANCE REPORT -----------")
+
+if len(members) == 0:
+
+    print("No members found.")
+    return
+
+for member in members:
+
+    category = attendance_category(
+        member["days"]
+    )
+
+    print("----------------------------------")
+    print("Name       :", member["name"])
+    print("Plan       :", member["plan"])
+    print("Attendance :", member["days"])
+    print("Category   :", category)
+```
+
+# ============================================================
+
+# HIGHEST ATTENDANCE
+
+# ============================================================
+
+def highest_attendance():
+
+```
+print("\n----------- HIGHEST ATTENDANCE -----------")
+
+if len(members) == 0:
+
+    print("No members found.")
+    return
+
+attendance = []
+
+for member in members:
+
+    attendance.append(
+        member["days"]
+    )
+
+attendance_array = np.array(attendance)
+
+highest = np.max(attendance_array)
+
+for member in members:
+
+    if member["days"] == highest:
+
+        print("Name       :", member["name"])
+        print("Attendance :", highest, "days")
+```
+
+# ============================================================
+
+# LOWEST ATTENDANCE
+
+# ============================================================
+
+def lowest_attendance():
+
+```
+print("\n----------- LOWEST ATTENDANCE -----------")
+
+if len(members) == 0:
+
+    print("No members found.")
+    return
+
+attendance = []
+
+for member in members:
+
+    attendance.append(
+        member["days"]
+    )
+
+attendance_array = np.array(attendance)
+
+lowest = np.min(attendance_array)
+
+for member in members:
+
+    if member["days"] == lowest:
+
+        print("Name       :", member["name"])
+        print("Attendance :", lowest, "days")
+```
+
+# ============================================================
+
+# AVERAGE ATTENDANCE
+
+# ============================================================
+
+def average_attendance():
+
+```
+print("\n----------- AVERAGE ATTENDANCE -----------")
+
+if len(members) == 0:
+
+    print("No members found.")
+    return
+
+attendance = []
+
+for member in members:
+
+    attendance.append(
+        member["days"]
+    )
+
+attendance_array = np.array(attendance)
+
+average = np.mean(attendance_array)
+
+print(
+    "Average attendance:",
+    round(average, 2),
+    "days"
+)
+```
+
+# ============================================================
+
+# TOTAL MEMBERSHIP REVENUE
+
+# ============================================================
+
+def total_revenue():
+
+```
+print("\n----------- TOTAL REVENUE -----------")
+
+total = 0
+
+for member in members:
+
+    fee = plan_price[member["plan"]]
+
+    total = total + fee
+
+print("Total membership revenue: ₹", total)
+```
+
+# ============================================================
+
+# PLAN SUMMARY
+
+# ============================================================
+
+def plan_summary():
+
+```
+print("\n----------- PLAN SUMMARY -----------")
+
+summary = {}
+
+# Start all plans at zero
+for plan in plans:
+
+    summary[plan] = 0
+
+# Count members in each plan
+for member in members:
+
+    plan = member["plan"]
+
+    summary[plan] = (
+        summary[plan] + 1
+    )
+
+for plan, count in summary.items():
+
+    print(plan, ":", count)
+```
+
+# ============================================================
+
+# DELETE MEMBER
+
+# ============================================================
+
+def delete_member():
+
+```
+print("\n----------- DELETE MEMBER -----------")
+
+try:
+
+    member_id = int(
+        input("Enter member ID: ")
+    )
+
+    member = find_member(member_id)
+
+    if member is None:
+
+        print("Member not found.")
+        return
+
+    print("Member:", member["name"])
+
+    confirm = input(
+        "Delete this member? (y/n): "
+    ).strip().lower()
+
+    if confirm == "y":
+
+        members.remove(member)
+
+        print("Member deleted.")
+
+    else:
+
+        print("Delete cancelled.")
+
+
+except ValueError:
+
+    print("Enter a valid member ID.")
+```
+
+# ============================================================
+
+# MAIN MENU
+
+# ============================================================
+
+def main():
+
+```
+while True:
+
+    print("\n")
+    print("==========================================")
+    print("       GYM MEMBERSHIP SYSTEM")
+    print("==========================================")
+    print("1. Add Member")
+    print("2. Show Members")
+    print("3. Search Member")
+    print("4. Update Membership Plan")
+    print("5. Update Attendance")
+    print("6. Attendance Report")
+    print("7. Highest Attendance")
+    print("8. Lowest Attendance")
+    print("9. Average Attendance")
+    print("10. Total Revenue")
+    print("11. Plan Summary")
+    print("12. Delete Member")
+    print("13. Exit")
+    print("==========================================")
+
+    choice = input(
+        "Enter your choice: "
+    ).strip()
+
+    if choice == "1":
+
+        add_member()
+
+    elif choice == "2":
+
+        show_members()
+
+    elif choice == "3":
+
+        search_member()
+
+    elif choice == "4":
+
+        update_plan()
+
+    elif choice == "5":
+
+        update_attendance()
+
+    elif choice == "6":
+
+        attendance_report()
+
+    elif choice == "7":
+
+        highest_attendance()
+
+    elif choice == "8":
+
+        lowest_attendance()
+
+    elif choice == "9":
+
+        average_attendance()
+
+    elif choice == "10":
+
+        total_revenue()
+
+    elif choice == "11":
+
+        plan_summary()
+
+    elif choice == "12":
+
+        delete_member()
+
+    elif choice == "13":
+
+        print("\nThank you. Program closed.")
+        break
+
+    else:
+
+        print("Invalid choice. Please try again.")
+```
+
+# Start the program
+
+main()

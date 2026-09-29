@@ -1,0 +1,763 @@
+# ============================================================
+
+# TRAVEL TICKET BOOKING & TRIP MANAGEMENT SYSTEM
+
+# Simple CLI project using Python basics and NumPy
+
+# ============================================================
+
+import numpy as np
+
+# Available travel types
+
+travel_types = (
+"Bus",
+"Train",
+"Flight"
+)
+
+# Ticket prices based on travel type
+
+ticket_price = {
+"Bus": 500,
+"Train": 900,
+"Flight": 2500
+}
+
+# Booking details
+
+bookings = [
+{
+"id": 101,
+"name": "Papun",
+"from": "Chennai",
+"to": "Bangalore",
+"type": "Bus",
+"tickets": 2
+},
+{
+"id": 102,
+"name": "Amit",
+"from": "Chennai",
+"to": "Hyderabad",
+"type": "Train",
+"tickets": 1
+},
+{
+"id": 103,
+"name": "Rahul",
+"from": "Chennai",
+"to": "Delhi",
+"type": "Flight",
+"tickets": 2
+}
+]
+
+# ============================================================
+
+# FIND BOOKING
+
+# ============================================================
+
+def find_booking(booking_id):
+
+```
+for booking in bookings:
+
+    if booking["id"] == booking_id:
+        return booking
+
+return None
+```
+
+# ============================================================
+
+# CALCULATE TICKET COST
+
+# ============================================================
+
+def calculate_cost(travel_type, tickets):
+
+```
+price = ticket_price[travel_type]
+
+return price * tickets
+```
+
+# ============================================================
+
+# SHOW TRAVEL TYPES
+
+# ============================================================
+
+def show_travel_types():
+
+```
+print("\nAvailable Travel Types:")
+
+for travel_type in travel_types:
+
+    print(
+        travel_type,
+        "- ₹",
+        ticket_price[travel_type]
+    )
+```
+
+# ============================================================
+
+# ADD BOOKING
+
+# ============================================================
+
+def add_booking():
+
+```
+print("\n----------- NEW BOOKING -----------")
+
+try:
+
+    booking_id = int(
+        input("Enter booking ID: ")
+    )
+
+    # Check duplicate ID
+    for booking in bookings:
+
+        if booking["id"] == booking_id:
+
+            print("Booking ID already exists.")
+            return
+
+    name = input(
+        "Enter passenger name: "
+    ).strip().title()
+
+    if name == "":
+
+        print("Passenger name is required.")
+        return
+
+    start = input(
+        "Enter starting place: "
+    ).strip().title()
+
+    destination = input(
+        "Enter destination: "
+    ).strip().title()
+
+    if start == "" or destination == "":
+
+        print("Starting place and destination are required.")
+        return
+
+    if start.lower() == destination.lower():
+
+        print("Starting place and destination cannot be the same.")
+        return
+
+    show_travel_types()
+
+    travel_type = input(
+        "Enter travel type: "
+    ).strip().title()
+
+    if travel_type not in travel_types:
+
+        print("Invalid travel type.")
+        return
+
+    tickets = int(
+        input("Enter number of tickets: ")
+    )
+
+    if tickets <= 0:
+
+        print("Number of tickets must be greater than zero.")
+        return
+
+    booking = {
+        "id": booking_id,
+        "name": name,
+        "from": start,
+        "to": destination,
+        "type": travel_type,
+        "tickets": tickets
+    }
+
+    bookings.append(booking)
+
+    total = calculate_cost(
+        travel_type,
+        tickets
+    )
+
+    print("\nBooking completed.")
+    print("Total ticket cost: ₹", total)
+
+except ValueError:
+
+    print("Please enter valid values.")
+```
+
+# ============================================================
+
+# SHOW ALL BOOKINGS
+
+# ============================================================
+
+def show_bookings():
+
+```
+print("\n----------- ALL BOOKINGS -----------")
+
+if len(bookings) == 0:
+
+    print("No bookings found.")
+    return
+
+for booking in bookings:
+
+    total = calculate_cost(
+        booking["type"],
+        booking["tickets"]
+    )
+
+    print("-----------------------------------")
+    print("Booking ID  :", booking["id"])
+    print("Passenger   :", booking["name"])
+    print("From        :", booking["from"])
+    print("To          :", booking["to"])
+    print("Travel Type :", booking["type"])
+    print("Tickets     :", booking["tickets"])
+    print("Total       : ₹", total)
+```
+
+# ============================================================
+
+# SEARCH BOOKING
+
+# ============================================================
+
+def search_booking():
+
+```
+print("\n----------- SEARCH BOOKING -----------")
+
+try:
+
+    booking_id = int(
+        input("Enter booking ID: ")
+    )
+
+    booking = find_booking(booking_id)
+
+    if booking is None:
+
+        print("Booking not found.")
+        return
+
+    total = calculate_cost(
+        booking["type"],
+        booking["tickets"]
+    )
+
+    print("\nBooking found")
+    print("Booking ID  :", booking["id"])
+    print("Passenger   :", booking["name"])
+    print("From        :", booking["from"])
+    print("To          :", booking["to"])
+    print("Travel Type :", booking["type"])
+    print("Tickets     :", booking["tickets"])
+    print("Total       : ₹", total)
+
+except ValueError:
+
+    print("Enter a valid booking ID.")
+```
+
+# ============================================================
+
+# UPDATE TICKETS
+
+# ============================================================
+
+def update_tickets():
+
+```
+print("\n----------- UPDATE TICKETS -----------")
+
+try:
+
+    booking_id = int(
+        input("Enter booking ID: ")
+    )
+
+    booking = find_booking(booking_id)
+
+    if booking is None:
+
+        print("Booking not found.")
+        return
+
+    print(
+        "Current tickets:",
+        booking["tickets"]
+    )
+
+    tickets = int(
+        input("Enter new number of tickets: ")
+    )
+
+    if tickets <= 0:
+
+        print("Tickets must be greater than zero.")
+        return
+
+    booking["tickets"] = tickets
+
+    total = calculate_cost(
+        booking["type"],
+        tickets
+    )
+
+    print("Booking updated.")
+    print("New total: ₹", total)
+
+except ValueError:
+
+    print("Enter a valid number.")
+```
+
+# ============================================================
+
+# PRINT TICKET
+
+# ============================================================
+
+def print_ticket():
+
+```
+print("\n----------- PRINT TICKET -----------")
+
+try:
+
+    booking_id = int(
+        input("Enter booking ID: ")
+    )
+
+    booking = find_booking(booking_id)
+
+    if booking is None:
+
+        print("Booking not found.")
+        return
+
+    total = calculate_cost(
+        booking["type"],
+        booking["tickets"]
+    )
+
+    print("\n===================================")
+    print("           TRAVEL TICKET")
+    print("===================================")
+    print("Booking ID  :", booking["id"])
+    print("Passenger   :", booking["name"])
+    print("From        :", booking["from"])
+    print("To          :", booking["to"])
+    print("Travel Type :", booking["type"])
+    print("Tickets     :", booking["tickets"])
+    print("-----------------------------------")
+    print("Total Fare  : ₹", total)
+    print("===================================")
+
+except ValueError:
+
+    print("Enter a valid booking ID.")
+```
+
+# ============================================================
+
+# UPDATE TRAVEL TYPE
+
+# ============================================================
+
+def change_travel_type():
+
+```
+print("\n----------- CHANGE TRAVEL TYPE -----------")
+
+try:
+
+    booking_id = int(
+        input("Enter booking ID: ")
+    )
+
+    booking = find_booking(booking_id)
+
+    if booking is None:
+
+        print("Booking not found.")
+        return
+
+    print("Current type:", booking["type"])
+
+    show_travel_types()
+
+    new_type = input(
+        "Enter new travel type: "
+    ).strip().title()
+
+    if new_type not in travel_types:
+
+        print("Invalid travel type.")
+        return
+
+    booking["type"] = new_type
+
+    total = calculate_cost(
+        new_type,
+        booking["tickets"]
+    )
+
+    print("Travel type updated.")
+    print("New total: ₹", total)
+
+except ValueError:
+
+    print("Enter a valid booking ID.")
+```
+
+# ============================================================
+
+# HIGHEST BOOKING COST
+
+# ============================================================
+
+def highest_booking():
+
+```
+print("\n----------- HIGHEST BOOKING -----------")
+
+if len(bookings) == 0:
+
+    print("No bookings found.")
+    return
+
+amounts = []
+
+for booking in bookings:
+
+    total = calculate_cost(
+        booking["type"],
+        booking["tickets"]
+    )
+
+    amounts.append(total)
+
+amount_array = np.array(amounts)
+
+highest = np.max(amount_array)
+
+for booking in bookings:
+
+    total = calculate_cost(
+        booking["type"],
+        booking["tickets"]
+    )
+
+    if total == highest:
+
+        print("Passenger :", booking["name"])
+        print("From      :", booking["from"])
+        print("To        :", booking["to"])
+        print("Amount    : ₹", highest)
+```
+
+# ============================================================
+
+# LOWEST BOOKING COST
+
+# ============================================================
+
+def lowest_booking():
+
+```
+print("\n----------- LOWEST BOOKING -----------")
+
+if len(bookings) == 0:
+
+    print("No bookings found.")
+    return
+
+amounts = []
+
+for booking in bookings:
+
+    total = calculate_cost(
+        booking["type"],
+        booking["tickets"]
+    )
+
+    amounts.append(total)
+
+amount_array = np.array(amounts)
+
+lowest = np.min(amount_array)
+
+for booking in bookings:
+
+    total = calculate_cost(
+        booking["type"],
+        booking["tickets"]
+    )
+
+    if total == lowest:
+
+        print("Passenger :", booking["name"])
+        print("From      :", booking["from"])
+        print("To        :", booking["to"])
+        print("Amount    : ₹", lowest)
+```
+
+# ============================================================
+
+# AVERAGE BOOKING COST
+
+# ============================================================
+
+def average_booking():
+
+```
+print("\n----------- AVERAGE BOOKING -----------")
+
+if len(bookings) == 0:
+
+    print("No bookings found.")
+    return
+
+amounts = []
+
+for booking in bookings:
+
+    total = calculate_cost(
+        booking["type"],
+        booking["tickets"]
+    )
+
+    amounts.append(total)
+
+amount_array = np.array(amounts)
+
+average = np.mean(amount_array)
+
+print(
+    "Average booking amount: ₹",
+    round(average, 2)
+)
+```
+
+# ============================================================
+
+# TOTAL REVENUE
+
+# ============================================================
+
+def total_revenue():
+
+```
+print("\n----------- TOTAL REVENUE -----------")
+
+total = 0
+
+for booking in bookings:
+
+    amount = calculate_cost(
+        booking["type"],
+        booking["tickets"]
+    )
+
+    total = total + amount
+
+print("Total booking revenue: ₹", total)
+```
+
+# ============================================================
+
+# TRAVEL TYPE SUMMARY
+
+# ============================================================
+
+def travel_summary():
+
+```
+print("\n----------- TRAVEL SUMMARY -----------")
+
+summary = {}
+
+# Start all travel types with zero
+for travel_type in travel_types:
+
+    summary[travel_type] = 0
+
+# Add ticket count
+for booking in bookings:
+
+    travel_type = booking["type"]
+
+    summary[travel_type] = (
+        summary[travel_type]
+        + booking["tickets"]
+    )
+
+for travel_type, count in summary.items():
+
+    print(
+        travel_type,
+        ":",
+        count,
+        "tickets"
+    )
+```
+
+# ============================================================
+
+# CANCEL BOOKING
+
+# ============================================================
+
+def cancel_booking():
+
+```
+print("\n----------- CANCEL BOOKING -----------")
+
+try:
+
+    booking_id = int(
+        input("Enter booking ID: ")
+    )
+
+    booking = find_booking(booking_id)
+
+    if booking is None:
+
+        print("Booking not found.")
+        return
+
+    print("Passenger:", booking["name"])
+    print("Route:", booking["from"], "to", booking["to"])
+
+    confirm = input(
+        "Cancel this booking? (y/n): "
+    ).strip().lower()
+
+    if confirm == "y":
+
+        bookings.remove(booking)
+
+        print("Booking cancelled.")
+
+    else:
+
+        print("Cancellation stopped.")
+
+except ValueError:
+
+    print("Enter a valid booking ID.")
+```
+
+# ============================================================
+
+# MAIN MENU
+
+# ============================================================
+
+def main():
+
+```
+while True:
+
+    print("\n")
+    print("==========================================")
+    print("        TRAVEL BOOKING SYSTEM")
+    print("==========================================")
+    print("1. Add Booking")
+    print("2. Show All Bookings")
+    print("3. Search Booking")
+    print("4. Update Tickets")
+    print("5. Print Ticket")
+    print("6. Change Travel Type")
+    print("7. Highest Booking")
+    print("8. Lowest Booking")
+    print("9. Average Booking")
+    print("10. Total Revenue")
+    print("11. Travel Type Summary")
+    print("12. Cancel Booking")
+    print("13. Exit")
+    print("==========================================")
+
+    choice = input(
+        "Enter your choice: "
+    ).strip()
+
+    if choice == "1":
+
+        add_booking()
+
+    elif choice == "2":
+
+        show_bookings()
+
+    elif choice == "3":
+
+        search_booking()
+
+    elif choice == "4":
+
+        update_tickets()
+
+    elif choice == "5":
+
+        print_ticket()
+
+    elif choice == "6":
+
+        change_travel_type()
+
+    elif choice == "7":
+
+        highest_booking()
+
+    elif choice == "8":
+
+        lowest_booking()
+
+    elif choice == "9":
+
+        average_booking()
+
+    elif choice == "10":
+
+        total_revenue()
+
+    elif choice == "11":
+
+        travel_summary()
+
+    elif choice == "12":
+
+        cancel_booking()
+
+    elif choice == "13":
+
+        print("\nThank you. Program closed.")
+        break
+
+    else:
+
+        print("Invalid choice. Please try again.")
+```
+
+# Start program
+
+main()

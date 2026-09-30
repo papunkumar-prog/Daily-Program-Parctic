@@ -1,0 +1,824 @@
+# ============================================================
+
+# VEHICLE SERVICE CENTER MANAGEMENT SYSTEM
+
+# Simple CLI project using Python basics and NumPy
+
+# ============================================================
+
+import numpy as np
+
+# Types of vehicles
+
+vehicle_types = (
+"Car",
+"Bike",
+"Auto",
+"Truck"
+)
+
+# Types of service
+
+service_types = (
+"General Service",
+"Oil Change",
+"Engine Repair",
+"Brake Service",
+"Full Service"
+)
+
+# Service charges
+
+service_price = {
+"General Service": 800,
+"Oil Change": 500,
+"Engine Repair": 3000,
+"Brake Service": 1500,
+"Full Service": 5000
+}
+
+# Service records
+
+services = [
+{
+"id": 101,
+"customer": "Papun",
+"vehicle_no": "TN01AB1234",
+"vehicle_type": "Car",
+"service": "General Service",
+"days": 2
+},
+{
+"id": 102,
+"customer": "Amit",
+"vehicle_no": "TN02CD5678",
+"vehicle_type": "Bike",
+"service": "Oil Change",
+"days": 1
+},
+{
+"id": 103,
+"customer": "Rahul",
+"vehicle_no": "TN03EF9012",
+"vehicle_type": "Car",
+"service": "Brake Service",
+"days": 3
+}
+]
+
+# ============================================================
+
+# FIND SERVICE RECORD
+
+# ============================================================
+
+def find_service(service_id):
+
+```
+for item in services:
+
+    if item["id"] == service_id:
+        return item
+
+return None
+```
+
+# ============================================================
+
+# FIND VEHICLE
+
+# ============================================================
+
+def find_vehicle(vehicle_no):
+
+```
+for item in services:
+
+    if item["vehicle_no"] == vehicle_no:
+        return item
+
+return None
+```
+
+# ============================================================
+
+# CALCULATE SERVICE BILL
+
+# ============================================================
+
+def calculate_bill(service_name, days):
+
+```
+bill = service_price[service_name]
+
+# Extra charge for keeping vehicle more than 2 days
+if days > 2:
+
+    extra_days = days - 2
+    extra_charge = extra_days * 200
+    bill = bill + extra_charge
+
+return bill
+```
+
+# ============================================================
+
+# SHOW VEHICLE TYPES
+
+# ============================================================
+
+def show_vehicle_types():
+
+```
+print("\nVehicle Types:")
+
+for item in vehicle_types:
+
+    print("-", item)
+```
+
+# ============================================================
+
+# SHOW SERVICE TYPES
+
+# ============================================================
+
+def show_service_types():
+
+```
+print("\nService Types:")
+
+for item in service_types:
+
+    print(
+        "-",
+        item,
+        ": ₹",
+        service_price[item]
+    )
+```
+
+# ============================================================
+
+# ADD SERVICE
+
+# ============================================================
+
+def add_service():
+
+```
+print("\n----------- ADD SERVICE -----------")
+
+try:
+
+    service_id = int(
+        input("Enter service ID: ")
+    )
+
+    # Check duplicate ID
+    for item in services:
+
+        if item["id"] == service_id:
+
+            print("Service ID already exists.")
+            return
+
+    customer = input(
+        "Enter customer name: "
+    ).strip().title()
+
+    if customer == "":
+
+        print("Customer name is required.")
+        return
+
+    vehicle_no = input(
+        "Enter vehicle number: "
+    ).strip().upper()
+
+    if vehicle_no == "":
+
+        print("Vehicle number is required.")
+        return
+
+    # Check whether vehicle is already in service
+    old_vehicle = find_vehicle(vehicle_no)
+
+    if old_vehicle is not None:
+
+        print("This vehicle already has a service record.")
+        return
+
+    show_vehicle_types()
+
+    vehicle_type = input(
+        "Enter vehicle type: "
+    ).strip().title()
+
+    if vehicle_type not in vehicle_types:
+
+        print("Invalid vehicle type.")
+        return
+
+    show_service_types()
+
+    service = input(
+        "Enter service type: "
+    ).strip().title()
+
+    if service not in service_types:
+
+        print("Invalid service type.")
+        return
+
+    days = int(
+        input("Enter estimated service days: ")
+    )
+
+    if days <= 0:
+
+        print("Service days must be greater than zero.")
+        return
+
+    new_service = {
+        "id": service_id,
+        "customer": customer,
+        "vehicle_no": vehicle_no,
+        "vehicle_type": vehicle_type,
+        "service": service,
+        "days": days
+    }
+
+    services.append(new_service)
+
+    bill = calculate_bill(service, days)
+
+    print("\nService record added.")
+    print("Estimated bill: ₹", bill)
+
+except ValueError:
+
+    print("Please enter valid values.")
+```
+
+# ============================================================
+
+# SHOW ALL SERVICES
+
+# ============================================================
+
+def show_services():
+
+```
+print("\n----------- ALL SERVICE RECORDS -----------")
+
+if len(services) == 0:
+
+    print("No service records found.")
+    return
+
+for item in services:
+
+    bill = calculate_bill(
+        item["service"],
+        item["days"]
+    )
+
+    print("-------------------------------------------")
+    print("Service ID    :", item["id"])
+    print("Customer      :", item["customer"])
+    print("Vehicle No    :", item["vehicle_no"])
+    print("Vehicle Type  :", item["vehicle_type"])
+    print("Service       :", item["service"])
+    print("Service Days  :", item["days"])
+    print("Estimated Bill: ₹", bill)
+```
+
+# ============================================================
+
+# SEARCH SERVICE
+
+# ============================================================
+
+def search_service():
+
+```
+print("\n----------- SEARCH SERVICE -----------")
+
+vehicle_no = input(
+    "Enter vehicle number: "
+).strip().upper()
+
+item = find_vehicle(vehicle_no)
+
+if item is None:
+
+    print("Vehicle not found.")
+    return
+
+bill = calculate_bill(
+    item["service"],
+    item["days"]
+)
+
+print("\nService found")
+print("Service ID    :", item["id"])
+print("Customer      :", item["customer"])
+print("Vehicle No    :", item["vehicle_no"])
+print("Vehicle Type  :", item["vehicle_type"])
+print("Service       :", item["service"])
+print("Service Days  :", item["days"])
+print("Estimated Bill: ₹", bill)
+```
+
+# ============================================================
+
+# CHANGE SERVICE
+
+# ============================================================
+
+def change_service():
+
+```
+print("\n----------- CHANGE SERVICE -----------")
+
+try:
+
+    service_id = int(
+        input("Enter service ID: ")
+    )
+
+    item = find_service(service_id)
+
+    if item is None:
+
+        print("Service record not found.")
+        return
+
+    print("Customer:", item["customer"])
+    print("Current service:", item["service"])
+
+    show_service_types()
+
+    new_service = input(
+        "Enter new service: "
+    ).strip().title()
+
+    if new_service not in service_types:
+
+        print("Invalid service type.")
+        return
+
+    item["service"] = new_service
+
+    bill = calculate_bill(
+        new_service,
+        item["days"]
+    )
+
+    print("Service changed successfully.")
+    print("New estimated bill: ₹", bill)
+
+except ValueError:
+
+    print("Enter a valid service ID.")
+```
+
+# ============================================================
+
+# UPDATE SERVICE DAYS
+
+# ============================================================
+
+def update_days():
+
+```
+print("\n----------- UPDATE SERVICE DAYS -----------")
+
+try:
+
+    service_id = int(
+        input("Enter service ID: ")
+    )
+
+    item = find_service(service_id)
+
+    if item is None:
+
+        print("Service record not found.")
+        return
+
+    print(
+        "Current days:",
+        item["days"]
+    )
+
+    days = int(
+        input("Enter new service days: ")
+    )
+
+    if days <= 0:
+
+        print("Days must be greater than zero.")
+        return
+
+    item["days"] = days
+
+    bill = calculate_bill(
+        item["service"],
+        days
+    )
+
+    print("Service days updated.")
+    print("New estimated bill: ₹", bill)
+
+except ValueError:
+
+    print("Enter a valid number.")
+```
+
+# ============================================================
+
+# PRINT SERVICE BILL
+
+# ============================================================
+
+def print_bill():
+
+```
+print("\n----------- SERVICE BILL -----------")
+
+try:
+
+    service_id = int(
+        input("Enter service ID: ")
+    )
+
+    item = find_service(service_id)
+
+    if item is None:
+
+        print("Service record not found.")
+        return
+
+    service_charge = service_price[
+        item["service"]
+    ]
+
+    extra_charge = 0
+
+    if item["days"] > 2:
+
+        extra_days = item["days"] - 2
+        extra_charge = extra_days * 200
+
+    total = service_charge + extra_charge
+
+    print("\n===================================")
+    print("        VEHICLE SERVICE BILL")
+    print("===================================")
+    print("Service ID   :", item["id"])
+    print("Customer     :", item["customer"])
+    print("Vehicle No   :", item["vehicle_no"])
+    print("Vehicle Type :", item["vehicle_type"])
+    print("Service      :", item["service"])
+    print("Days         :", item["days"])
+    print("-----------------------------------")
+    print("Service Fee  : ₹", service_charge)
+    print("Extra Charge : ₹", extra_charge)
+    print("-----------------------------------")
+    print("Total Bill   : ₹", total)
+    print("===================================")
+
+except ValueError:
+
+    print("Enter a valid service ID.")
+```
+
+# ============================================================
+
+# HIGHEST BILL
+
+# ============================================================
+
+def highest_bill():
+
+```
+print("\n----------- HIGHEST BILL -----------")
+
+if len(services) == 0:
+
+    print("No service records found.")
+    return
+
+bills = []
+
+for item in services:
+
+    bill = calculate_bill(
+        item["service"],
+        item["days"]
+    )
+
+    bills.append(bill)
+
+bill_array = np.array(bills)
+
+highest = np.max(bill_array)
+
+for item in services:
+
+    bill = calculate_bill(
+        item["service"],
+        item["days"]
+    )
+
+    if bill == highest:
+
+        print("Customer :", item["customer"])
+        print("Vehicle  :", item["vehicle_no"])
+        print("Service  :", item["service"])
+        print("Bill     : ₹", highest)
+```
+
+# ============================================================
+
+# LOWEST BILL
+
+# ============================================================
+
+def lowest_bill():
+
+```
+print("\n----------- LOWEST BILL -----------")
+
+if len(services) == 0:
+
+    print("No service records found.")
+    return
+
+bills = []
+
+for item in services:
+
+    bill = calculate_bill(
+        item["service"],
+        item["days"]
+    )
+
+    bills.append(bill)
+
+bill_array = np.array(bills)
+
+lowest = np.min(bill_array)
+
+for item in services:
+
+    bill = calculate_bill(
+        item["service"],
+        item["days"]
+    )
+
+    if bill == lowest:
+
+        print("Customer :", item["customer"])
+        print("Vehicle  :", item["vehicle_no"])
+        print("Service  :", item["service"])
+        print("Bill     : ₹", lowest)
+```
+
+# ============================================================
+
+# AVERAGE BILL
+
+# ============================================================
+
+def average_bill():
+
+```
+print("\n----------- AVERAGE BILL -----------")
+
+if len(services) == 0:
+
+    print("No service records found.")
+    return
+
+bills = []
+
+for item in services:
+
+    bill = calculate_bill(
+        item["service"],
+        item["days"]
+    )
+
+    bills.append(bill)
+
+bill_array = np.array(bills)
+
+average = np.mean(bill_array)
+
+print(
+    "Average service bill: ₹",
+    round(average, 2)
+)
+```
+
+# ============================================================
+
+# TOTAL REVENUE
+
+# ============================================================
+
+def total_revenue():
+
+```
+print("\n----------- TOTAL REVENUE -----------")
+
+total = 0
+
+for item in services:
+
+    bill = calculate_bill(
+        item["service"],
+        item["days"]
+    )
+
+    total = total + bill
+
+print("Total service revenue: ₹", total)
+```
+
+# ============================================================
+
+# SERVICE SUMMARY
+
+# ============================================================
+
+def service_summary():
+
+```
+print("\n----------- SERVICE SUMMARY -----------")
+
+summary = {}
+
+# Start each service count at zero
+for service in service_types:
+
+    summary[service] = 0
+
+# Count services
+for item in services:
+
+    service = item["service"]
+
+    summary[service] = (
+        summary[service] + 1
+    )
+
+for service, count in summary.items():
+
+    print(service, ":", count)
+```
+
+# ============================================================
+
+# DELETE SERVICE RECORD
+
+# ============================================================
+
+def delete_service():
+
+```
+print("\n----------- DELETE SERVICE -----------")
+
+try:
+
+    service_id = int(
+        input("Enter service ID: ")
+    )
+
+    item = find_service(service_id)
+
+    if item is None:
+
+        print("Service record not found.")
+        return
+
+    print("Customer:", item["customer"])
+    print("Vehicle :", item["vehicle_no"])
+
+    confirm = input(
+        "Delete this service record? (y/n): "
+    ).strip().lower()
+
+    if confirm == "y":
+
+        services.remove(item)
+
+        print("Service record deleted.")
+
+    else:
+
+        print("Delete cancelled.")
+
+except ValueError:
+
+    print("Enter a valid service ID.")
+```
+
+# ============================================================
+
+# MAIN MENU
+
+# ============================================================
+
+def main():
+
+```
+while True:
+
+    print("\n")
+    print("==========================================")
+    print("       VEHICLE SERVICE CENTER")
+    print("==========================================")
+    print("1. Add Service")
+    print("2. Show All Services")
+    print("3. Search Service")
+    print("4. Change Service")
+    print("5. Update Service Days")
+    print("6. Print Bill")
+    print("7. Highest Bill")
+    print("8. Lowest Bill")
+    print("9. Average Bill")
+    print("10. Total Revenue")
+    print("11. Service Summary")
+    print("12. Delete Service")
+    print("13. Exit")
+    print("==========================================")
+
+    choice = input(
+        "Enter your choice: "
+    ).strip()
+
+    if choice == "1":
+
+        add_service()
+
+    elif choice == "2":
+
+        show_services()
+
+    elif choice == "3":
+
+        search_service()
+
+    elif choice == "4":
+
+        change_service()
+
+    elif choice == "5":
+
+        update_days()
+
+    elif choice == "6":
+
+        print_bill()
+
+    elif choice == "7":
+
+        highest_bill()
+
+    elif choice == "8":
+
+        lowest_bill()
+
+    elif choice == "9":
+
+        average_bill()
+
+    elif choice == "10":
+
+        total_revenue()
+
+    elif choice == "11":
+
+        service_summary()
+
+    elif choice == "12":
+
+        delete_service()
+
+    elif choice == "13":
+
+        print("\nThank you. Program closed.")
+        break
+
+    else:
+
+        print("Invalid choice. Please try again.")
+```
+
+# Start the program
+
+main()

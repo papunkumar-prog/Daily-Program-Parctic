@@ -1,0 +1,817 @@
+# ============================================================
+
+# FUEL STATION MANAGEMENT SYSTEM
+
+# Simple CLI project using Python basics and NumPy
+
+# ============================================================
+
+import numpy as np
+
+# Fuel types available at the station
+
+fuel_types = (
+"Petrol",
+"Diesel",
+"CNG"
+)
+
+# Price per litre
+
+fuel_price = {
+"Petrol": 105,
+"Diesel": 95,
+"CNG": 85
+}
+
+# Fuel sales records
+
+sales = [
+{
+"id": 101,
+"customer": "Papun",
+"vehicle": "Car",
+"number": "TN01AB1234",
+"fuel": "Petrol",
+"litres": 20
+},
+{
+"id": 102,
+"customer": "Amit",
+"vehicle": "Bike",
+"number": "TN02CD5678",
+"fuel": "Petrol",
+"litres": 5
+},
+{
+"id": 103,
+"customer": "Rahul",
+"vehicle": "Truck",
+"number": "TN03EF9012",
+"fuel": "Diesel",
+"litres": 60
+}
+]
+
+# ============================================================
+
+# FIND SALE
+
+# ============================================================
+
+def find_sale(sale_id):
+
+```
+for sale in sales:
+
+    if sale["id"] == sale_id:
+        return sale
+
+return None
+```
+
+# ============================================================
+
+# CALCULATE FUEL COST
+
+# ============================================================
+
+def calculate_cost(fuel, litres):
+
+```
+price = fuel_price[fuel]
+
+cost = price * litres
+
+return cost
+```
+
+# ============================================================
+
+# SHOW FUEL TYPES
+
+# ============================================================
+
+def show_fuel_types():
+
+```
+print("\nFuel Types:")
+
+for fuel in fuel_types:
+
+    print(
+        fuel,
+        "- ₹",
+        fuel_price[fuel],
+        "per litre"
+    )
+```
+
+# ============================================================
+
+# ADD FUEL SALE
+
+# ============================================================
+
+def add_sale():
+
+```
+print("\n----------- ADD FUEL SALE -----------")
+
+try:
+
+    sale_id = int(
+        input("Enter sale ID: ")
+    )
+
+    # Check duplicate ID
+    for sale in sales:
+
+        if sale["id"] == sale_id:
+
+            print("Sale ID already exists.")
+            return
+
+    customer = input(
+        "Enter customer name: "
+    ).strip().title()
+
+    if customer == "":
+
+        print("Customer name is required.")
+        return
+
+    vehicle = input(
+        "Enter vehicle type: "
+    ).strip().title()
+
+    if vehicle == "":
+
+        print("Vehicle type is required.")
+        return
+
+    number = input(
+        "Enter vehicle number: "
+    ).strip().upper()
+
+    if number == "":
+
+        print("Vehicle number is required.")
+        return
+
+    show_fuel_types()
+
+    fuel = input(
+        "Enter fuel type: "
+    ).strip().title()
+
+    if fuel not in fuel_types:
+
+        print("Invalid fuel type.")
+        return
+
+    litres = float(
+        input("Enter litres: ")
+    )
+
+    if litres <= 0:
+
+        print("Litres must be greater than zero.")
+        return
+
+    sale = {
+        "id": sale_id,
+        "customer": customer,
+        "vehicle": vehicle,
+        "number": number,
+        "fuel": fuel,
+        "litres": litres
+    }
+
+    sales.append(sale)
+
+    total = calculate_cost(
+        fuel,
+        litres
+    )
+
+    print("\nSale added successfully.")
+    print("Total amount: ₹", total)
+
+except ValueError:
+
+    print("Please enter valid values.")
+```
+
+# ============================================================
+
+# SHOW ALL SALES
+
+# ============================================================
+
+def show_sales():
+
+```
+print("\n----------- ALL FUEL SALES -----------")
+
+if len(sales) == 0:
+
+    print("No sales found.")
+    return
+
+for sale in sales:
+
+    total = calculate_cost(
+        sale["fuel"],
+        sale["litres"]
+    )
+
+    print("--------------------------------------")
+    print("Sale ID      :", sale["id"])
+    print("Customer     :", sale["customer"])
+    print("Vehicle      :", sale["vehicle"])
+    print("Vehicle No   :", sale["number"])
+    print("Fuel         :", sale["fuel"])
+    print("Litres       :", sale["litres"])
+    print("Total Amount : ₹", total)
+```
+
+# ============================================================
+
+# SEARCH SALE
+
+# ============================================================
+
+def search_sale():
+
+```
+print("\n----------- SEARCH SALE -----------")
+
+try:
+
+    sale_id = int(
+        input("Enter sale ID: ")
+    )
+
+    sale = find_sale(sale_id)
+
+    if sale is None:
+
+        print("Sale not found.")
+        return
+
+    total = calculate_cost(
+        sale["fuel"],
+        sale["litres"]
+    )
+
+    print("\nSale found")
+    print("Sale ID      :", sale["id"])
+    print("Customer     :", sale["customer"])
+    print("Vehicle      :", sale["vehicle"])
+    print("Vehicle No   :", sale["number"])
+    print("Fuel         :", sale["fuel"])
+    print("Litres       :", sale["litres"])
+    print("Total Amount : ₹", total)
+
+except ValueError:
+
+    print("Enter a valid sale ID.")
+```
+
+# ============================================================
+
+# UPDATE LITRES
+
+# ============================================================
+
+def update_litres():
+
+```
+print("\n----------- UPDATE LITRES -----------")
+
+try:
+
+    sale_id = int(
+        input("Enter sale ID: ")
+    )
+
+    sale = find_sale(sale_id)
+
+    if sale is None:
+
+        print("Sale not found.")
+        return
+
+    print(
+        "Current litres:",
+        sale["litres"]
+    )
+
+    litres = float(
+        input("Enter new litres: ")
+    )
+
+    if litres <= 0:
+
+        print("Litres must be greater than zero.")
+        return
+
+    sale["litres"] = litres
+
+    total = calculate_cost(
+        sale["fuel"],
+        litres
+    )
+
+    print("Litres updated.")
+    print("New total: ₹", total)
+
+except ValueError:
+
+    print("Enter a valid number.")
+```
+
+# ============================================================
+
+# CHANGE FUEL TYPE
+
+# ============================================================
+
+def change_fuel():
+
+```
+print("\n----------- CHANGE FUEL TYPE -----------")
+
+try:
+
+    sale_id = int(
+        input("Enter sale ID: ")
+    )
+
+    sale = find_sale(sale_id)
+
+    if sale is None:
+
+        print("Sale not found.")
+        return
+
+    print(
+        "Current fuel:",
+        sale["fuel"]
+    )
+
+    show_fuel_types()
+
+    new_fuel = input(
+        "Enter new fuel type: "
+    ).strip().title()
+
+    if new_fuel not in fuel_types:
+
+        print("Invalid fuel type.")
+        return
+
+    sale["fuel"] = new_fuel
+
+    total = calculate_cost(
+        new_fuel,
+        sale["litres"]
+    )
+
+    print("Fuel type updated.")
+    print("New total: ₹", total)
+
+except ValueError:
+
+    print("Enter a valid sale ID.")
+```
+
+# ============================================================
+
+# PRINT FUEL BILL
+
+# ============================================================
+
+def print_bill():
+
+```
+print("\n----------- FUEL BILL -----------")
+
+try:
+
+    sale_id = int(
+        input("Enter sale ID: ")
+    )
+
+    sale = find_sale(sale_id)
+
+    if sale is None:
+
+        print("Sale not found.")
+        return
+
+    price = fuel_price[sale["fuel"]]
+
+    total = calculate_cost(
+        sale["fuel"],
+        sale["litres"]
+    )
+
+    print("\n===================================")
+    print("          FUEL STATION")
+    print("===================================")
+    print("Sale ID    :", sale["id"])
+    print("Customer   :", sale["customer"])
+    print("Vehicle No :", sale["number"])
+    print("Fuel       :", sale["fuel"])
+    print("Price/Ltr  : ₹", price)
+    print("Litres     :", sale["litres"])
+    print("-----------------------------------")
+    print("Total      : ₹", total)
+    print("===================================")
+
+except ValueError:
+
+    print("Enter a valid sale ID.")
+```
+
+# ============================================================
+
+# HIGHEST SALE
+
+# ============================================================
+
+def highest_sale():
+
+```
+print("\n----------- HIGHEST SALE -----------")
+
+if len(sales) == 0:
+
+    print("No sales found.")
+    return
+
+amounts = []
+
+for sale in sales:
+
+    total = calculate_cost(
+        sale["fuel"],
+        sale["litres"]
+    )
+
+    amounts.append(total)
+
+amount_array = np.array(amounts)
+
+highest = np.max(amount_array)
+
+for sale in sales:
+
+    total = calculate_cost(
+        sale["fuel"],
+        sale["litres"]
+    )
+
+    if total == highest:
+
+        print("Customer :", sale["customer"])
+        print("Vehicle  :", sale["number"])
+        print("Fuel     :", sale["fuel"])
+        print("Amount   : ₹", highest)
+```
+
+# ============================================================
+
+# LOWEST SALE
+
+# ============================================================
+
+def lowest_sale():
+
+```
+print("\n----------- LOWEST SALE -----------")
+
+if len(sales) == 0:
+
+    print("No sales found.")
+    return
+
+amounts = []
+
+for sale in sales:
+
+    total = calculate_cost(
+        sale["fuel"],
+        sale["litres"]
+    )
+
+    amounts.append(total)
+
+amount_array = np.array(amounts)
+
+lowest = np.min(amount_array)
+
+for sale in sales:
+
+    total = calculate_cost(
+        sale["fuel"],
+        sale["litres"]
+    )
+
+    if total == lowest:
+
+        print("Customer :", sale["customer"])
+        print("Vehicle  :", sale["number"])
+        print("Fuel     :", sale["fuel"])
+        print("Amount   : ₹", lowest)
+```
+
+# ============================================================
+
+# AVERAGE SALE
+
+# ============================================================
+
+def average_sale():
+
+```
+print("\n----------- AVERAGE SALE -----------")
+
+if len(sales) == 0:
+
+    print("No sales found.")
+    return
+
+amounts = []
+
+for sale in sales:
+
+    total = calculate_cost(
+        sale["fuel"],
+        sale["litres"]
+    )
+
+    amounts.append(total)
+
+amount_array = np.array(amounts)
+
+average = np.mean(amount_array)
+
+print(
+    "Average sale amount: ₹",
+    round(average, 2)
+)
+```
+
+# ============================================================
+
+# TOTAL REVENUE
+
+# ============================================================
+
+def total_revenue():
+
+```
+print("\n----------- TOTAL REVENUE -----------")
+
+total = 0
+
+for sale in sales:
+
+    amount = calculate_cost(
+        sale["fuel"],
+        sale["litres"]
+    )
+
+    total = total + amount
+
+print("Total fuel revenue: ₹", total)
+```
+
+# ============================================================
+
+# FUEL SUMMARY
+
+# ============================================================
+
+def fuel_summary():
+
+```
+print("\n----------- FUEL SUMMARY -----------")
+
+summary = {}
+
+# Start all fuel types at zero
+for fuel in fuel_types:
+
+    summary[fuel] = 0
+
+# Add litres sold
+for sale in sales:
+
+    fuel = sale["fuel"]
+
+    summary[fuel] = (
+        summary[fuel] + sale["litres"]
+    )
+
+for fuel, litres in summary.items():
+
+    print(
+        fuel,
+        ":",
+        litres,
+        "litres"
+    )
+```
+
+# ============================================================
+
+# VEHICLE SUMMARY
+
+# ============================================================
+
+def vehicle_summary():
+
+```
+print("\n----------- VEHICLE SUMMARY -----------")
+
+summary = {}
+
+for sale in sales:
+
+    vehicle = sale["vehicle"]
+
+    if vehicle in summary:
+
+        summary[vehicle] = (
+            summary[vehicle] + 1
+        )
+
+    else:
+
+        summary[vehicle] = 1
+
+if len(summary) == 0:
+
+    print("No vehicle records found.")
+    return
+
+for vehicle, count in summary.items():
+
+    print(
+        vehicle,
+        ":",
+        count,
+        "sales"
+    )
+```
+
+# ============================================================
+
+# DELETE SALE
+
+# ============================================================
+
+def delete_sale():
+
+```
+print("\n----------- DELETE SALE -----------")
+
+try:
+
+    sale_id = int(
+        input("Enter sale ID: ")
+    )
+
+    sale = find_sale(sale_id)
+
+    if sale is None:
+
+        print("Sale not found.")
+        return
+
+    print("Customer:", sale["customer"])
+    print("Vehicle :", sale["number"])
+
+    confirm = input(
+        "Delete this sale? (y/n): "
+    ).strip().lower()
+
+    if confirm == "y":
+
+        sales.remove(sale)
+
+        print("Sale deleted.")
+
+    else:
+
+        print("Delete cancelled.")
+
+except ValueError:
+
+    print("Enter a valid sale ID.")
+```
+
+# ============================================================
+
+# MAIN MENU
+
+# ============================================================
+
+def main():
+
+```
+while True:
+
+    print("\n")
+    print("==========================================")
+    print("         FUEL STATION SYSTEM")
+    print("==========================================")
+    print("1. Add Fuel Sale")
+    print("2. Show All Sales")
+    print("3. Search Sale")
+    print("4. Update Litres")
+    print("5. Change Fuel Type")
+    print("6. Print Bill")
+    print("7. Highest Sale")
+    print("8. Lowest Sale")
+    print("9. Average Sale")
+    print("10. Total Revenue")
+    print("11. Fuel Summary")
+    print("12. Vehicle Summary")
+    print("13. Delete Sale")
+    print("14. Exit")
+    print("==========================================")
+
+    choice = input(
+        "Enter your choice: "
+    ).strip()
+
+    if choice == "1":
+
+        add_sale()
+
+    elif choice == "2":
+
+        show_sales()
+
+    elif choice == "3":
+
+        search_sale()
+
+    elif choice == "4":
+
+        update_litres()
+
+    elif choice == "5":
+
+        change_fuel()
+
+    elif choice == "6":
+
+        print_bill()
+
+    elif choice == "7":
+
+        highest_sale()
+
+    elif choice == "8":
+
+        lowest_sale()
+
+    elif choice == "9":
+
+        average_sale()
+
+    elif choice == "10":
+
+        total_revenue()
+
+    elif choice == "11":
+
+        fuel_summary()
+
+    elif choice == "12":
+
+        vehicle_summary()
+
+    elif choice == "13":
+
+        delete_sale()
+
+    elif choice == "14":
+
+        print("\nThank you. Program closed.")
+        break
+
+    else:
+
+        print("Invalid choice. Please try again.")
+```
+
+# Start the program
+
+main()

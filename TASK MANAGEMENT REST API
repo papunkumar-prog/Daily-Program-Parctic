@@ -1,0 +1,449 @@
+# ============================================================
+
+# TASK MANAGEMENT REST API
+
+# Simple Flask API project
+
+# ============================================================
+
+from flask import Flask, request, jsonify
+
+app = Flask(**name**)
+
+# Available task statuses
+
+statuses = (
+"Pending",
+"In Progress",
+"Completed"
+)
+
+# Task data
+
+tasks = [
+{
+"id": 101,
+"title": "Learn Python",
+"description": "Practice Python functions",
+"status": "Completed",
+"priority": "High"
+},
+{
+"id": 102,
+"title": "Learn Flask",
+"description": "Practice Flask routes",
+"status": "In Progress",
+"priority": "High"
+},
+{
+"id": 103,
+"title": "Practice API",
+"description": "Practice GET and POST",
+"status": "Pending",
+"priority": "Medium"
+}
+]
+
+# ============================================================
+
+# FIND TASK
+
+# ============================================================
+
+def find_task(task_id):
+
+```
+# Go through the list and find matching ID
+for task in tasks:
+
+    if task["id"] == task_id:
+        return task
+
+return None
+```
+
+# ============================================================
+
+# GET ALL TASKS
+
+# ============================================================
+
+@app.route("/api/tasks", methods=["GET"])
+def get_tasks():
+
+```
+return jsonify(tasks)
+```
+
+# ============================================================
+
+# GET ONE TASK
+
+# ============================================================
+
+@app.route("/api/tasks/[int:task_id](int:task_id)", methods=["GET"])
+def get_task(task_id):
+
+```
+task = find_task(task_id)
+
+if task is None:
+
+    return jsonify({
+        "message": "Task not found"
+    }), 404
+
+return jsonify(task)
+```
+
+# ============================================================
+
+# ADD NEW TASK
+
+# ============================================================
+
+@app.route("/api/tasks", methods=["POST"])
+def add_task():
+
+```
+# Read JSON data from request
+data = request.get_json()
+
+if not data:
+
+    return jsonify({
+        "message": "Request body is required"
+    }), 400
+
+# Check required fields
+if "id" not in data:
+
+    return jsonify({
+        "message": "id is required"
+    }), 400
+
+if "title" not in data:
+
+    return jsonify({
+        "message": "title is required"
+    }), 400
+
+if "description" not in data:
+
+    return jsonify({
+        "message": "description is required"
+    }), 400
+
+if "status" not in data:
+
+    return jsonify({
+        "message": "status is required"
+    }), 400
+
+if "priority" not in data:
+
+    return jsonify({
+        "message": "priority is required"
+    }), 400
+
+# Check duplicate ID
+old_task = find_task(data["id"])
+
+if old_task is not None:
+
+    return jsonify({
+        "message": "Task ID already exists"
+    }), 409
+
+# Check title
+if str(data["title"]).strip() == "":
+
+    return jsonify({
+        "message": "Task title cannot be empty"
+    }), 400
+
+# Check description
+if str(data["description"]).strip() == "":
+
+    return jsonify({
+        "message": "Description cannot be empty"
+    }), 400
+
+# Check status
+if data["status"] not in statuses:
+
+    return jsonify({
+        "message": "Invalid status",
+        "available_statuses": statuses
+    }), 400
+
+# Check priority
+if data["priority"] not in ("Low", "Medium", "High"):
+
+    return jsonify({
+        "message": "Priority must be Low, Medium or High"
+    }), 400
+
+# Create new task
+task = {
+    "id": data["id"],
+    "title": data["title"],
+    "description": data["description"],
+    "status": data["status"],
+    "priority": data["priority"]
+}
+
+tasks.append(task)
+
+return jsonify({
+    "message": "Task added successfully",
+    "task": task
+}), 201
+```
+
+# ============================================================
+
+# UPDATE TASK
+
+# ============================================================
+
+@app.route("/api/tasks/[int:task_id](int:task_id)", methods=["PUT"])
+def update_task(task_id):
+
+```
+task = find_task(task_id)
+
+if task is None:
+
+    return jsonify({
+        "message": "Task not found"
+    }), 404
+
+data = request.get_json()
+
+if not data:
+
+    return jsonify({
+        "message": "Request body is required"
+    }), 400
+
+# Update title
+if "title" in data:
+
+    if str(data["title"]).strip() == "":
+
+        return jsonify({
+            "message": "Title cannot be empty"
+        }), 400
+
+    task["title"] = data["title"]
+
+# Update description
+if "description" in data:
+
+    if str(data["description"]).strip() == "":
+
+        return jsonify({
+            "message": "Description cannot be empty"
+        }), 400
+
+    task["description"] = data["description"]
+
+# Update status
+if "status" in data:
+
+    if data["status"] not in statuses:
+
+        return jsonify({
+            "message": "Invalid status",
+            "available_statuses": statuses
+        }), 400
+
+    task["status"] = data["status"]
+
+# Update priority
+if "priority" in data:
+
+    if data["priority"] not in ("Low", "Medium", "High"):
+
+        return jsonify({
+            "message": "Priority must be Low, Medium or High"
+        }), 400
+
+    task["priority"] = data["priority"]
+
+return jsonify({
+    "message": "Task updated successfully",
+    "task": task
+})
+```
+
+# ============================================================
+
+# DELETE TASK
+
+# ============================================================
+
+@app.route("/api/tasks/[int:task_id](int:task_id)", methods=["DELETE"])
+def delete_task(task_id):
+
+```
+task = find_task(task_id)
+
+if task is None:
+
+    return jsonify({
+        "message": "Task not found"
+    }), 404
+
+tasks.remove(task)
+
+return jsonify({
+    "message": "Task deleted successfully",
+    "task": task
+})
+```
+
+# ============================================================
+
+# SEARCH TASK BY STATUS
+
+# ============================================================
+
+@app.route("/api/tasks/status/<status>", methods=["GET"])
+def tasks_by_status(status):
+
+```
+result = []
+
+for task in tasks:
+
+    if task["status"].lower() == status.lower():
+
+        result.append(task)
+
+if len(result) == 0:
+
+    return jsonify({
+        "message": "No tasks found with this status"
+    }), 404
+
+return jsonify(result)
+```
+
+# ============================================================
+
+# SEARCH TASK BY PRIORITY
+
+# ============================================================
+
+@app.route("/api/tasks/priority/<priority>", methods=["GET"])
+def tasks_by_priority(priority):
+
+```
+result = []
+
+for task in tasks:
+
+    if task["priority"].lower() == priority.lower():
+
+        result.append(task)
+
+if len(result) == 0:
+
+    return jsonify({
+        "message": "No tasks found with this priority"
+    }), 404
+
+return jsonify(result)
+```
+
+# ============================================================
+
+# COMPLETED TASKS
+
+# ============================================================
+
+@app.route("/api/tasks/completed", methods=["GET"])
+def completed_tasks():
+
+```
+result = []
+
+for task in tasks:
+
+    if task["status"] == "Completed":
+
+        result.append(task)
+
+return jsonify({
+    "total_completed": len(result),
+    "tasks": result
+})
+```
+
+# ============================================================
+
+# TASK SUMMARY
+
+# ============================================================
+
+@app.route("/api/tasks/summary", methods=["GET"])
+def task_summary():
+
+```
+summary = {
+    "Pending": 0,
+    "In Progress": 0,
+    "Completed": 0
+}
+
+for task in tasks:
+
+    status = task["status"]
+
+    summary[status] = summary[status] + 1
+
+return jsonify({
+    "total_tasks": len(tasks),
+    "summary": summary
+})
+```
+
+# ============================================================
+
+# HOME ROUTE
+
+# ============================================================
+
+@app.route("/", methods=["GET"])
+def home():
+
+```
+return jsonify({
+    "message": "Task Management API is running",
+    "endpoints": {
+        "all_tasks": "GET /api/tasks",
+        "one_task": "GET /api/tasks/<id>",
+        "add_task": "POST /api/tasks",
+        "update_task": "PUT /api/tasks/<id>",
+        "delete_task": "DELETE /api/tasks/<id>",
+        "status": "GET /api/tasks/status/<status>",
+        "priority": "GET /api/tasks/priority/<priority>",
+        "completed": "GET /api/tasks/completed",
+        "summary": "GET /api/tasks/summary"
+    }
+})
+```
+
+# ============================================================
+
+# START FLASK SERVER
+
+# ============================================================
+
+if **name** == "**main**":
+
+```
+app.run(debug=True)
+```

@@ -1,0 +1,458 @@
+# ============================================================
+
+# IT SUPPORT TICKET MANAGEMENT REST API
+
+# Simple Flask API project
+
+# ============================================================
+
+from flask import Flask, request, jsonify
+
+app = Flask(**name**)
+
+# Available ticket statuses
+
+statuses = (
+"Open",
+"In Progress",
+"Resolved",
+"Closed"
+)
+
+# Available priorities
+
+priorities = (
+"Low",
+"Medium",
+"High",
+"Critical"
+)
+
+# Ticket data
+
+tickets = [
+{
+"id": 101,
+"user": "Papun",
+"issue": "System is very slow",
+"priority": "High",
+"status": "Open"
+},
+{
+"id": 102,
+"user": "Amit",
+"issue": "Unable to login",
+"priority": "Critical",
+"status": "In Progress"
+},
+{
+"id": 103,
+"user": "Rahul",
+"issue": "Printer not working",
+"priority": "Medium",
+"status": "Resolved"
+}
+]
+
+# ============================================================
+
+# FIND TICKET
+
+# ============================================================
+
+def find_ticket(ticket_id):
+
+```
+# Check every ticket
+for ticket in tickets:
+
+    if ticket["id"] == ticket_id:
+        return ticket
+
+return None
+```
+
+# ============================================================
+
+# GET ALL TICKETS
+
+# ============================================================
+
+@app.route("/api/tickets", methods=["GET"])
+def get_tickets():
+
+```
+return jsonify(tickets)
+```
+
+# ============================================================
+
+# GET ONE TICKET
+
+# ============================================================
+
+@app.route("/api/tickets/[int:ticket_id](int:ticket_id)", methods=["GET"])
+def get_ticket(ticket_id):
+
+```
+ticket = find_ticket(ticket_id)
+
+if ticket is None:
+
+    return jsonify({
+        "message": "Ticket not found"
+    }), 404
+
+return jsonify(ticket)
+```
+
+# ============================================================
+
+# CREATE NEW TICKET
+
+# ============================================================
+
+@app.route("/api/tickets", methods=["POST"])
+def create_ticket():
+
+```
+data = request.get_json()
+
+if not data:
+
+    return jsonify({
+        "message": "Request body is required"
+    }), 400
+
+# Check required fields
+if "id" not in data:
+
+    return jsonify({
+        "message": "id is required"
+    }), 400
+
+if "user" not in data:
+
+    return jsonify({
+        "message": "user is required"
+    }), 400
+
+if "issue" not in data:
+
+    return jsonify({
+        "message": "issue is required"
+    }), 400
+
+if "priority" not in data:
+
+    return jsonify({
+        "message": "priority is required"
+    }), 400
+
+# Check duplicate ID
+old_ticket = find_ticket(data["id"])
+
+if old_ticket is not None:
+
+    return jsonify({
+        "message": "Ticket ID already exists"
+    }), 409
+
+# Check user name
+if str(data["user"]).strip() == "":
+
+    return jsonify({
+        "message": "User name cannot be empty"
+    }), 400
+
+# Check issue
+if str(data["issue"]).strip() == "":
+
+    return jsonify({
+        "message": "Issue cannot be empty"
+    }), 400
+
+# Check priority
+if data["priority"] not in priorities:
+
+    return jsonify({
+        "message": "Invalid priority",
+        "available_priorities": priorities
+    }), 400
+
+# New ticket always starts as Open
+ticket = {
+    "id": data["id"],
+    "user": data["user"],
+    "issue": data["issue"],
+    "priority": data["priority"],
+    "status": "Open"
+}
+
+tickets.append(ticket)
+
+return jsonify({
+    "message": "Ticket created successfully",
+    "ticket": ticket
+}), 201
+```
+
+# ============================================================
+
+# UPDATE TICKET
+
+# ============================================================
+
+@app.route("/api/tickets/[int:ticket_id](int:ticket_id)", methods=["PUT"])
+def update_ticket(ticket_id):
+
+```
+ticket = find_ticket(ticket_id)
+
+if ticket is None:
+
+    return jsonify({
+        "message": "Ticket not found"
+    }), 404
+
+data = request.get_json()
+
+if not data:
+
+    return jsonify({
+        "message": "Request body is required"
+    }), 400
+
+# Update user
+if "user" in data:
+
+    if str(data["user"]).strip() == "":
+
+        return jsonify({
+            "message": "User name cannot be empty"
+        }), 400
+
+    ticket["user"] = data["user"]
+
+# Update issue
+if "issue" in data:
+
+    if str(data["issue"]).strip() == "":
+
+        return jsonify({
+            "message": "Issue cannot be empty"
+        }), 400
+
+    ticket["issue"] = data["issue"]
+
+# Update priority
+if "priority" in data:
+
+    if data["priority"] not in priorities:
+
+        return jsonify({
+            "message": "Invalid priority",
+            "available_priorities": priorities
+        }), 400
+
+    ticket["priority"] = data["priority"]
+
+# Update status
+if "status" in data:
+
+    if data["status"] not in statuses:
+
+        return jsonify({
+            "message": "Invalid status",
+            "available_statuses": statuses
+        }), 400
+
+    ticket["status"] = data["status"]
+
+return jsonify({
+    "message": "Ticket updated successfully",
+    "ticket": ticket
+})
+```
+
+# ============================================================
+
+# DELETE TICKET
+
+# ============================================================
+
+@app.route("/api/tickets/[int:ticket_id](int:ticket_id)", methods=["DELETE"])
+def delete_ticket(ticket_id):
+
+```
+ticket = find_ticket(ticket_id)
+
+if ticket is None:
+
+    return jsonify({
+        "message": "Ticket not found"
+    }), 404
+
+tickets.remove(ticket)
+
+return jsonify({
+    "message": "Ticket deleted successfully",
+    "ticket": ticket
+})
+```
+
+# ============================================================
+
+# GET TICKETS BY STATUS
+
+# ============================================================
+
+@app.route("/api/tickets/status/<status>", methods=["GET"])
+def tickets_by_status(status):
+
+```
+result = []
+
+for ticket in tickets:
+
+    if ticket["status"].lower() == status.lower():
+
+        result.append(ticket)
+
+if len(result) == 0:
+
+    return jsonify({
+        "message": "No tickets found for this status"
+    }), 404
+
+return jsonify(result)
+```
+
+# ============================================================
+
+# GET TICKETS BY PRIORITY
+
+# ============================================================
+
+@app.route("/api/tickets/priority/<priority>", methods=["GET"])
+def tickets_by_priority(priority):
+
+```
+result = []
+
+for ticket in tickets:
+
+    if ticket["priority"].lower() == priority.lower():
+
+        result.append(ticket)
+
+if len(result) == 0:
+
+    return jsonify({
+        "message": "No tickets found for this priority"
+    }), 404
+
+return jsonify(result)
+```
+
+# ============================================================
+
+# GET OPEN TICKETS
+
+# ============================================================
+
+@app.route("/api/tickets/open", methods=["GET"])
+def open_tickets():
+
+```
+result = []
+
+for ticket in tickets:
+
+    if ticket["status"] == "Open":
+
+        result.append(ticket)
+
+return jsonify({
+    "total_open_tickets": len(result),
+    "tickets": result
+})
+```
+
+# ============================================================
+
+# TICKET SUMMARY
+
+# ============================================================
+
+@app.route("/api/tickets/summary", methods=["GET"])
+def ticket_summary():
+
+```
+status_count = {
+    "Open": 0,
+    "In Progress": 0,
+    "Resolved": 0,
+    "Closed": 0
+}
+
+priority_count = {
+    "Low": 0,
+    "Medium": 0,
+    "High": 0,
+    "Critical": 0
+}
+
+# Count statuses and priorities
+for ticket in tickets:
+
+    status = ticket["status"]
+    priority = ticket["priority"]
+
+    status_count[status] = status_count[status] + 1
+    priority_count[priority] = priority_count[priority] + 1
+
+return jsonify({
+    "total_tickets": len(tickets),
+    "status": status_count,
+    "priority": priority_count
+})
+```
+
+# ============================================================
+
+# HOME ROUTE
+
+# ============================================================
+
+@app.route("/", methods=["GET"])
+def home():
+
+```
+return jsonify({
+    "message": "IT Support Ticket API is running",
+    "endpoints": {
+        "all_tickets": "GET /api/tickets",
+        "one_ticket": "GET /api/tickets/<id>",
+        "create_ticket": "POST /api/tickets",
+        "update_ticket": "PUT /api/tickets/<id>",
+        "delete_ticket": "DELETE /api/tickets/<id>",
+        "status": "GET /api/tickets/status/<status>",
+        "priority": "GET /api/tickets/priority/<priority>",
+        "open_tickets": "GET /api/tickets/open",
+        "summary": "GET /api/tickets/summary"
+    }
+})
+```
+
+# ============================================================
+
+# START SERVER
+
+# ============================================================
+
+if **name** == "**main**":
+
+```
+app.run(debug=True)
+```

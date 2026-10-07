@@ -1,0 +1,480 @@
+# ============================================================
+
+# ONLINE BOOK RENTAL REST API
+
+# Simple Flask API project
+
+# ============================================================
+
+from flask import Flask, request, jsonify
+
+app = Flask(**name**)
+
+# Available book categories
+
+categories = (
+"Programming",
+"Database",
+"Web Development",
+"Python",
+"Technology"
+)
+
+# Book records
+
+books = [
+{
+"id": 101,
+"title": "Python Basics",
+"author": "John",
+"category": "Python",
+"price": 300,
+"available": True
+},
+{
+"id": 102,
+"title": "SQL Guide",
+"author": "David",
+"category": "Database",
+"price": 250,
+"available": False
+},
+{
+"id": 103,
+"title": "Flask Basics",
+"author": "Mike",
+"category": "Web Development",
+"price": 400,
+"available": True
+}
+]
+
+# ============================================================
+
+# FIND BOOK
+
+# ============================================================
+
+def find_book(book_id):
+
+```
+# Search the list for the given book ID
+for book in books:
+
+    if book["id"] == book_id:
+        return book
+
+return None
+```
+
+# ============================================================
+
+# GET ALL BOOKS
+
+# ============================================================
+
+@app.route("/api/books", methods=["GET"])
+def get_books():
+
+```
+return jsonify(books)
+```
+
+# ============================================================
+
+# GET ONE BOOK
+
+# ============================================================
+
+@app.route("/api/books/[int:book_id](int:book_id)", methods=["GET"])
+def get_book(book_id):
+
+```
+book = find_book(book_id)
+
+if book is None:
+
+    return jsonify({
+        "message": "Book not found"
+    }), 404
+
+return jsonify(book)
+```
+
+# ============================================================
+
+# ADD NEW BOOK
+
+# ============================================================
+
+@app.route("/api/books", methods=["POST"])
+def add_book():
+
+```
+data = request.get_json()
+
+if not data:
+
+    return jsonify({
+        "message": "Request body is required"
+    }), 400
+
+# Check required fields
+required_fields = (
+    "id",
+    "title",
+    "author",
+    "category",
+    "price"
+)
+
+for field in required_fields:
+
+    if field not in data:
+
+        return jsonify({
+            "message": field + " is required"
+        }), 400
+
+# Check duplicate ID
+old_book = find_book(data["id"])
+
+if old_book is not None:
+
+    return jsonify({
+        "message": "Book ID already exists"
+    }), 409
+
+# Check title
+if str(data["title"]).strip() == "":
+
+    return jsonify({
+        "message": "Book title cannot be empty"
+    }), 400
+
+# Check author
+if str(data["author"]).strip() == "":
+
+    return jsonify({
+        "message": "Author name cannot be empty"
+    }), 400
+
+# Check category
+if data["category"] not in categories:
+
+    return jsonify({
+        "message": "Invalid category",
+        "available_categories": categories
+    }), 400
+
+# Check price
+if data["price"] <= 0:
+
+    return jsonify({
+        "message": "Price must be greater than 0"
+    }), 400
+
+# Add new book
+book = {
+    "id": data["id"],
+    "title": data["title"],
+    "author": data["author"],
+    "category": data["category"],
+    "price": data["price"],
+    "available": True
+}
+
+books.append(book)
+
+return jsonify({
+    "message": "Book added successfully",
+    "book": book
+}), 201
+```
+
+# ============================================================
+
+# UPDATE BOOK
+
+# ============================================================
+
+@app.route("/api/books/[int:book_id](int:book_id)", methods=["PUT"])
+def update_book(book_id):
+
+```
+book = find_book(book_id)
+
+if book is None:
+
+    return jsonify({
+        "message": "Book not found"
+    }), 404
+
+data = request.get_json()
+
+if not data:
+
+    return jsonify({
+        "message": "Request body is required"
+    }), 400
+
+# Update title
+if "title" in data:
+
+    if str(data["title"]).strip() == "":
+
+        return jsonify({
+            "message": "Title cannot be empty"
+        }), 400
+
+    book["title"] = data["title"]
+
+# Update author
+if "author" in data:
+
+    if str(data["author"]).strip() == "":
+
+        return jsonify({
+            "message": "Author cannot be empty"
+        }), 400
+
+    book["author"] = data["author"]
+
+# Update category
+if "category" in data:
+
+    if data["category"] not in categories:
+
+        return jsonify({
+            "message": "Invalid category",
+            "available_categories": categories
+        }), 400
+
+    book["category"] = data["category"]
+
+# Update price
+if "price" in data:
+
+    if data["price"] <= 0:
+
+        return jsonify({
+            "message": "Price must be greater than 0"
+        }), 400
+
+    book["price"] = data["price"]
+
+return jsonify({
+    "message": "Book updated successfully",
+    "book": book
+})
+```
+
+# ============================================================
+
+# DELETE BOOK
+
+# ============================================================
+
+@app.route("/api/books/[int:book_id](int:book_id)", methods=["DELETE"])
+def delete_book(book_id):
+
+```
+book = find_book(book_id)
+
+if book is None:
+
+    return jsonify({
+        "message": "Book not found"
+    }), 404
+
+books.remove(book)
+
+return jsonify({
+    "message": "Book deleted successfully",
+    "book": book
+})
+```
+
+# ============================================================
+
+# GET BOOKS BY CATEGORY
+
+# ============================================================
+
+@app.route("/api/books/category/<category>", methods=["GET"])
+def books_by_category(category):
+
+```
+result = []
+
+for book in books:
+
+    if book["category"].lower() == category.lower():
+
+        result.append(book)
+
+if len(result) == 0:
+
+    return jsonify({
+        "message": "No books found in this category"
+    }), 404
+
+return jsonify(result)
+```
+
+# ============================================================
+
+# GET AVAILABLE BOOKS
+
+# ============================================================
+
+@app.route("/api/books/available", methods=["GET"])
+def available_books():
+
+```
+result = []
+
+for book in books:
+
+    if book["available"]:
+
+        result.append(book)
+
+return jsonify({
+    "total_available": len(result),
+    "books": result
+})
+```
+
+# ============================================================
+
+# RENT BOOK
+
+# ============================================================
+
+@app.route("/api/books/[int:book_id](int:book_id)/rent", methods=["PUT"])
+def rent_book(book_id):
+
+```
+book = find_book(book_id)
+
+if book is None:
+
+    return jsonify({
+        "message": "Book not found"
+    }), 404
+
+if not book["available"]:
+
+    return jsonify({
+        "message": "Book is already rented"
+    }), 400
+
+book["available"] = False
+
+return jsonify({
+    "message": "Book rented successfully",
+    "book": book
+})
+```
+
+# ============================================================
+
+# RETURN BOOK
+
+# ============================================================
+
+@app.route("/api/books/[int:book_id](int:book_id)/return", methods=["PUT"])
+def return_book(book_id):
+
+```
+book = find_book(book_id)
+
+if book is None:
+
+    return jsonify({
+        "message": "Book not found"
+    }), 404
+
+if book["available"]:
+
+    return jsonify({
+        "message": "Book is already available"
+    }), 400
+
+book["available"] = True
+
+return jsonify({
+    "message": "Book returned successfully",
+    "book": book
+})
+```
+
+# ============================================================
+
+# BOOK SUMMARY
+
+# ============================================================
+
+@app.route("/api/books/summary", methods=["GET"])
+def book_summary():
+
+```
+available = 0
+rented = 0
+
+for book in books:
+
+    if book["available"]:
+
+        available = available + 1
+
+    else:
+
+        rented = rented + 1
+
+return jsonify({
+    "total_books": len(books),
+    "available_books": available,
+    "rented_books": rented
+})
+```
+
+# ============================================================
+
+# HOME ROUTE
+
+# ============================================================
+
+@app.route("/", methods=["GET"])
+def home():
+
+```
+return jsonify({
+    "message": "Online Book Rental API is running",
+    "endpoints": {
+        "all_books": "GET /api/books",
+        "one_book": "GET /api/books/<id>",
+        "add_book": "POST /api/books",
+        "update_book": "PUT /api/books/<id>",
+        "delete_book": "DELETE /api/books/<id>",
+        "category": "GET /api/books/category/<category>",
+        "available": "GET /api/books/available",
+        "rent": "PUT /api/books/<id>/rent",
+        "return": "PUT /api/books/<id>/return",
+        "summary": "GET /api/books/summary"
+    }
+})
+```
+
+# ============================================================
+
+# START FLASK SERVER
+
+# ============================================================
+
+if **name** == "**main**":
+
+```
+app.run(debug=True)
+```

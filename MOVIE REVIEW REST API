@@ -1,0 +1,519 @@
+# ============================================================
+
+# MOVIE REVIEW REST API
+
+# Simple Flask API project
+
+# ============================================================
+
+from flask import Flask, request, jsonify
+import numpy as np
+
+app = Flask(**name**)
+
+# Available movie genres
+
+genres = (
+"Action",
+"Comedy",
+"Drama",
+"Thriller",
+"Science Fiction"
+)
+
+# Movie data
+
+movies = [
+{
+"id": 101,
+"title": "The Last Mission",
+"genre": "Action",
+"year": 2024,
+"rating": 4.5
+},
+{
+"id": 102,
+"title": "Funny Days",
+"genre": "Comedy",
+"year": 2023,
+"rating": 3.8
+},
+{
+"id": 103,
+"title": "Dark Truth",
+"genre": "Thriller",
+"year": 2025,
+"rating": 4.7
+},
+{
+"id": 104,
+"title": "Future World",
+"genre": "Science Fiction",
+"year": 2024,
+"rating": 4.2
+}
+]
+
+# ============================================================
+
+# FIND MOVIE
+
+# ============================================================
+
+def find_movie(movie_id):
+
+```
+# Search for a movie using its ID
+for movie in movies:
+
+    if movie["id"] == movie_id:
+        return movie
+
+return None
+```
+
+# ============================================================
+
+# GET ALL MOVIES
+
+# ============================================================
+
+@app.route("/api/movies", methods=["GET"])
+def get_movies():
+
+```
+return jsonify(movies)
+```
+
+# ============================================================
+
+# GET ONE MOVIE
+
+# ============================================================
+
+@app.route("/api/movies/[int:movie_id](int:movie_id)", methods=["GET"])
+def get_movie(movie_id):
+
+```
+movie = find_movie(movie_id)
+
+if movie is None:
+
+    return jsonify({
+        "message": "Movie not found"
+    }), 404
+
+return jsonify(movie)
+```
+
+# ============================================================
+
+# ADD MOVIE
+
+# ============================================================
+
+@app.route("/api/movies", methods=["POST"])
+def add_movie():
+
+```
+data = request.get_json()
+
+if not data:
+
+    return jsonify({
+        "message": "Request body is required"
+    }), 400
+
+# Check required fields
+required_fields = (
+    "id",
+    "title",
+    "genre",
+    "year",
+    "rating"
+)
+
+for field in required_fields:
+
+    if field not in data:
+
+        return jsonify({
+            "message": field + " is required"
+        }), 400
+
+# Check duplicate ID
+old_movie = find_movie(data["id"])
+
+if old_movie is not None:
+
+    return jsonify({
+        "message": "Movie ID already exists"
+    }), 409
+
+# Check title
+if str(data["title"]).strip() == "":
+
+    return jsonify({
+        "message": "Movie title cannot be empty"
+    }), 400
+
+# Check genre
+if data["genre"] not in genres:
+
+    return jsonify({
+        "message": "Invalid genre",
+        "available_genres": genres
+    }), 400
+
+# Check year
+if data["year"] < 1900:
+
+    return jsonify({
+        "message": "Enter a valid movie year"
+    }), 400
+
+# Check rating
+if data["rating"] < 0 or data["rating"] > 5:
+
+    return jsonify({
+        "message": "Rating must be between 0 and 5"
+    }), 400
+
+# Create movie
+movie = {
+    "id": data["id"],
+    "title": data["title"],
+    "genre": data["genre"],
+    "year": data["year"],
+    "rating": data["rating"]
+}
+
+movies.append(movie)
+
+return jsonify({
+    "message": "Movie added successfully",
+    "movie": movie
+}), 201
+```
+
+# ============================================================
+
+# UPDATE MOVIE
+
+# ============================================================
+
+@app.route("/api/movies/[int:movie_id](int:movie_id)", methods=["PUT"])
+def update_movie(movie_id):
+
+```
+movie = find_movie(movie_id)
+
+if movie is None:
+
+    return jsonify({
+        "message": "Movie not found"
+    }), 404
+
+data = request.get_json()
+
+if not data:
+
+    return jsonify({
+        "message": "Request body is required"
+    }), 400
+
+# Update title
+if "title" in data:
+
+    if str(data["title"]).strip() == "":
+
+        return jsonify({
+            "message": "Title cannot be empty"
+        }), 400
+
+    movie["title"] = data["title"]
+
+# Update genre
+if "genre" in data:
+
+    if data["genre"] not in genres:
+
+        return jsonify({
+            "message": "Invalid genre",
+            "available_genres": genres
+        }), 400
+
+    movie["genre"] = data["genre"]
+
+# Update year
+if "year" in data:
+
+    if data["year"] < 1900:
+
+        return jsonify({
+            "message": "Enter a valid movie year"
+        }), 400
+
+    movie["year"] = data["year"]
+
+# Update rating
+if "rating" in data:
+
+    if data["rating"] < 0 or data["rating"] > 5:
+
+        return jsonify({
+            "message": "Rating must be between 0 and 5"
+        }), 400
+
+    movie["rating"] = data["rating"]
+
+return jsonify({
+    "message": "Movie updated successfully",
+    "movie": movie
+})
+```
+
+# ============================================================
+
+# DELETE MOVIE
+
+# ============================================================
+
+@app.route("/api/movies/[int:movie_id](int:movie_id)", methods=["DELETE"])
+def delete_movie(movie_id):
+
+```
+movie = find_movie(movie_id)
+
+if movie is None:
+
+    return jsonify({
+        "message": "Movie not found"
+    }), 404
+
+movies.remove(movie)
+
+return jsonify({
+    "message": "Movie deleted successfully",
+    "movie": movie
+})
+```
+
+# ============================================================
+
+# SEARCH MOVIE BY TITLE
+
+# ============================================================
+
+@app.route("/api/movies/search/<title>", methods=["GET"])
+def search_movie(title):
+
+```
+result = []
+
+for movie in movies:
+
+    if title.lower() in movie["title"].lower():
+
+        result.append(movie)
+
+if len(result) == 0:
+
+    return jsonify({
+        "message": "Movie not found"
+    }), 404
+
+return jsonify(result)
+```
+
+# ============================================================
+
+# GET MOVIES BY GENRE
+
+# ============================================================
+
+@app.route("/api/movies/genre/<genre>", methods=["GET"])
+def movies_by_genre(genre):
+
+```
+result = []
+
+for movie in movies:
+
+    if movie["genre"].lower() == genre.lower():
+
+        result.append(movie)
+
+if len(result) == 0:
+
+    return jsonify({
+        "message": "No movies found in this genre"
+    }), 404
+
+return jsonify(result)
+```
+
+# ============================================================
+
+# GET HIGH RATED MOVIES
+
+# ============================================================
+
+@app.route("/api/movies/top-rated", methods=["GET"])
+def top_rated():
+
+```
+result = []
+
+for movie in movies:
+
+    if movie["rating"] >= 4.5:
+
+        result.append(movie)
+
+return jsonify({
+    "total": len(result),
+    "movies": result
+})
+```
+
+# ============================================================
+
+# GET HIGHEST RATED MOVIE
+
+# ============================================================
+
+@app.route("/api/movies/highest-rated", methods=["GET"])
+def highest_rated():
+
+```
+if len(movies) == 0:
+
+    return jsonify({
+        "message": "No movies available"
+    }), 404
+
+ratings = []
+
+for movie in movies:
+
+    ratings.append(movie["rating"])
+
+rating_array = np.array(ratings)
+
+highest = np.max(rating_array)
+
+result = []
+
+for movie in movies:
+
+    if movie["rating"] == highest:
+
+        result.append(movie)
+
+return jsonify({
+    "highest_rating": float(highest),
+    "movies": result
+})
+```
+
+# ============================================================
+
+# AVERAGE RATING
+
+# ============================================================
+
+@app.route("/api/movies/average-rating", methods=["GET"])
+def average_rating():
+
+```
+if len(movies) == 0:
+
+    return jsonify({
+        "message": "No movies available"
+    }), 404
+
+ratings = []
+
+for movie in movies:
+
+    ratings.append(movie["rating"])
+
+rating_array = np.array(ratings)
+
+average = np.mean(rating_array)
+
+return jsonify({
+    "average_rating": round(float(average), 2)
+})
+```
+
+# ============================================================
+
+# MOVIE SUMMARY
+
+# ============================================================
+
+@app.route("/api/movies/summary", methods=["GET"])
+def movie_summary():
+
+```
+summary = {}
+
+# Start each genre with zero
+for genre in genres:
+
+    summary[genre] = 0
+
+# Count movies by genre
+for movie in movies:
+
+    genre = movie["genre"]
+
+    summary[genre] = summary[genre] + 1
+
+return jsonify({
+    "total_movies": len(movies),
+    "genre_summary": summary
+})
+```
+
+# ============================================================
+
+# HOME ROUTE
+
+# ============================================================
+
+@app.route("/", methods=["GET"])
+def home():
+
+```
+return jsonify({
+    "message": "Movie Review API is running",
+    "endpoints": {
+        "all_movies": "GET /api/movies",
+        "one_movie": "GET /api/movies/<id>",
+        "add_movie": "POST /api/movies",
+        "update_movie": "PUT /api/movies/<id>",
+        "delete_movie": "DELETE /api/movies/<id>",
+        "search": "GET /api/movies/search/<title>",
+        "genre": "GET /api/movies/genre/<genre>",
+        "top_rated": "GET /api/movies/top-rated",
+        "highest_rated": "GET /api/movies/highest-rated",
+        "average_rating": "GET /api/movies/average-rating",
+        "summary": "GET /api/movies/summary"
+    }
+})
+```
+
+# ============================================================
+
+# START SERVER
+
+# ============================================================
+
+if **name** == "**main**":
+
+```
+app.run(debug=True)
+```

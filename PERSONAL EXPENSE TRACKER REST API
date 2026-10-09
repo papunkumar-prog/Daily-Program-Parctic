@@ -1,0 +1,516 @@
+# ============================================================
+# PERSONAL EXPENSE TRACKER REST API
+# Simple Flask project using Python basics and NumPy
+# ============================================================
+
+from flask import Flask, request, jsonify
+import numpy as np
+
+
+app = Flask(__name__)
+
+
+# Available expense categories
+categories = (
+    "Food",
+    "Travel",
+    "Shopping",
+    "Bills",
+    "Health",
+    "Education",
+    "Other"
+)
+
+
+# Sample expense records
+expenses = [
+    {
+        "id": 101,
+        "title": "Lunch",
+        "category": "Food",
+        "amount": 150,
+        "date": "2026-10-01"
+    },
+    {
+        "id": 102,
+        "title": "Bus Ticket",
+        "category": "Travel",
+        "amount": 80,
+        "date": "2026-10-02"
+    },
+    {
+        "id": 103,
+        "title": "Shopping",
+        "category": "Shopping",
+        "amount": 1200,
+        "date": "2026-10-03"
+    }
+]
+
+
+# ============================================================
+# FIND EXPENSE
+# ============================================================
+
+def find_expense(expense_id):
+
+    # Search the list using the expense ID
+    for expense in expenses:
+
+        if expense["id"] == expense_id:
+            return expense
+
+    return None
+
+
+# ============================================================
+# VALIDATE AMOUNT
+# ============================================================
+
+def valid_amount(amount):
+
+    # Amount must be a number greater than zero
+    if isinstance(amount, bool):
+        return False
+
+    if isinstance(amount, (int, float)) and amount > 0:
+        return True
+
+    return False
+
+
+# ============================================================
+# GET ALL EXPENSES
+# ============================================================
+
+@app.route("/api/expenses", methods=["GET"])
+def get_expenses():
+
+    return jsonify({
+        "total_records": len(expenses),
+        "expenses": expenses
+    })
+
+
+# ============================================================
+# GET ONE EXPENSE
+# ============================================================
+
+@app.route("/api/expenses/<int:expense_id>", methods=["GET"])
+def get_expense(expense_id):
+
+    expense = find_expense(expense_id)
+
+    if expense is None:
+
+        return jsonify({
+            "message": "Expense not found"
+        }), 404
+
+    return jsonify(expense)
+
+
+# ============================================================
+# ADD NEW EXPENSE
+# ============================================================
+
+@app.route("/api/expenses", methods=["POST"])
+def add_expense():
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+
+        return jsonify({
+            "message": "A valid JSON object is required"
+        }), 400
+
+    # Check required fields
+    required_fields = (
+        "id",
+        "title",
+        "category",
+        "amount",
+        "date"
+    )
+
+    for field in required_fields:
+
+        if field not in data:
+
+            return jsonify({
+                "message": field + " is required"
+            }), 400
+
+    # Check expense ID
+    if type(data["id"]) is not int or data["id"] <= 0:
+
+        return jsonify({
+            "message": "ID must be a positive integer"
+        }), 400
+
+    if find_expense(data["id"]) is not None:
+
+        return jsonify({
+            "message": "Expense ID already exists"
+        }), 409
+
+    # Check title
+    if not isinstance(data["title"], str) or not data["title"].strip():
+
+        return jsonify({
+            "message": "Title cannot be empty"
+        }), 400
+
+    # Check category
+    if data["category"] not in categories:
+
+        return jsonify({
+            "message": "Invalid category",
+            "available_categories": categories
+        }), 400
+
+    # Check amount
+    if not valid_amount(data["amount"]):
+
+        return jsonify({
+            "message": "Amount must be a positive number"
+        }), 400
+
+    # Check date format
+    if not isinstance(data["date"], str):
+
+        return jsonify({
+            "message": "Date must be a string in YYYY-MM-DD format"
+        }), 400
+
+    try:
+        from datetime import datetime
+
+        datetime.strptime(data["date"], "%Y-%m-%d")
+
+    except ValueError:
+
+        return jsonify({
+            "message": "Invalid date. Use YYYY-MM-DD"
+        }), 400
+
+    # Create and save the expense
+    expense = {
+        "id": data["id"],
+        "title": data["title"].strip(),
+        "category": data["category"],
+        "amount": data["amount"],
+        "date": data["date"]
+    }
+
+    expenses.append(expense)
+
+    return jsonify({
+        "message": "Expense added successfully",
+        "expense": expense
+    }), 201
+
+
+# ============================================================
+# UPDATE EXPENSE
+# ============================================================
+
+@app.route("/api/expenses/<int:expense_id>", methods=["PUT"])
+def update_expense(expense_id):
+
+    expense = find_expense(expense_id)
+
+    if expense is None:
+
+        return jsonify({
+            "message": "Expense not found"
+        }), 404
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict) or not data:
+
+        return jsonify({
+            "message": "A non-empty JSON object is required"
+        }), 400
+
+    # Check title before updating
+    if "title" in data:
+
+        if not isinstance(data["title"], str) or not data["title"].strip():
+
+            return jsonify({
+                "message": "Title cannot be empty"
+            }), 400
+
+    # Check category before updating
+    if "category" in data:
+
+        if data["category"] not in categories:
+
+            return jsonify({
+                "message": "Invalid category",
+                "available_categories": categories
+            }), 400
+
+    # Check amount before updating
+    if "amount" in data:
+
+        if not valid_amount(data["amount"]):
+
+            return jsonify({
+                "message": "Amount must be a positive number"
+            }), 400
+
+    # Check date before updating
+    if "date" in data:
+
+        if not isinstance(data["date"], str):
+
+            return jsonify({
+                "message": "Date must be a string"
+            }), 400
+
+        try:
+            from datetime import datetime
+
+            datetime.strptime(data["date"], "%Y-%m-%d")
+
+        except ValueError:
+
+            return jsonify({
+                "message": "Invalid date. Use YYYY-MM-DD"
+            }), 400
+
+    # Update only the fields provided
+    if "title" in data:
+        expense["title"] = data["title"].strip()
+
+    if "category" in data:
+        expense["category"] = data["category"]
+
+    if "amount" in data:
+        expense["amount"] = data["amount"]
+
+    if "date" in data:
+        expense["date"] = data["date"]
+
+    return jsonify({
+        "message": "Expense updated successfully",
+        "expense": expense
+    })
+
+
+# ============================================================
+# DELETE EXPENSE
+# ============================================================
+
+@app.route("/api/expenses/<int:expense_id>", methods=["DELETE"])
+def delete_expense(expense_id):
+
+    expense = find_expense(expense_id)
+
+    if expense is None:
+
+        return jsonify({
+            "message": "Expense not found"
+        }), 404
+
+    expenses.remove(expense)
+
+    return jsonify({
+        "message": "Expense deleted successfully",
+        "expense": expense
+    })
+
+
+# ============================================================
+# FILTER EXPENSES BY CATEGORY
+# ============================================================
+
+@app.route("/api/expenses/category/<category>", methods=["GET"])
+def expenses_by_category(category):
+
+    result = []
+
+    # Find matching expenses
+    for expense in expenses:
+
+        if expense["category"].lower() == category.lower():
+
+            result.append(expense)
+
+    return jsonify({
+        "category": category,
+        "total_records": len(result),
+        "expenses": result
+    })
+
+
+# ============================================================
+# FILTER EXPENSES BY DATE
+# ============================================================
+
+@app.route("/api/expenses/date/<date>", methods=["GET"])
+def expenses_by_date(date):
+
+    result = []
+
+    for expense in expenses:
+
+        if expense["date"] == date:
+
+            result.append(expense)
+
+    return jsonify({
+        "date": date,
+        "total_records": len(result),
+        "expenses": result
+    })
+
+
+# ============================================================
+# TOTAL EXPENSE AMOUNT
+# ============================================================
+
+@app.route("/api/expenses/total", methods=["GET"])
+def total_expenses():
+
+    total = 0
+
+    for expense in expenses:
+
+        total = total + expense["amount"]
+
+    return jsonify({
+        "total_expenses": round(total, 2)
+    })
+
+
+# ============================================================
+# HIGHEST EXPENSE
+# ============================================================
+
+@app.route("/api/expenses/highest", methods=["GET"])
+def highest_expense():
+
+    if len(expenses) == 0:
+
+        return jsonify({
+            "message": "No expenses available"
+        }), 404
+
+    amounts = []
+
+    for expense in expenses:
+
+        amounts.append(expense["amount"])
+
+    amount_array = np.array(amounts)
+
+    highest = np.max(amount_array)
+
+    result = []
+
+    for expense in expenses:
+
+        if expense["amount"] == highest:
+
+            result.append(expense)
+
+    return jsonify({
+        "highest_amount": float(highest),
+        "expenses": result
+    })
+
+
+# ============================================================
+# AVERAGE EXPENSE
+# ============================================================
+
+@app.route("/api/expenses/average", methods=["GET"])
+def average_expense():
+
+    if len(expenses) == 0:
+
+        return jsonify({
+            "message": "No expenses available"
+        }), 404
+
+    amounts = []
+
+    for expense in expenses:
+
+        amounts.append(expense["amount"])
+
+    amount_array = np.array(amounts)
+
+    average = np.mean(amount_array)
+
+    return jsonify({
+        "average_expense": round(float(average), 2)
+    })
+
+
+# ============================================================
+# CATEGORY SUMMARY
+# ============================================================
+
+@app.route("/api/expenses/summary", methods=["GET"])
+def expense_summary():
+
+    summary = {}
+
+    # Start every category at zero
+    for category in categories:
+
+        summary[category] = 0
+
+    # Add the amount spent in each category
+    for expense in expenses:
+
+        category = expense["category"]
+
+        summary[category] = (
+            summary[category] + expense["amount"]
+        )
+
+    return jsonify({
+        "total_records": len(expenses),
+        "category_totals": summary
+    })
+
+
+# ============================================================
+# HOME ROUTE
+# ============================================================
+
+@app.route("/", methods=["GET"])
+def home():
+
+    return jsonify({
+        "message": "Personal Expense Tracker API is running",
+        "endpoints": {
+            "all_expenses": "GET /api/expenses",
+            "one_expense": "GET /api/expenses/<id>",
+            "add_expense": "POST /api/expenses",
+            "update_expense": "PUT /api/expenses/<id>",
+            "delete_expense": "DELETE /api/expenses/<id>",
+            "category": "GET /api/expenses/category/<category>",
+            "date": "GET /api/expenses/date/<YYYY-MM-DD>",
+            "total": "GET /api/expenses/total",
+            "highest": "GET /api/expenses/highest",
+            "average": "GET /api/expenses/average",
+            "summary": "GET /api/expenses/summary"
+        }
+    })
+
+
+# ============================================================
+# START FLASK SERVER
+# ============================================================
+
+if __name__ == "__main__":
+
+    app.run(debug=True)

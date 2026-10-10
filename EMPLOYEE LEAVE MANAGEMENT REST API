@@ -1,0 +1,542 @@
+# ============================================================
+# EMPLOYEE LEAVE MANAGEMENT REST API
+# Simple Flask project using Python basics and NumPy
+# ============================================================
+
+from flask import Flask, request, jsonify
+from datetime import datetime
+import numpy as np
+
+
+app = Flask(__name__)
+
+
+# Available leave types and statuses
+leave_types = (
+    "Casual",
+    "Sick",
+    "Earned",
+    "Unpaid"
+)
+
+leave_statuses = (
+    "Pending",
+    "Approved",
+    "Rejected"
+)
+
+
+# Sample leave requests
+leaves = [
+    {
+        "id": 101,
+        "employee": "Papun",
+        "leave_type": "Casual",
+        "days": 2,
+        "start_date": "2026-10-15",
+        "status": "Pending"
+    },
+    {
+        "id": 102,
+        "employee": "Amit",
+        "leave_type": "Sick",
+        "days": 1,
+        "start_date": "2026-10-12",
+        "status": "Approved"
+    },
+    {
+        "id": 103,
+        "employee": "Rahul",
+        "leave_type": "Earned",
+        "days": 5,
+        "start_date": "2026-10-20",
+        "status": "Rejected"
+    }
+]
+
+
+# ============================================================
+# FIND LEAVE REQUEST
+# ============================================================
+
+def find_leave(leave_id):
+
+    # Search for a request using its ID
+    for leave in leaves:
+
+        if leave["id"] == leave_id:
+            return leave
+
+    return None
+
+
+# ============================================================
+# VALIDATE DATE
+# ============================================================
+
+def valid_date(date_text):
+
+    if not isinstance(date_text, str):
+        return False
+
+    try:
+        datetime.strptime(date_text, "%Y-%m-%d")
+        return True
+
+    except ValueError:
+        return False
+
+
+# ============================================================
+# GET ALL LEAVE REQUESTS
+# ============================================================
+
+@app.route("/api/leaves", methods=["GET"])
+def get_leaves():
+
+    return jsonify({
+        "total_requests": len(leaves),
+        "leaves": leaves
+    })
+
+
+# ============================================================
+# GET ONE LEAVE REQUEST
+# ============================================================
+
+@app.route("/api/leaves/<int:leave_id>", methods=["GET"])
+def get_leave(leave_id):
+
+    leave = find_leave(leave_id)
+
+    if leave is None:
+
+        return jsonify({
+            "message": "Leave request not found"
+        }), 404
+
+    return jsonify(leave)
+
+
+# ============================================================
+# CREATE LEAVE REQUEST
+# ============================================================
+
+@app.route("/api/leaves", methods=["POST"])
+def add_leave():
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+
+        return jsonify({
+            "message": "A valid JSON object is required"
+        }), 400
+
+    # Check required fields
+    required_fields = (
+        "id",
+        "employee",
+        "leave_type",
+        "days",
+        "start_date"
+    )
+
+    for field in required_fields:
+
+        if field not in data:
+
+            return jsonify({
+                "message": field + " is required"
+            }), 400
+
+    # Check leave ID
+    if type(data["id"]) is not int or data["id"] <= 0:
+
+        return jsonify({
+            "message": "ID must be a positive integer"
+        }), 400
+
+    if find_leave(data["id"]) is not None:
+
+        return jsonify({
+            "message": "Leave ID already exists"
+        }), 409
+
+    # Check employee name
+    if not isinstance(data["employee"], str) or not data["employee"].strip():
+
+        return jsonify({
+            "message": "Employee name cannot be empty"
+        }), 400
+
+    # Check leave type
+    if data["leave_type"] not in leave_types:
+
+        return jsonify({
+            "message": "Invalid leave type",
+            "available_types": leave_types
+        }), 400
+
+    # Check number of days
+    if type(data["days"]) is not int or data["days"] <= 0:
+
+        return jsonify({
+            "message": "Leave days must be a positive integer"
+        }), 400
+
+    # Check date format
+    if not valid_date(data["start_date"]):
+
+        return jsonify({
+            "message": "Date must use YYYY-MM-DD format"
+        }), 400
+
+    # Create a new request with Pending status
+    leave = {
+        "id": data["id"],
+        "employee": data["employee"].strip().title(),
+        "leave_type": data["leave_type"],
+        "days": data["days"],
+        "start_date": data["start_date"],
+        "status": "Pending"
+    }
+
+    leaves.append(leave)
+
+    return jsonify({
+        "message": "Leave request created successfully",
+        "leave": leave
+    }), 201
+
+
+# ============================================================
+# UPDATE LEAVE REQUEST DETAILS
+# ============================================================
+
+@app.route("/api/leaves/<int:leave_id>", methods=["PUT"])
+def update_leave(leave_id):
+
+    leave = find_leave(leave_id)
+
+    if leave is None:
+
+        return jsonify({
+            "message": "Leave request not found"
+        }), 404
+
+    # Only pending requests can be edited
+    if leave["status"] != "Pending":
+
+        return jsonify({
+            "message": "Only pending requests can be updated"
+        }), 400
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict) or not data:
+
+        return jsonify({
+            "message": "A non-empty JSON object is required"
+        }), 400
+
+    # Do not allow ID or status to be changed here
+    allowed_fields = (
+        "employee",
+        "leave_type",
+        "days",
+        "start_date"
+    )
+
+    for field in data:
+
+        if field not in allowed_fields:
+
+            return jsonify({
+                "message": "Invalid field: " + field
+            }), 400
+
+    # Validate all supplied values before updating
+    if "employee" in data:
+
+        if not isinstance(data["employee"], str) or not data["employee"].strip():
+
+            return jsonify({
+                "message": "Employee name cannot be empty"
+            }), 400
+
+    if "leave_type" in data:
+
+        if data["leave_type"] not in leave_types:
+
+            return jsonify({
+                "message": "Invalid leave type",
+                "available_types": leave_types
+            }), 400
+
+    if "days" in data:
+
+        if type(data["days"]) is not int or data["days"] <= 0:
+
+            return jsonify({
+                "message": "Leave days must be a positive integer"
+            }), 400
+
+    if "start_date" in data:
+
+        if not valid_date(data["start_date"]):
+
+            return jsonify({
+                "message": "Date must use YYYY-MM-DD format"
+            }), 400
+
+    # Update only the fields provided
+    if "employee" in data:
+        leave["employee"] = data["employee"].strip().title()
+
+    if "leave_type" in data:
+        leave["leave_type"] = data["leave_type"]
+
+    if "days" in data:
+        leave["days"] = data["days"]
+
+    if "start_date" in data:
+        leave["start_date"] = data["start_date"]
+
+    return jsonify({
+        "message": "Leave request updated successfully",
+        "leave": leave
+    })
+
+
+# ============================================================
+# APPROVE LEAVE REQUEST
+# ============================================================
+
+@app.route("/api/leaves/<int:leave_id>/approve", methods=["PUT"])
+def approve_leave(leave_id):
+
+    leave = find_leave(leave_id)
+
+    if leave is None:
+
+        return jsonify({
+            "message": "Leave request not found"
+        }), 404
+
+    if leave["status"] != "Pending":
+
+        return jsonify({
+            "message": "Only pending requests can be approved"
+        }), 400
+
+    leave["status"] = "Approved"
+
+    return jsonify({
+        "message": "Leave approved successfully",
+        "leave": leave
+    })
+
+
+# ============================================================
+# REJECT LEAVE REQUEST
+# ============================================================
+
+@app.route("/api/leaves/<int:leave_id>/reject", methods=["PUT"])
+def reject_leave(leave_id):
+
+    leave = find_leave(leave_id)
+
+    if leave is None:
+
+        return jsonify({
+            "message": "Leave request not found"
+        }), 404
+
+    if leave["status"] != "Pending":
+
+        return jsonify({
+            "message": "Only pending requests can be rejected"
+        }), 400
+
+    leave["status"] = "Rejected"
+
+    return jsonify({
+        "message": "Leave rejected",
+        "leave": leave
+    })
+
+
+# ============================================================
+# DELETE LEAVE REQUEST
+# ============================================================
+
+@app.route("/api/leaves/<int:leave_id>", methods=["DELETE"])
+def delete_leave(leave_id):
+
+    leave = find_leave(leave_id)
+
+    if leave is None:
+
+        return jsonify({
+            "message": "Leave request not found"
+        }), 404
+
+    leaves.remove(leave)
+
+    return jsonify({
+        "message": "Leave request deleted successfully",
+        "leave": leave
+    })
+
+
+# ============================================================
+# FILTER LEAVES BY STATUS
+# ============================================================
+
+@app.route("/api/leaves/status/<status>", methods=["GET"])
+def leaves_by_status(status):
+
+    result = []
+
+    for leave in leaves:
+
+        if leave["status"].lower() == status.lower():
+
+            result.append(leave)
+
+    return jsonify({
+        "status": status,
+        "total_requests": len(result),
+        "leaves": result
+    })
+
+
+# ============================================================
+# FILTER LEAVES BY EMPLOYEE
+# ============================================================
+
+@app.route("/api/leaves/employee/<name>", methods=["GET"])
+def leaves_by_employee(name):
+
+    result = []
+
+    for leave in leaves:
+
+        if leave["employee"].lower() == name.lower():
+
+            result.append(leave)
+
+    return jsonify({
+        "employee": name,
+        "total_requests": len(result),
+        "leaves": result
+    })
+
+
+# ============================================================
+# TOTAL LEAVE DAYS
+# ============================================================
+
+@app.route("/api/leaves/total-days", methods=["GET"])
+def total_leave_days():
+
+    total = 0
+
+    for leave in leaves:
+
+        total = total + leave["days"]
+
+    return jsonify({
+        "total_requested_days": total
+    })
+
+
+# ============================================================
+# AVERAGE LEAVE DAYS
+# ============================================================
+
+@app.route("/api/leaves/average-days", methods=["GET"])
+def average_leave_days():
+
+    if len(leaves) == 0:
+
+        return jsonify({
+            "message": "No leave requests available"
+        }), 404
+
+    days = []
+
+    for leave in leaves:
+
+        days.append(leave["days"])
+
+    day_array = np.array(days)
+
+    average = np.mean(day_array)
+
+    return jsonify({
+        "average_days_per_request": round(float(average), 2)
+    })
+
+
+# ============================================================
+# LEAVE SUMMARY
+# ============================================================
+
+@app.route("/api/leaves/summary", methods=["GET"])
+def leave_summary():
+
+    summary = {}
+
+    # Start each status count at zero
+    for status in leave_statuses:
+
+        summary[status] = 0
+
+    # Count requests by status
+    for leave in leaves:
+
+        status = leave["status"]
+
+        summary[status] = summary[status] + 1
+
+    return jsonify({
+        "total_requests": len(leaves),
+        "status_summary": summary
+    })
+
+
+# ============================================================
+# HOME ROUTE
+# ============================================================
+
+@app.route("/", methods=["GET"])
+def home():
+
+    return jsonify({
+        "message": "Employee Leave Management API is running",
+        "endpoints": {
+            "all_leaves": "GET /api/leaves",
+            "one_leave": "GET /api/leaves/<id>",
+            "create_leave": "POST /api/leaves",
+            "update_leave": "PUT /api/leaves/<id>",
+            "delete_leave": "DELETE /api/leaves/<id>",
+            "approve": "PUT /api/leaves/<id>/approve",
+            "reject": "PUT /api/leaves/<id>/reject",
+            "filter_status": "GET /api/leaves/status/<status>",
+            "filter_employee": "GET /api/leaves/employee/<name>",
+            "total_days": "GET /api/leaves/total-days",
+            "average_days": "GET /api/leaves/average-days",
+            "summary": "GET /api/leaves/summary"
+        }
+    })
+
+
+# ============================================================
+# START FLASK SERVER
+# ============================================================
+
+if __name__ == "__main__":
+
+    app.run(debug=True)

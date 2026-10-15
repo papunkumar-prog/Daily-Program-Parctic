@@ -1,0 +1,539 @@
+# ============================================================
+# IT ASSET MANAGEMENT REST API
+# Simple Flask project using Python basics
+# ============================================================
+
+from flask import Flask, request, jsonify
+
+
+app = Flask(__name__)
+
+
+# Available asset types and statuses
+asset_types = (
+    "Laptop",
+    "Desktop",
+    "Monitor",
+    "Keyboard",
+    "Printer"
+)
+
+asset_statuses = (
+    "Available",
+    "Assigned",
+    "Under Repair",
+    "Retired"
+)
+
+
+# Sample company assets
+assets = [
+    {
+        "id": 101,
+        "asset_tag": "IT-LAP-001",
+        "device": "Laptop",
+        "brand": "Dell",
+        "assigned_to": "Papun",
+        "status": "Assigned"
+    },
+    {
+        "id": 102,
+        "asset_tag": "IT-DES-001",
+        "device": "Desktop",
+        "brand": "HP",
+        "assigned_to": "",
+        "status": "Available"
+    },
+    {
+        "id": 103,
+        "asset_tag": "IT-MON-001",
+        "device": "Monitor",
+        "brand": "Samsung",
+        "assigned_to": "Amit",
+        "status": "Assigned"
+    }
+]
+
+
+# ============================================================
+# FIND ASSET BY ID
+# ============================================================
+
+def find_asset(asset_id):
+
+    # Search the list and return the matching asset
+    for asset in assets:
+
+        if asset["id"] == asset_id:
+            return asset
+
+    return None
+
+
+# ============================================================
+# FIND ASSET BY ASSET TAG
+# ============================================================
+
+def find_asset_tag(asset_tag):
+
+    for asset in assets:
+
+        if asset["asset_tag"].lower() == asset_tag.lower():
+            return asset
+
+    return None
+
+
+# ============================================================
+# GET ALL ASSETS
+# ============================================================
+
+@app.route("/api/assets", methods=["GET"])
+def get_assets():
+
+    return jsonify({
+        "total_assets": len(assets),
+        "assets": assets
+    })
+
+
+# ============================================================
+# GET ONE ASSET
+# ============================================================
+
+@app.route("/api/assets/<int:asset_id>", methods=["GET"])
+def get_asset(asset_id):
+
+    asset = find_asset(asset_id)
+
+    if asset is None:
+
+        return jsonify({
+            "message": "Asset not found"
+        }), 404
+
+    return jsonify(asset)
+
+
+# ============================================================
+# ADD NEW ASSET
+# ============================================================
+
+@app.route("/api/assets", methods=["POST"])
+def add_asset():
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+
+        return jsonify({
+            "message": "A valid JSON object is required"
+        }), 400
+
+    # Check required fields
+    required_fields = (
+        "id",
+        "asset_tag",
+        "device",
+        "brand"
+    )
+
+    for field in required_fields:
+
+        if field not in data:
+
+            return jsonify({
+                "message": field + " is required"
+            }), 400
+
+    # Validate asset ID
+    if type(data["id"]) is not int or data["id"] <= 0:
+
+        return jsonify({
+            "message": "ID must be a positive integer"
+        }), 400
+
+    if find_asset(data["id"]) is not None:
+
+        return jsonify({
+            "message": "Asset ID already exists"
+        }), 409
+
+    # Validate asset tag
+    if not isinstance(data["asset_tag"], str) or not data["asset_tag"].strip():
+
+        return jsonify({
+            "message": "Asset tag cannot be empty"
+        }), 400
+
+    if find_asset_tag(data["asset_tag"].strip()) is not None:
+
+        return jsonify({
+            "message": "Asset tag already exists"
+        }), 409
+
+    # Validate device type
+    if data["device"] not in asset_types:
+
+        return jsonify({
+            "message": "Invalid device type",
+            "available_types": asset_types
+        }), 400
+
+    # Validate brand
+    if not isinstance(data["brand"], str) or not data["brand"].strip():
+
+        return jsonify({
+            "message": "Brand cannot be empty"
+        }), 400
+
+    # New assets start as Available
+    asset = {
+        "id": data["id"],
+        "asset_tag": data["asset_tag"].strip().upper(),
+        "device": data["device"],
+        "brand": data["brand"].strip(),
+        "assigned_to": "",
+        "status": "Available"
+    }
+
+    assets.append(asset)
+
+    return jsonify({
+        "message": "Asset added successfully",
+        "asset": asset
+    }), 201
+
+
+# ============================================================
+# UPDATE ASSET DETAILS
+# ============================================================
+
+@app.route("/api/assets/<int:asset_id>", methods=["PUT"])
+def update_asset(asset_id):
+
+    asset = find_asset(asset_id)
+
+    if asset is None:
+
+        return jsonify({
+            "message": "Asset not found"
+        }), 404
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict) or not data:
+
+        return jsonify({
+            "message": "A non-empty JSON object is required"
+        }), 400
+
+    # These fields can be edited through this route
+    allowed_fields = ("device", "brand")
+
+    for field in data:
+
+        if field not in allowed_fields:
+
+            return jsonify({
+                "message": "Invalid field: " + field
+            }), 400
+
+    # Check device type before updating
+    if "device" in data:
+
+        if data["device"] not in asset_types:
+
+            return jsonify({
+                "message": "Invalid device type",
+                "available_types": asset_types
+            }), 400
+
+    # Check brand before updating
+    if "brand" in data:
+
+        if not isinstance(data["brand"], str) or not data["brand"].strip():
+
+            return jsonify({
+                "message": "Brand cannot be empty"
+            }), 400
+
+    # Apply the changes
+    if "device" in data:
+        asset["device"] = data["device"]
+
+    if "brand" in data:
+        asset["brand"] = data["brand"].strip()
+
+    return jsonify({
+        "message": "Asset updated successfully",
+        "asset": asset
+    })
+
+
+# ============================================================
+# ASSIGN ASSET TO AN EMPLOYEE
+# ============================================================
+
+@app.route("/api/assets/<int:asset_id>/assign", methods=["PUT"])
+def assign_asset(asset_id):
+
+    asset = find_asset(asset_id)
+
+    if asset is None:
+
+        return jsonify({
+            "message": "Asset not found"
+        }), 404
+
+    if asset["status"] != "Available":
+
+        return jsonify({
+            "message": "Only available assets can be assigned"
+        }), 400
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+
+        return jsonify({
+            "message": "A valid JSON object is required"
+        }), 400
+
+    employee = data.get("employee")
+
+    if not isinstance(employee, str) or not employee.strip():
+
+        return jsonify({
+            "message": "Employee name is required"
+        }), 400
+
+    # Assign the device
+    asset["assigned_to"] = employee.strip().title()
+    asset["status"] = "Assigned"
+
+    return jsonify({
+        "message": "Asset assigned successfully",
+        "asset": asset
+    })
+
+
+# ============================================================
+# RETURN ASSET
+# ============================================================
+
+@app.route("/api/assets/<int:asset_id>/return", methods=["PUT"])
+def return_asset(asset_id):
+
+    asset = find_asset(asset_id)
+
+    if asset is None:
+
+        return jsonify({
+            "message": "Asset not found"
+        }), 404
+
+    if asset["status"] != "Assigned":
+
+        return jsonify({
+            "message": "Only assigned assets can be returned"
+        }), 400
+
+    # Clear the employee assignment
+    asset["assigned_to"] = ""
+    asset["status"] = "Available"
+
+    return jsonify({
+        "message": "Asset returned successfully",
+        "asset": asset
+    })
+
+
+# ============================================================
+# UPDATE ASSET STATUS
+# ============================================================
+
+@app.route("/api/assets/<int:asset_id>/status", methods=["PUT"])
+def update_asset_status(asset_id):
+
+    asset = find_asset(asset_id)
+
+    if asset is None:
+
+        return jsonify({
+            "message": "Asset not found"
+        }), 404
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict) or "status" not in data:
+
+        return jsonify({
+            "message": "Status is required"
+        }), 400
+
+    new_status = data["status"]
+
+    if new_status not in asset_statuses:
+
+        return jsonify({
+            "message": "Invalid status",
+            "available_statuses": asset_statuses
+        }), 400
+
+    # Keep assignment details consistent
+    if new_status == "Assigned":
+
+        return jsonify({
+            "message": "Use the assign endpoint to assign an employee"
+        }), 400
+
+    if asset["status"] == "Assigned" and new_status == "Available":
+
+        return jsonify({
+            "message": "Use the return endpoint to release the asset"
+        }), 400
+
+    asset["status"] = new_status
+
+    if new_status in ("Available", "Under Repair", "Retired"):
+        asset["assigned_to"] = ""
+
+    return jsonify({
+        "message": "Asset status updated successfully",
+        "asset": asset
+    })
+
+
+# ============================================================
+# DELETE ASSET
+# ============================================================
+
+@app.route("/api/assets/<int:asset_id>", methods=["DELETE"])
+def delete_asset(asset_id):
+
+    asset = find_asset(asset_id)
+
+    if asset is None:
+
+        return jsonify({
+            "message": "Asset not found"
+        }), 404
+
+    # Assigned assets should be returned before deletion
+    if asset["status"] == "Assigned":
+
+        return jsonify({
+            "message": "Return the assigned asset before deleting it"
+        }), 409
+
+    assets.remove(asset)
+
+    return jsonify({
+        "message": "Asset deleted successfully",
+        "asset": asset
+    })
+
+
+# ============================================================
+# SEARCH ASSETS BY STATUS
+# ============================================================
+
+@app.route("/api/assets/status/<status>", methods=["GET"])
+def assets_by_status(status):
+
+    result = []
+
+    for asset in assets:
+
+        if asset["status"].lower() == status.lower():
+
+            result.append(asset)
+
+    return jsonify({
+        "status": status,
+        "total": len(result),
+        "assets": result
+    })
+
+
+# ============================================================
+# SEARCH ASSETS BY EMPLOYEE
+# ============================================================
+
+@app.route("/api/assets/employee/<name>", methods=["GET"])
+def assets_by_employee(name):
+
+    result = []
+
+    for asset in assets:
+
+        if asset["assigned_to"].lower() == name.lower():
+
+            result.append(asset)
+
+    return jsonify({
+        "employee": name,
+        "total": len(result),
+        "assets": result
+    })
+
+
+# ============================================================
+# ASSET SUMMARY
+# ============================================================
+
+@app.route("/api/assets/summary", methods=["GET"])
+def asset_summary():
+
+    summary = {}
+
+    # Start every status count at zero
+    for status in asset_statuses:
+        summary[status] = 0
+
+    # Count assets by status
+    for asset in assets:
+
+        status = asset["status"]
+
+        summary[status] = summary[status] + 1
+
+    return jsonify({
+        "total_assets": len(assets),
+        "status_summary": summary
+    })
+
+
+# ============================================================
+# HOME ROUTE
+# ============================================================
+
+@app.route("/", methods=["GET"])
+def home():
+
+    return jsonify({
+        "message": "IT Asset Management API is running",
+        "endpoints": {
+            "all_assets": "GET /api/assets",
+            "one_asset": "GET /api/assets/<id>",
+            "add_asset": "POST /api/assets",
+            "update_asset": "PUT /api/assets/<id>",
+            "delete_asset": "DELETE /api/assets/<id>",
+            "assign_asset": "PUT /api/assets/<id>/assign",
+            "return_asset": "PUT /api/assets/<id>/return",
+            "update_status": "PUT /api/assets/<id>/status",
+            "filter_status": "GET /api/assets/status/<status>",
+            "filter_employee": "GET /api/assets/employee/<name>",
+            "summary": "GET /api/assets/summary"
+        }
+    })
+
+
+# ============================================================
+# START FLASK SERVER
+# ============================================================
+
+if __name__ == "__main__":
+
+    app.run(debug=True)

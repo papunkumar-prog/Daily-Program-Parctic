@@ -1,0 +1,530 @@
+# ============================================================
+# NETWORK DEVICE MONITORING REST API
+# Simple Flask project using Python basics
+# ============================================================
+
+from flask import Flask, request, jsonify
+import ipaddress
+
+
+app = Flask(__name__)
+
+
+# Available device types
+device_types = (
+    "Router",
+    "Switch",
+    "Server",
+    "Firewall",
+    "Access Point"
+)
+
+
+# Available device statuses
+device_statuses = (
+    "Online",
+    "Offline",
+    "Maintenance"
+)
+
+
+# Sample network devices
+devices = [
+    {
+        "id": 101,
+        "hostname": "Router-Office",
+        "device_type": "Router",
+        "ip_address": "192.168.1.1",
+        "location": "Chennai",
+        "status": "Online"
+    },
+    {
+        "id": 102,
+        "hostname": "Server-01",
+        "device_type": "Server",
+        "ip_address": "192.168.1.10",
+        "location": "Bangalore",
+        "status": "Online"
+    },
+    {
+        "id": 103,
+        "hostname": "Switch-Floor2",
+        "device_type": "Switch",
+        "ip_address": "192.168.1.20",
+        "location": "Chennai",
+        "status": "Offline"
+    }
+]
+
+
+# ============================================================
+# FIND DEVICE
+# ============================================================
+
+def find_device(device_id):
+
+    # Search the list using the device ID
+    for device in devices:
+
+        if device["id"] == device_id:
+            return device
+
+    return None
+
+
+# ============================================================
+# CHECK IP ADDRESS
+# ============================================================
+
+def valid_ip(ip_address):
+
+    # Accept a valid IPv4 address
+    if not isinstance(ip_address, str):
+        return False
+
+    try:
+
+        address = ipaddress.ip_address(ip_address)
+
+        if address.version == 4:
+            return True
+
+        return False
+
+    except ValueError:
+        return False
+
+
+# ============================================================
+# GET ALL DEVICES
+# ============================================================
+
+@app.route("/api/devices", methods=["GET"])
+def get_devices():
+
+    return jsonify({
+        "total_devices": len(devices),
+        "devices": devices
+    })
+
+
+# ============================================================
+# GET ONE DEVICE
+# ============================================================
+
+@app.route("/api/devices/<int:device_id>", methods=["GET"])
+def get_device(device_id):
+
+    device = find_device(device_id)
+
+    if device is None:
+
+        return jsonify({
+            "message": "Device not found"
+        }), 404
+
+    return jsonify(device)
+
+
+# ============================================================
+# ADD NEW DEVICE
+# ============================================================
+
+@app.route("/api/devices", methods=["POST"])
+def add_device():
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+
+        return jsonify({
+            "message": "A valid JSON object is required"
+        }), 400
+
+    # Check the required fields
+    required_fields = (
+        "id",
+        "hostname",
+        "device_type",
+        "ip_address",
+        "location"
+    )
+
+    for field in required_fields:
+
+        if field not in data:
+
+            return jsonify({
+                "message": field + " is required"
+            }), 400
+
+    # Validate device ID
+    if type(data["id"]) is not int or data["id"] <= 0:
+
+        return jsonify({
+            "message": "ID must be a positive integer"
+        }), 400
+
+    if find_device(data["id"]) is not None:
+
+        return jsonify({
+            "message": "Device ID already exists"
+        }), 409
+
+    # Validate hostname
+    if not isinstance(data["hostname"], str) or not data["hostname"].strip():
+
+        return jsonify({
+            "message": "Hostname cannot be empty"
+        }), 400
+
+    # Validate device type
+    if data["device_type"] not in device_types:
+
+        return jsonify({
+            "message": "Invalid device type",
+            "available_types": device_types
+        }), 400
+
+    # Validate IP address
+    if not valid_ip(data["ip_address"]):
+
+        return jsonify({
+            "message": "Enter a valid IPv4 address"
+        }), 400
+
+    # Check that no other device uses this IP
+    for device in devices:
+
+        if device["ip_address"] == data["ip_address"]:
+
+            return jsonify({
+                "message": "IP address is already registered"
+            }), 409
+
+    # Validate location
+    if not isinstance(data["location"], str) or not data["location"].strip():
+
+        return jsonify({
+            "message": "Location cannot be empty"
+        }), 400
+
+    # A new device starts offline until its status is confirmed
+    device = {
+        "id": data["id"],
+        "hostname": data["hostname"].strip(),
+        "device_type": data["device_type"],
+        "ip_address": data["ip_address"],
+        "location": data["location"].strip().title(),
+        "status": "Offline"
+    }
+
+    devices.append(device)
+
+    return jsonify({
+        "message": "Device added successfully",
+        "device": device
+    }), 201
+
+
+# ============================================================
+# UPDATE DEVICE DETAILS
+# ============================================================
+
+@app.route("/api/devices/<int:device_id>", methods=["PUT"])
+def update_device(device_id):
+
+    device = find_device(device_id)
+
+    if device is None:
+
+        return jsonify({
+            "message": "Device not found"
+        }), 404
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict) or not data:
+
+        return jsonify({
+            "message": "A non-empty JSON object is required"
+        }), 400
+
+    # These are the only fields this route can update
+    allowed_fields = (
+        "hostname",
+        "device_type",
+        "ip_address",
+        "location"
+    )
+
+    for field in data:
+
+        if field not in allowed_fields:
+
+            return jsonify({
+                "message": "Invalid field: " + field
+            }), 400
+
+    # Validate hostname
+    if "hostname" in data:
+
+        if not isinstance(data["hostname"], str) or not data["hostname"].strip():
+
+            return jsonify({
+                "message": "Hostname cannot be empty"
+            }), 400
+
+    # Validate device type
+    if "device_type" in data:
+
+        if data["device_type"] not in device_types:
+
+            return jsonify({
+                "message": "Invalid device type",
+                "available_types": device_types
+            }), 400
+
+    # Validate IP address
+    if "ip_address" in data:
+
+        if not valid_ip(data["ip_address"]):
+
+            return jsonify({
+                "message": "Enter a valid IPv4 address"
+            }), 400
+
+        # Do not allow two devices to share an IP
+        for other_device in devices:
+
+            if other_device["id"] != device_id:
+
+                if other_device["ip_address"] == data["ip_address"]:
+
+                    return jsonify({
+                        "message": "IP address is already registered"
+                    }), 409
+
+    # Validate location
+    if "location" in data:
+
+        if not isinstance(data["location"], str) or not data["location"].strip():
+
+            return jsonify({
+                "message": "Location cannot be empty"
+            }), 400
+
+    # Apply the updates
+    if "hostname" in data:
+        device["hostname"] = data["hostname"].strip()
+
+    if "device_type" in data:
+        device["device_type"] = data["device_type"]
+
+    if "ip_address" in data:
+        device["ip_address"] = data["ip_address"]
+
+    if "location" in data:
+        device["location"] = data["location"].strip().title()
+
+    return jsonify({
+        "message": "Device updated successfully",
+        "device": device
+    })
+
+
+# ============================================================
+# UPDATE DEVICE STATUS
+# ============================================================
+
+@app.route("/api/devices/<int:device_id>/status", methods=["PUT"])
+def update_status(device_id):
+
+    device = find_device(device_id)
+
+    if device is None:
+
+        return jsonify({
+            "message": "Device not found"
+        }), 404
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict) or "status" not in data:
+
+        return jsonify({
+            "message": "Status is required"
+        }), 400
+
+    new_status = data["status"]
+
+    if new_status not in device_statuses:
+
+        return jsonify({
+            "message": "Invalid status",
+            "available_statuses": device_statuses
+        }), 400
+
+    # Change the stored status
+    device["status"] = new_status
+
+    return jsonify({
+        "message": "Device status updated successfully",
+        "device": device
+    })
+
+
+# ============================================================
+# DELETE DEVICE
+# ============================================================
+
+@app.route("/api/devices/<int:device_id>", methods=["DELETE"])
+def delete_device(device_id):
+
+    device = find_device(device_id)
+
+    if device is None:
+
+        return jsonify({
+            "message": "Device not found"
+        }), 404
+
+    devices.remove(device)
+
+    return jsonify({
+        "message": "Device deleted successfully",
+        "device": device
+    })
+
+
+# ============================================================
+# FILTER DEVICES BY STATUS
+# ============================================================
+
+@app.route("/api/devices/status/<status>", methods=["GET"])
+def devices_by_status(status):
+
+    result = []
+
+    # Find devices with the requested status
+    for device in devices:
+
+        if device["status"].lower() == status.lower():
+
+            result.append(device)
+
+    return jsonify({
+        "status": status,
+        "total_devices": len(result),
+        "devices": result
+    })
+
+
+# ============================================================
+# FILTER DEVICES BY TYPE
+# ============================================================
+
+@app.route("/api/devices/type/<device_type>", methods=["GET"])
+def devices_by_type(device_type):
+
+    result = []
+
+    for device in devices:
+
+        if device["device_type"].lower() == device_type.lower():
+
+            result.append(device)
+
+    return jsonify({
+        "device_type": device_type,
+        "total_devices": len(result),
+        "devices": result
+    })
+
+
+# ============================================================
+# FIND DEVICES BY LOCATION
+# ============================================================
+
+@app.route("/api/devices/location/<location>", methods=["GET"])
+def devices_by_location(location):
+
+    result = []
+
+    for device in devices:
+
+        if device["location"].lower() == location.lower():
+
+            result.append(device)
+
+    return jsonify({
+        "location": location,
+        "total_devices": len(result),
+        "devices": result
+    })
+
+
+# ============================================================
+# NETWORK DEVICE SUMMARY
+# ============================================================
+
+@app.route("/api/devices/summary", methods=["GET"])
+def device_summary():
+
+    status_summary = {}
+    type_summary = {}
+
+    # Start every status and device type at zero
+    for status in device_statuses:
+        status_summary[status] = 0
+
+    for device_type in device_types:
+        type_summary[device_type] = 0
+
+    # Count devices by status and type
+    for device in devices:
+
+        status = device["status"]
+        device_type = device["device_type"]
+
+        status_summary[status] += 1
+        type_summary[device_type] += 1
+
+    return jsonify({
+        "total_devices": len(devices),
+        "status_summary": status_summary,
+        "type_summary": type_summary
+    })
+
+
+# ============================================================
+# HOME ROUTE
+# ============================================================
+
+@app.route("/", methods=["GET"])
+def home():
+
+    return jsonify({
+        "message": "Network Device Monitoring API is running",
+        "endpoints": {
+            "all_devices": "GET /api/devices",
+            "one_device": "GET /api/devices/<id>",
+            "add_device": "POST /api/devices",
+            "update_device": "PUT /api/devices/<id>",
+            "delete_device": "DELETE /api/devices/<id>",
+            "update_status": "PUT /api/devices/<id>/status",
+            "filter_status": "GET /api/devices/status/<status>",
+            "filter_type": "GET /api/devices/type/<type>",
+            "filter_location": "GET /api/devices/location/<location>",
+            "summary": "GET /api/devices/summary"
+        }
+    })
+
+
+# ============================================================
+# START FLASK SERVER
+# ============================================================
+
+if __name__ == "__main__":
+
+    app.run(debug=True)

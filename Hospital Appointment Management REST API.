@@ -1,0 +1,579 @@
+# ============================================================
+# HOSPITAL APPOINTMENT MANAGEMENT REST API
+# Simple Flask project using Python basics
+# ============================================================
+
+from flask import Flask, request, jsonify
+from datetime import datetime
+
+
+app = Flask(__name__)
+
+
+# Available appointment statuses
+statuses = (
+    "Pending",
+    "Confirmed",
+    "Completed",
+    "Cancelled"
+)
+
+
+# Sample appointments
+appointments = [
+    {
+        "id": 101,
+        "patient": "Papun",
+        "doctor": "Dr. Sharma",
+        "date": "2026-10-20",
+        "time": "10:00",
+        "reason": "General Checkup",
+        "status": "Confirmed"
+    },
+    {
+        "id": 102,
+        "patient": "Amit",
+        "doctor": "Dr. Mehta",
+        "date": "2026-10-21",
+        "time": "11:30",
+        "reason": "Fever",
+        "status": "Pending"
+    },
+    {
+        "id": 103,
+        "patient": "Rahul",
+        "doctor": "Dr. Sharma",
+        "date": "2026-10-22",
+        "time": "09:30",
+        "reason": "Follow-up",
+        "status": "Completed"
+    }
+]
+
+
+# ============================================================
+# FIND APPOINTMENT
+# ============================================================
+
+def find_appointment(appointment_id):
+
+    # Search the list using the appointment ID
+    for appointment in appointments:
+
+        if appointment["id"] == appointment_id:
+            return appointment
+
+    return None
+
+
+# ============================================================
+# VALIDATE DATE
+# ============================================================
+
+def valid_date(date_text):
+
+    if not isinstance(date_text, str):
+        return False
+
+    try:
+        datetime.strptime(date_text, "%Y-%m-%d")
+        return True
+
+    except ValueError:
+        return False
+
+
+# ============================================================
+# VALIDATE TIME
+# ============================================================
+
+def valid_time(time_text):
+
+    if not isinstance(time_text, str):
+        return False
+
+    try:
+        datetime.strptime(time_text, "%H:%M")
+        return True
+
+    except ValueError:
+        return False
+
+
+# ============================================================
+# CHECK DOCTOR AVAILABILITY
+# ============================================================
+
+def doctor_slot_taken(doctor, date, time, exclude_id=None):
+
+    # Prevent two active appointments for the same doctor
+    # at the same date and time
+
+    for appointment in appointments:
+
+        if appointment["id"] == exclude_id:
+            continue
+
+        if appointment["status"] not in ("Pending", "Confirmed"):
+            continue
+
+        if (
+            appointment["doctor"].lower() == doctor.lower()
+            and appointment["date"] == date
+            and appointment["time"] == time
+        ):
+            return True
+
+    return False
+
+
+# ============================================================
+# GET ALL APPOINTMENTS
+# ============================================================
+
+@app.route("/api/appointments", methods=["GET"])
+def get_appointments():
+
+    return jsonify({
+        "total_appointments": len(appointments),
+        "appointments": appointments
+    })
+
+
+# ============================================================
+# GET ONE APPOINTMENT
+# ============================================================
+
+@app.route("/api/appointments/<int:appointment_id>", methods=["GET"])
+def get_appointment(appointment_id):
+
+    appointment = find_appointment(appointment_id)
+
+    if appointment is None:
+
+        return jsonify({
+            "message": "Appointment not found"
+        }), 404
+
+    return jsonify(appointment)
+
+
+# ============================================================
+# CREATE NEW APPOINTMENT
+# ============================================================
+
+@app.route("/api/appointments", methods=["POST"])
+def add_appointment():
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+
+        return jsonify({
+            "message": "A valid JSON object is required"
+        }), 400
+
+    # Check required fields
+    required_fields = (
+        "id",
+        "patient",
+        "doctor",
+        "date",
+        "time",
+        "reason"
+    )
+
+    for field in required_fields:
+
+        if field not in data:
+
+            return jsonify({
+                "message": field + " is required"
+            }), 400
+
+    # Check appointment ID
+    if type(data["id"]) is not int or data["id"] <= 0:
+
+        return jsonify({
+            "message": "ID must be a positive integer"
+        }), 400
+
+    if find_appointment(data["id"]) is not None:
+
+        return jsonify({
+            "message": "Appointment ID already exists"
+        }), 409
+
+    # Check patient, doctor and reason
+    text_fields = ("patient", "doctor", "reason")
+
+    for field in text_fields:
+
+        if (
+            not isinstance(data[field], str)
+            or not data[field].strip()
+        ):
+
+            return jsonify({
+                "message": field + " cannot be empty"
+            }), 400
+
+    # Check date format
+    if not valid_date(data["date"]):
+
+        return jsonify({
+            "message": "Date must use YYYY-MM-DD format"
+        }), 400
+
+    # Check time format
+    if not valid_time(data["time"]):
+
+        return jsonify({
+            "message": "Time must use HH:MM format"
+        }), 400
+
+    # Check whether the doctor's time slot is already taken
+    if doctor_slot_taken(
+        data["doctor"].strip(),
+        data["date"],
+        data["time"]
+    ):
+
+        return jsonify({
+            "message": "Doctor already has an appointment at this time"
+        }), 409
+
+    # New appointments start as Pending
+    appointment = {
+        "id": data["id"],
+        "patient": data["patient"].strip().title(),
+        "doctor": data["doctor"].strip().title(),
+        "date": data["date"],
+        "time": data["time"],
+        "reason": data["reason"].strip(),
+        "status": "Pending"
+    }
+
+    appointments.append(appointment)
+
+    return jsonify({
+        "message": "Appointment created successfully",
+        "appointment": appointment
+    }), 201
+
+
+# ============================================================
+# UPDATE APPOINTMENT DETAILS
+# ============================================================
+
+@app.route("/api/appointments/<int:appointment_id>", methods=["PUT"])
+def update_appointment(appointment_id):
+
+    appointment = find_appointment(appointment_id)
+
+    if appointment is None:
+
+        return jsonify({
+            "message": "Appointment not found"
+        }), 404
+
+    # Completed and cancelled appointments cannot be edited
+    if appointment["status"] in ("Completed", "Cancelled"):
+
+        return jsonify({
+            "message": "Completed or cancelled appointments cannot be updated"
+        }), 400
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict) or not data:
+
+        return jsonify({
+            "message": "A non-empty JSON object is required"
+        }), 400
+
+    # These are the only fields this route can update
+    allowed_fields = (
+        "patient",
+        "doctor",
+        "date",
+        "time",
+        "reason"
+    )
+
+    for field in data:
+
+        if field not in allowed_fields:
+
+            return jsonify({
+                "message": "Invalid field: " + field
+            }), 400
+
+    # Validate text fields
+    for field in ("patient", "doctor", "reason"):
+
+        if field in data:
+
+            if (
+                not isinstance(data[field], str)
+                or not data[field].strip()
+            ):
+
+                return jsonify({
+                    "message": field + " cannot be empty"
+                }), 400
+
+    # Validate date
+    if "date" in data:
+
+        if not valid_date(data["date"]):
+
+            return jsonify({
+                "message": "Date must use YYYY-MM-DD format"
+            }), 400
+
+    # Validate time
+    if "time" in data:
+
+        if not valid_time(data["time"]):
+
+            return jsonify({
+                "message": "Time must use HH:MM format"
+            }), 400
+
+    # Check the final doctor, date and time combination
+    new_doctor = data.get("doctor", appointment["doctor"])
+    new_date = data.get("date", appointment["date"])
+    new_time = data.get("time", appointment["time"])
+
+    if doctor_slot_taken(
+        new_doctor,
+        new_date,
+        new_time,
+        exclude_id=appointment_id
+    ):
+
+        return jsonify({
+            "message": "Doctor already has an appointment at this time"
+        }), 409
+
+    # Update only the fields supplied by the client
+    if "patient" in data:
+        appointment["patient"] = data["patient"].strip().title()
+
+    if "doctor" in data:
+        appointment["doctor"] = data["doctor"].strip().title()
+
+    if "date" in data:
+        appointment["date"] = data["date"]
+
+    if "time" in data:
+        appointment["time"] = data["time"]
+
+    if "reason" in data:
+        appointment["reason"] = data["reason"].strip()
+
+    return jsonify({
+        "message": "Appointment updated successfully",
+        "appointment": appointment
+    })
+
+
+# ============================================================
+# UPDATE APPOINTMENT STATUS
+# ============================================================
+
+@app.route("/api/appointments/<int:appointment_id>/status", methods=["PUT"])
+def update_status(appointment_id):
+
+    appointment = find_appointment(appointment_id)
+
+    if appointment is None:
+
+        return jsonify({
+            "message": "Appointment not found"
+        }), 404
+
+    if appointment["status"] in ("Completed", "Cancelled"):
+
+        return jsonify({
+            "message": "Completed or cancelled appointments cannot change status"
+        }), 400
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict) or "status" not in data:
+
+        return jsonify({
+            "message": "Status is required"
+        }), 400
+
+    new_status = data["status"]
+
+    if new_status not in statuses:
+
+        return jsonify({
+            "message": "Invalid status",
+            "available_statuses": statuses
+        }), 400
+
+    appointment["status"] = new_status
+
+    return jsonify({
+        "message": "Appointment status updated successfully",
+        "appointment": appointment
+    })
+
+
+# ============================================================
+# DELETE APPOINTMENT
+# ============================================================
+
+@app.route("/api/appointments/<int:appointment_id>", methods=["DELETE"])
+def delete_appointment(appointment_id):
+
+    appointment = find_appointment(appointment_id)
+
+    if appointment is None:
+
+        return jsonify({
+            "message": "Appointment not found"
+        }), 404
+
+    appointments.remove(appointment)
+
+    return jsonify({
+        "message": "Appointment deleted successfully",
+        "appointment": appointment
+    })
+
+
+# ============================================================
+# FILTER APPOINTMENTS BY STATUS
+# ============================================================
+
+@app.route("/api/appointments/status/<status>", methods=["GET"])
+def appointments_by_status(status):
+
+    result = []
+
+    for appointment in appointments:
+
+        if appointment["status"].lower() == status.lower():
+
+            result.append(appointment)
+
+    return jsonify({
+        "status": status,
+        "total": len(result),
+        "appointments": result
+    })
+
+
+# ============================================================
+# FILTER APPOINTMENTS BY DOCTOR
+# ============================================================
+
+@app.route("/api/appointments/doctor/<name>", methods=["GET"])
+def appointments_by_doctor(name):
+
+    result = []
+
+    for appointment in appointments:
+
+        if appointment["doctor"].lower() == name.lower():
+
+            result.append(appointment)
+
+    return jsonify({
+        "doctor": name,
+        "total": len(result),
+        "appointments": result
+    })
+
+
+# ============================================================
+# FILTER APPOINTMENTS BY DATE
+# ============================================================
+
+@app.route("/api/appointments/date/<date>", methods=["GET"])
+def appointments_by_date(date):
+
+    if not valid_date(date):
+
+        return jsonify({
+            "message": "Date must use YYYY-MM-DD format"
+        }), 400
+
+    result = []
+
+    for appointment in appointments:
+
+        if appointment["date"] == date:
+
+            result.append(appointment)
+
+    return jsonify({
+        "date": date,
+        "total": len(result),
+        "appointments": result
+    })
+
+
+# ============================================================
+# APPOINTMENT SUMMARY
+# ============================================================
+
+@app.route("/api/appointments/summary", methods=["GET"])
+def appointment_summary():
+
+    summary = {}
+
+    # Start each status count at zero
+    for status in statuses:
+        summary[status] = 0
+
+    # Count the appointments by status
+    for appointment in appointments:
+
+        status = appointment["status"]
+
+        summary[status] = summary[status] + 1
+
+    return jsonify({
+        "total_appointments": len(appointments),
+        "status_summary": summary
+    })
+
+
+# ============================================================
+# HOME ROUTE
+# ============================================================
+
+@app.route("/", methods=["GET"])
+def home():
+
+    return jsonify({
+        "message": "Hospital Appointment API is running",
+        "endpoints": {
+            "all_appointments": "GET /api/appointments",
+            "one_appointment": "GET /api/appointments/<id>",
+            "create_appointment": "POST /api/appointments",
+            "update_appointment": "PUT /api/appointments/<id>",
+            "delete_appointment": "DELETE /api/appointments/<id>",
+            "update_status": "PUT /api/appointments/<id>/status",
+            "filter_status": "GET /api/appointments/status/<status>",
+            "filter_doctor": "GET /api/appointments/doctor/<name>",
+            "filter_date": "GET /api/appointments/date/<YYYY-MM-DD>",
+            "summary": "GET /api/appointments/summary"
+        }
+    })
+
+
+# ============================================================
+# START FLASK SERVER
+# ============================================================
+
+if __name__ == "__main__":
+
+    app.run(debug=True)

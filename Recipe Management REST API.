@@ -1,0 +1,618 @@
+# ============================================================
+# RECIPE MANAGEMENT REST API
+# Simple Flask project using Python basics
+# ============================================================
+
+from flask import Flask, request, jsonify
+
+
+app = Flask(__name__)
+
+
+# Available cuisines and difficulty levels
+cuisines = (
+    "Indian",
+    "Chinese",
+    "Italian",
+    "Mexican",
+    "American",
+    "Other"
+)
+
+difficulty_levels = (
+    "Easy",
+    "Medium",
+    "Hard"
+)
+
+
+# Sample recipe data
+recipes = [
+    {
+        "id": 101,
+        "name": "Vegetable Fried Rice",
+        "cuisine": "Chinese",
+        "ingredients": ["Rice", "Carrot", "Beans", "Soy Sauce"],
+        "prep_minutes": 25,
+        "servings": 2,
+        "difficulty": "Easy",
+        "is_favorite": True
+    },
+    {
+        "id": 102,
+        "name": "Paneer Curry",
+        "cuisine": "Indian",
+        "ingredients": ["Paneer", "Tomato", "Onion", "Spices"],
+        "prep_minutes": 40,
+        "servings": 4,
+        "difficulty": "Medium",
+        "is_favorite": False
+    },
+    {
+        "id": 103,
+        "name": "Pasta",
+        "cuisine": "Italian",
+        "ingredients": ["Pasta", "Tomato", "Cheese"],
+        "prep_minutes": 20,
+        "servings": 2,
+        "difficulty": "Easy",
+        "is_favorite": True
+    }
+]
+
+
+# ============================================================
+# FIND RECIPE
+# ============================================================
+
+def find_recipe(recipe_id):
+
+    # Search for a recipe using its ID
+    for recipe in recipes:
+
+        if recipe["id"] == recipe_id:
+            return recipe
+
+    return None
+
+
+# ============================================================
+# VALIDATE INGREDIENTS
+# ============================================================
+
+def valid_ingredients(ingredients):
+
+    # Ingredients must be a list of non-empty strings
+    if not isinstance(ingredients, list):
+        return False
+
+    if len(ingredients) == 0:
+        return False
+
+    for ingredient in ingredients:
+
+        if not isinstance(ingredient, str):
+            return False
+
+        if ingredient.strip() == "":
+            return False
+
+    return True
+
+
+# ============================================================
+# GET ALL RECIPES
+# ============================================================
+
+@app.route("/api/recipes", methods=["GET"])
+def get_recipes():
+
+    return jsonify({
+        "total_recipes": len(recipes),
+        "recipes": recipes
+    })
+
+
+# ============================================================
+# GET ONE RECIPE
+# ============================================================
+
+@app.route("/api/recipes/<int:recipe_id>", methods=["GET"])
+def get_recipe(recipe_id):
+
+    recipe = find_recipe(recipe_id)
+
+    if recipe is None:
+
+        return jsonify({
+            "message": "Recipe not found"
+        }), 404
+
+    return jsonify(recipe)
+
+
+# ============================================================
+# ADD NEW RECIPE
+# ============================================================
+
+@app.route("/api/recipes", methods=["POST"])
+def add_recipe():
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+
+        return jsonify({
+            "message": "A valid JSON object is required"
+        }), 400
+
+    # Check required fields
+    required_fields = (
+        "id",
+        "name",
+        "cuisine",
+        "ingredients",
+        "prep_minutes",
+        "servings",
+        "difficulty"
+    )
+
+    for field in required_fields:
+
+        if field not in data:
+
+            return jsonify({
+                "message": field + " is required"
+            }), 400
+
+    # Validate ID
+    if type(data["id"]) is not int or data["id"] <= 0:
+
+        return jsonify({
+            "message": "ID must be a positive integer"
+        }), 400
+
+    if find_recipe(data["id"]) is not None:
+
+        return jsonify({
+            "message": "Recipe ID already exists"
+        }), 409
+
+    # Validate recipe name
+    if not isinstance(data["name"], str) or not data["name"].strip():
+
+        return jsonify({
+            "message": "Recipe name cannot be empty"
+        }), 400
+
+    # Validate cuisine
+    if data["cuisine"] not in cuisines:
+
+        return jsonify({
+            "message": "Invalid cuisine",
+            "available_cuisines": cuisines
+        }), 400
+
+    # Validate ingredients
+    if not valid_ingredients(data["ingredients"]):
+
+        return jsonify({
+            "message": "Ingredients must be a list of non-empty strings"
+        }), 400
+
+    # Validate preparation time
+    if type(data["prep_minutes"]) is not int or data["prep_minutes"] <= 0:
+
+        return jsonify({
+            "message": "Preparation time must be a positive integer"
+        }), 400
+
+    # Validate servings
+    if type(data["servings"]) is not int or data["servings"] <= 0:
+
+        return jsonify({
+            "message": "Servings must be a positive integer"
+        }), 400
+
+    # Validate difficulty
+    if data["difficulty"] not in difficulty_levels:
+
+        return jsonify({
+            "message": "Invalid difficulty level",
+            "available_levels": difficulty_levels
+        }), 400
+
+    # New recipes are not favorites by default
+    recipe = {
+        "id": data["id"],
+        "name": data["name"].strip(),
+        "cuisine": data["cuisine"],
+        "ingredients": [
+            ingredient.strip()
+            for ingredient in data["ingredients"]
+        ],
+        "prep_minutes": data["prep_minutes"],
+        "servings": data["servings"],
+        "difficulty": data["difficulty"],
+        "is_favorite": False
+    }
+
+    recipes.append(recipe)
+
+    return jsonify({
+        "message": "Recipe added successfully",
+        "recipe": recipe
+    }), 201
+
+
+# ============================================================
+# UPDATE RECIPE
+# ============================================================
+
+@app.route("/api/recipes/<int:recipe_id>", methods=["PUT"])
+def update_recipe(recipe_id):
+
+    recipe = find_recipe(recipe_id)
+
+    if recipe is None:
+
+        return jsonify({
+            "message": "Recipe not found"
+        }), 404
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict) or not data:
+
+        return jsonify({
+            "message": "A non-empty JSON object is required"
+        }), 400
+
+    # These are the fields that can be updated
+    allowed_fields = (
+        "name",
+        "cuisine",
+        "ingredients",
+        "prep_minutes",
+        "servings",
+        "difficulty"
+    )
+
+    for field in data:
+
+        if field not in allowed_fields:
+
+            return jsonify({
+                "message": "Invalid field: " + field
+            }), 400
+
+    # Validate name
+    if "name" in data:
+
+        if not isinstance(data["name"], str) or not data["name"].strip():
+
+            return jsonify({
+                "message": "Recipe name cannot be empty"
+            }), 400
+
+    # Validate cuisine
+    if "cuisine" in data:
+
+        if data["cuisine"] not in cuisines:
+
+            return jsonify({
+                "message": "Invalid cuisine",
+                "available_cuisines": cuisines
+            }), 400
+
+    # Validate ingredients
+    if "ingredients" in data:
+
+        if not valid_ingredients(data["ingredients"]):
+
+            return jsonify({
+                "message": "Ingredients must be a list of non-empty strings"
+            }), 400
+
+    # Validate preparation time
+    if "prep_minutes" in data:
+
+        if type(data["prep_minutes"]) is not int or data["prep_minutes"] <= 0:
+
+            return jsonify({
+                "message": "Preparation time must be a positive integer"
+            }), 400
+
+    # Validate servings
+    if "servings" in data:
+
+        if type(data["servings"]) is not int or data["servings"] <= 0:
+
+            return jsonify({
+                "message": "Servings must be a positive integer"
+            }), 400
+
+    # Validate difficulty
+    if "difficulty" in data:
+
+        if data["difficulty"] not in difficulty_levels:
+
+            return jsonify({
+                "message": "Invalid difficulty level",
+                "available_levels": difficulty_levels
+            }), 400
+
+    # Apply the updates after validation
+    if "name" in data:
+        recipe["name"] = data["name"].strip()
+
+    if "cuisine" in data:
+        recipe["cuisine"] = data["cuisine"]
+
+    if "ingredients" in data:
+        recipe["ingredients"] = [
+            ingredient.strip()
+            for ingredient in data["ingredients"]
+        ]
+
+    if "prep_minutes" in data:
+        recipe["prep_minutes"] = data["prep_minutes"]
+
+    if "servings" in data:
+        recipe["servings"] = data["servings"]
+
+    if "difficulty" in data:
+        recipe["difficulty"] = data["difficulty"]
+
+    return jsonify({
+        "message": "Recipe updated successfully",
+        "recipe": recipe
+    })
+
+
+# ============================================================
+# DELETE RECIPE
+# ============================================================
+
+@app.route("/api/recipes/<int:recipe_id>", methods=["DELETE"])
+def delete_recipe(recipe_id):
+
+    recipe = find_recipe(recipe_id)
+
+    if recipe is None:
+
+        return jsonify({
+            "message": "Recipe not found"
+        }), 404
+
+    recipes.remove(recipe)
+
+    return jsonify({
+        "message": "Recipe deleted successfully",
+        "recipe": recipe
+    })
+
+
+# ============================================================
+# SEARCH RECIPE BY NAME
+# ============================================================
+
+@app.route("/api/recipes/search/<name>", methods=["GET"])
+def search_recipe(name):
+
+    result = []
+
+    for recipe in recipes:
+
+        if name.lower() in recipe["name"].lower():
+
+            result.append(recipe)
+
+    return jsonify({
+        "search": name,
+        "total_results": len(result),
+        "recipes": result
+    })
+
+
+# ============================================================
+# FILTER RECIPES BY CUISINE
+# ============================================================
+
+@app.route("/api/recipes/cuisine/<cuisine>", methods=["GET"])
+def recipes_by_cuisine(cuisine):
+
+    result = []
+
+    for recipe in recipes:
+
+        if recipe["cuisine"].lower() == cuisine.lower():
+
+            result.append(recipe)
+
+    return jsonify({
+        "cuisine": cuisine,
+        "total_results": len(result),
+        "recipes": result
+    })
+
+
+# ============================================================
+# SEARCH RECIPES BY INGREDIENT
+# ============================================================
+
+@app.route("/api/recipes/ingredient/<ingredient>", methods=["GET"])
+def recipes_by_ingredient(ingredient):
+
+    result = []
+
+    for recipe in recipes:
+
+        for item in recipe["ingredients"]:
+
+            if item.lower() == ingredient.lower():
+
+                result.append(recipe)
+                break
+
+    return jsonify({
+        "ingredient": ingredient,
+        "total_results": len(result),
+        "recipes": result
+    })
+
+
+# ============================================================
+# GET QUICK RECIPES
+# ============================================================
+
+@app.route("/api/recipes/quick", methods=["GET"])
+def quick_recipes():
+
+    result = []
+
+    for recipe in recipes:
+
+        if recipe["prep_minutes"] <= 30:
+
+            result.append(recipe)
+
+    return jsonify({
+        "total_quick_recipes": len(result),
+        "recipes": result
+    })
+
+
+# ============================================================
+# GET FAVORITE RECIPES
+# ============================================================
+
+@app.route("/api/recipes/favorites", methods=["GET"])
+def favorite_recipes():
+
+    result = []
+
+    for recipe in recipes:
+
+        if recipe["is_favorite"] is True:
+
+            result.append(recipe)
+
+    return jsonify({
+        "total_favorites": len(result),
+        "recipes": result
+    })
+
+
+# ============================================================
+# MARK OR UNMARK FAVORITE
+# ============================================================
+
+@app.route("/api/recipes/<int:recipe_id>/favorite", methods=["PUT"])
+def update_favorite(recipe_id):
+
+    recipe = find_recipe(recipe_id)
+
+    if recipe is None:
+
+        return jsonify({
+            "message": "Recipe not found"
+        }), 404
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict) or type(data.get("is_favorite")) is not bool:
+
+        return jsonify({
+            "message": "is_favorite must be true or false"
+        }), 400
+
+    recipe["is_favorite"] = data["is_favorite"]
+
+    return jsonify({
+        "message": "Favorite setting updated",
+        "recipe": recipe
+    })
+
+
+# ============================================================
+# RECIPE SUMMARY
+# ============================================================
+
+@app.route("/api/recipes/summary", methods=["GET"])
+def recipe_summary():
+
+    cuisine_count = {}
+
+    total_prep_minutes = 0
+    favorite_count = 0
+
+    # Start each cuisine count at zero
+    for cuisine in cuisines:
+
+        cuisine_count[cuisine] = 0
+
+    # Collect summary details
+    for recipe in recipes:
+
+        cuisine = recipe["cuisine"]
+
+        cuisine_count[cuisine] = cuisine_count[cuisine] + 1
+
+        total_prep_minutes += recipe["prep_minutes"]
+
+        if recipe["is_favorite"]:
+            favorite_count += 1
+
+    if len(recipes) > 0:
+
+        average_prep_time = round(
+            total_prep_minutes / len(recipes),
+            2
+        )
+
+    else:
+
+        average_prep_time = 0
+
+    return jsonify({
+        "total_recipes": len(recipes),
+        "favorite_recipes": favorite_count,
+        "average_prep_minutes": average_prep_time,
+        "cuisine_summary": cuisine_count
+    })
+
+
+# ============================================================
+# HOME ROUTE
+# ============================================================
+
+@app.route("/", methods=["GET"])
+def home():
+
+    return jsonify({
+        "message": "Recipe Management API is running",
+        "endpoints": {
+            "all_recipes": "GET /api/recipes",
+            "one_recipe": "GET /api/recipes/<id>",
+            "add_recipe": "POST /api/recipes",
+            "update_recipe": "PUT /api/recipes/<id>",
+            "delete_recipe": "DELETE /api/recipes/<id>",
+            "search_name": "GET /api/recipes/search/<name>",
+            "filter_cuisine": "GET /api/recipes/cuisine/<cuisine>",
+            "search_ingredient": "GET /api/recipes/ingredient/<ingredient>",
+            "quick_recipes": "GET /api/recipes/quick",
+            "favorites": "GET /api/recipes/favorites",
+            "update_favorite": "PUT /api/recipes/<id>/favorite",
+            "summary": "GET /api/recipes/summary"
+        }
+    })
+
+
+# ============================================================
+# START FLASK SERVER
+# ============================================================
+
+if __name__ == "__main__":
+
+    app.run(debug=True)

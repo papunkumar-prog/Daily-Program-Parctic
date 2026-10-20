@@ -1,0 +1,884 @@
+# ============================================================
+# ONLINE COURSE ENROLLMENT REST API
+# Simple Flask project using Python basics
+# ============================================================
+
+from flask import Flask, request, jsonify
+
+
+app = Flask(__name__)
+
+
+# Available course categories
+categories = (
+    "Programming",
+    "Database",
+    "Web Development",
+    "Data Science",
+    "Other"
+)
+
+
+# Available course statuses
+course_statuses = (
+    "Open",
+    "Closed"
+)
+
+
+# Course records
+courses = [
+    {
+        "id": 101,
+        "title": "Python Basics",
+        "category": "Programming",
+        "fee": 1500,
+        "capacity": 30,
+        "status": "Open"
+    },
+    {
+        "id": 102,
+        "title": "SQL Fundamentals",
+        "category": "Database",
+        "fee": 1200,
+        "capacity": 25,
+        "status": "Open"
+    },
+    {
+        "id": 103,
+        "title": "Flask API Development",
+        "category": "Web Development",
+        "fee": 2000,
+        "capacity": 20,
+        "status": "Open"
+    }
+]
+
+
+# Student enrollment records
+enrollments = [
+    {
+        "id": 201,
+        "course_id": 101,
+        "student_name": "Papun",
+        "email": "papun@example.com",
+        "status": "Active"
+    },
+    {
+        "id": 202,
+        "course_id": 101,
+        "student_name": "Amit",
+        "email": "amit@example.com",
+        "status": "Active"
+    },
+    {
+        "id": 203,
+        "course_id": 102,
+        "student_name": "Rahul",
+        "email": "rahul@example.com",
+        "status": "Active"
+    }
+]
+
+
+# ============================================================
+# FIND COURSE
+# ============================================================
+
+def find_course(course_id):
+
+    # Search for a course using its ID
+    for course in courses:
+
+        if course["id"] == course_id:
+            return course
+
+    return None
+
+
+# ============================================================
+# FIND ENROLLMENT
+# ============================================================
+
+def find_enrollment(enrollment_id):
+
+    for enrollment in enrollments:
+
+        if enrollment["id"] == enrollment_id:
+            return enrollment
+
+    return None
+
+
+# ============================================================
+# COUNT ACTIVE ENROLLMENTS
+# ============================================================
+
+def count_enrollments(course_id):
+
+    count = 0
+
+    for enrollment in enrollments:
+
+        if (
+            enrollment["course_id"] == course_id
+            and enrollment["status"] == "Active"
+        ):
+            count += 1
+
+    return count
+
+
+# ============================================================
+# SHOW COURSE DETAILS
+# ============================================================
+
+def course_details(course):
+
+    # Calculate current enrollment and available seats
+    enrolled = count_enrollments(course["id"])
+
+    available = course["capacity"] - enrolled
+
+    return {
+        "id": course["id"],
+        "title": course["title"],
+        "category": course["category"],
+        "fee": course["fee"],
+        "capacity": course["capacity"],
+        "enrolled": enrolled,
+        "available_seats": available,
+        "status": course["status"]
+    }
+
+
+# ============================================================
+# VALIDATE EMAIL
+# ============================================================
+
+def valid_email(email):
+
+    if not isinstance(email, str):
+        return False
+
+    email = email.strip()
+
+    if " " in email or "@" not in email:
+        return False
+
+    parts = email.split("@")
+
+    if len(parts) != 2:
+        return False
+
+    if parts[0] == "" or "." not in parts[1]:
+        return False
+
+    return True
+
+
+# ============================================================
+# GENERATE ENROLLMENT ID
+# ============================================================
+
+def next_enrollment_id():
+
+    highest_id = 200
+
+    for enrollment in enrollments:
+
+        if enrollment["id"] > highest_id:
+            highest_id = enrollment["id"]
+
+    return highest_id + 1
+
+
+# ============================================================
+# GET ALL COURSES
+# ============================================================
+
+@app.route("/api/courses", methods=["GET"])
+def get_courses():
+
+    result = []
+
+    for course in courses:
+
+        result.append(course_details(course))
+
+    return jsonify({
+        "total_courses": len(result),
+        "courses": result
+    })
+
+
+# ============================================================
+# GET ONE COURSE
+# ============================================================
+
+@app.route("/api/courses/<int:course_id>", methods=["GET"])
+def get_course(course_id):
+
+    course = find_course(course_id)
+
+    if course is None:
+
+        return jsonify({
+            "message": "Course not found"
+        }), 404
+
+    return jsonify(course_details(course))
+
+
+# ============================================================
+# ADD NEW COURSE
+# ============================================================
+
+@app.route("/api/courses", methods=["POST"])
+def add_course():
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+
+        return jsonify({
+            "message": "A valid JSON object is required"
+        }), 400
+
+    # Check required fields
+    required_fields = (
+        "id",
+        "title",
+        "category",
+        "fee",
+        "capacity"
+    )
+
+    for field in required_fields:
+
+        if field not in data:
+
+            return jsonify({
+                "message": field + " is required"
+            }), 400
+
+    # Validate course ID
+    if type(data["id"]) is not int or data["id"] <= 0:
+
+        return jsonify({
+            "message": "ID must be a positive integer"
+        }), 400
+
+    if find_course(data["id"]) is not None:
+
+        return jsonify({
+            "message": "Course ID already exists"
+        }), 409
+
+    # Validate title
+    if not isinstance(data["title"], str) or not data["title"].strip():
+
+        return jsonify({
+            "message": "Course title cannot be empty"
+        }), 400
+
+    # Validate category
+    if data["category"] not in categories:
+
+        return jsonify({
+            "message": "Invalid category",
+            "available_categories": categories
+        }), 400
+
+    # Validate course fee
+    fee = data["fee"]
+
+    if (
+        isinstance(fee, bool)
+        or not isinstance(fee, (int, float))
+        or fee <= 0
+    ):
+
+        return jsonify({
+            "message": "Fee must be a positive number"
+        }), 400
+
+    # Validate seat capacity
+    capacity = data["capacity"]
+
+    if type(capacity) is not int or capacity <= 0:
+
+        return jsonify({
+            "message": "Capacity must be a positive integer"
+        }), 400
+
+    # Create the course
+    course = {
+        "id": data["id"],
+        "title": data["title"].strip(),
+        "category": data["category"],
+        "fee": fee,
+        "capacity": capacity,
+        "status": "Open"
+    }
+
+    courses.append(course)
+
+    return jsonify({
+        "message": "Course added successfully",
+        "course": course_details(course)
+    }), 201
+
+
+# ============================================================
+# UPDATE COURSE DETAILS
+# ============================================================
+
+@app.route("/api/courses/<int:course_id>", methods=["PUT"])
+def update_course(course_id):
+
+    course = find_course(course_id)
+
+    if course is None:
+
+        return jsonify({
+            "message": "Course not found"
+        }), 404
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict) or not data:
+
+        return jsonify({
+            "message": "A non-empty JSON object is required"
+        }), 400
+
+    # Only these fields can be changed here
+    allowed_fields = (
+        "title",
+        "category",
+        "fee",
+        "capacity"
+    )
+
+    for field in data:
+
+        if field not in allowed_fields:
+
+            return jsonify({
+                "message": "Invalid field: " + field
+            }), 400
+
+    # Validate title
+    if "title" in data:
+
+        if not isinstance(data["title"], str) or not data["title"].strip():
+
+            return jsonify({
+                "message": "Title cannot be empty"
+            }), 400
+
+    # Validate category
+    if "category" in data:
+
+        if data["category"] not in categories:
+
+            return jsonify({
+                "message": "Invalid category",
+                "available_categories": categories
+            }), 400
+
+    # Validate fee
+    if "fee" in data:
+
+        fee = data["fee"]
+
+        if (
+            isinstance(fee, bool)
+            or not isinstance(fee, (int, float))
+            or fee <= 0
+        ):
+
+            return jsonify({
+                "message": "Fee must be a positive number"
+            }), 400
+
+    # Do not reduce capacity below active enrollment count
+    if "capacity" in data:
+
+        capacity = data["capacity"]
+
+        if type(capacity) is not int or capacity <= 0:
+
+            return jsonify({
+                "message": "Capacity must be a positive integer"
+            }), 400
+
+        if capacity < count_enrollments(course_id):
+
+            return jsonify({
+                "message": "Capacity cannot be lower than active enrollments"
+            }), 400
+
+    # Apply changes after validation
+    if "title" in data:
+        course["title"] = data["title"].strip()
+
+    if "category" in data:
+        course["category"] = data["category"]
+
+    if "fee" in data:
+        course["fee"] = data["fee"]
+
+    if "capacity" in data:
+        course["capacity"] = data["capacity"]
+
+    return jsonify({
+        "message": "Course updated successfully",
+        "course": course_details(course)
+    })
+
+
+# ============================================================
+# CHANGE COURSE STATUS
+# ============================================================
+
+@app.route("/api/courses/<int:course_id>/status", methods=["PUT"])
+def update_course_status(course_id):
+
+    course = find_course(course_id)
+
+    if course is None:
+
+        return jsonify({
+            "message": "Course not found"
+        }), 404
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict) or "status" not in data:
+
+        return jsonify({
+            "message": "Status is required"
+        }), 400
+
+    status = data["status"]
+
+    if status not in course_statuses:
+
+        return jsonify({
+            "message": "Invalid status",
+            "available_statuses": course_statuses
+        }), 400
+
+    course["status"] = status
+
+    return jsonify({
+        "message": "Course status updated successfully",
+        "course": course_details(course)
+    })
+
+
+# ============================================================
+# DELETE COURSE
+# ============================================================
+
+@app.route("/api/courses/<int:course_id>", methods=["DELETE"])
+def delete_course(course_id):
+
+    course = find_course(course_id)
+
+    if course is None:
+
+        return jsonify({
+            "message": "Course not found"
+        }), 404
+
+    # Keep courses that have enrollment history
+    for enrollment in enrollments:
+
+        if enrollment["course_id"] == course_id:
+
+            return jsonify({
+                "message": "Cannot delete a course with enrollment records"
+            }), 409
+
+    courses.remove(course)
+
+    return jsonify({
+        "message": "Course deleted successfully"
+    })
+
+
+# ============================================================
+# ENROLL STUDENT IN A COURSE
+# ============================================================
+
+@app.route("/api/courses/<int:course_id>/enroll", methods=["POST"])
+def enroll_student(course_id):
+
+    course = find_course(course_id)
+
+    if course is None:
+
+        return jsonify({
+            "message": "Course not found"
+        }), 404
+
+    if course["status"] != "Open":
+
+        return jsonify({
+            "message": "This course is closed for enrollment"
+        }), 400
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+
+        return jsonify({
+            "message": "A valid JSON object is required"
+        }), 400
+
+    # Check student details
+    if "student_name" not in data:
+
+        return jsonify({
+            "message": "student_name is required"
+        }), 400
+
+    if "email" not in data:
+
+        return jsonify({
+            "message": "email is required"
+        }), 400
+
+    name = data["student_name"]
+    email = data["email"]
+
+    if not isinstance(name, str) or not name.strip():
+
+        return jsonify({
+            "message": "Student name cannot be empty"
+        }), 400
+
+    if not valid_email(email):
+
+        return jsonify({
+            "message": "Enter a valid email address"
+        }), 400
+
+    email = email.strip().lower()
+
+    # Prevent the same student from enrolling twice
+    # in the same course while the enrollment is active
+    for enrollment in enrollments:
+
+        if (
+            enrollment["course_id"] == course_id
+            and enrollment["email"].lower() == email
+            and enrollment["status"] == "Active"
+        ):
+
+            return jsonify({
+                "message": "Student is already enrolled in this course"
+            }), 409
+
+    # Check available seats
+    enrolled = count_enrollments(course_id)
+
+    if enrolled >= course["capacity"]:
+
+        return jsonify({
+            "message": "Course is full"
+        }), 400
+
+    # Create the enrollment
+    enrollment = {
+        "id": next_enrollment_id(),
+        "course_id": course_id,
+        "student_name": name.strip().title(),
+        "email": email,
+        "status": "Active"
+    }
+
+    enrollments.append(enrollment)
+
+    return jsonify({
+        "message": "Student enrolled successfully",
+        "enrollment": enrollment,
+        "course": course_details(course)
+    }), 201
+
+
+# ============================================================
+# GET ALL ENROLLMENTS
+# ============================================================
+
+@app.route("/api/enrollments", methods=["GET"])
+def get_enrollments():
+
+    return jsonify({
+        "total_enrollments": len(enrollments),
+        "enrollments": enrollments
+    })
+
+
+# ============================================================
+# GET ONE ENROLLMENT
+# ============================================================
+
+@app.route("/api/enrollments/<int:enrollment_id>", methods=["GET"])
+def get_enrollment(enrollment_id):
+
+    enrollment = find_enrollment(enrollment_id)
+
+    if enrollment is None:
+
+        return jsonify({
+            "message": "Enrollment not found"
+        }), 404
+
+    return jsonify(enrollment)
+
+
+# ============================================================
+# UPDATE STUDENT DETAILS
+# ============================================================
+
+@app.route("/api/enrollments/<int:enrollment_id>", methods=["PUT"])
+def update_enrollment(enrollment_id):
+
+    enrollment = find_enrollment(enrollment_id)
+
+    if enrollment is None:
+
+        return jsonify({
+            "message": "Enrollment not found"
+        }), 404
+
+    if enrollment["status"] != "Active":
+
+        return jsonify({
+            "message": "Only active enrollments can be updated"
+        }), 400
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict) or not data:
+
+        return jsonify({
+            "message": "A non-empty JSON object is required"
+        }), 400
+
+    for field in data:
+
+        if field not in ("student_name", "email"):
+
+            return jsonify({
+                "message": "Invalid field: " + field
+            }), 400
+
+    if "student_name" in data:
+
+        name = data["student_name"]
+
+        if not isinstance(name, str) or not name.strip():
+
+            return jsonify({
+                "message": "Student name cannot be empty"
+            }), 400
+
+    if "email" in data:
+
+        email = data["email"]
+
+        if not valid_email(email):
+
+            return jsonify({
+                "message": "Enter a valid email address"
+            }), 400
+
+        email = email.strip().lower()
+
+        # Check for duplicate active enrollment
+        for other in enrollments:
+
+            if other["id"] == enrollment_id:
+                continue
+
+            if (
+                other["course_id"] == enrollment["course_id"]
+                and other["email"].lower() == email
+                and other["status"] == "Active"
+            ):
+
+                return jsonify({
+                    "message": "This email is already enrolled in the course"
+                }), 409
+
+    # Save changes
+    if "student_name" in data:
+        enrollment["student_name"] = data["student_name"].strip().title()
+
+    if "email" in data:
+        enrollment["email"] = data["email"].strip().lower()
+
+    return jsonify({
+        "message": "Enrollment updated successfully",
+        "enrollment": enrollment
+    })
+
+
+# ============================================================
+# CANCEL ENROLLMENT
+# ============================================================
+
+@app.route("/api/enrollments/<int:enrollment_id>", methods=["DELETE"])
+def cancel_enrollment(enrollment_id):
+
+    enrollment = find_enrollment(enrollment_id)
+
+    if enrollment is None:
+
+        return jsonify({
+            "message": "Enrollment not found"
+        }), 404
+
+    if enrollment["status"] == "Cancelled":
+
+        return jsonify({
+            "message": "Enrollment is already cancelled"
+        }), 400
+
+    # Mark it cancelled instead of deleting its history
+    enrollment["status"] = "Cancelled"
+
+    course = find_course(enrollment["course_id"])
+
+    return jsonify({
+        "message": "Enrollment cancelled successfully",
+        "enrollment": enrollment,
+        "course": course_details(course) if course else None
+    })
+
+
+# ============================================================
+# FILTER COURSES BY CATEGORY
+# ============================================================
+
+@app.route("/api/courses/category/<category>", methods=["GET"])
+def courses_by_category(category):
+
+    result = []
+
+    for course in courses:
+
+        if course["category"].lower() == category.lower():
+
+            result.append(course_details(course))
+
+    return jsonify({
+        "category": category,
+        "total_courses": len(result),
+        "courses": result
+    })
+
+
+# ============================================================
+# GET OPEN COURSES
+# ============================================================
+
+@app.route("/api/courses/open", methods=["GET"])
+def open_courses():
+
+    result = []
+
+    for course in courses:
+
+        if (
+            course["status"] == "Open"
+            and count_enrollments(course["id"]) < course["capacity"]
+        ):
+
+            result.append(course_details(course))
+
+    return jsonify({
+        "total_open_courses": len(result),
+        "courses": result
+    })
+
+
+# ============================================================
+# COURSE SUMMARY
+# ============================================================
+
+@app.route("/api/courses/summary", methods=["GET"])
+def course_summary():
+
+    category_count = {}
+
+    total_active = 0
+    total_seats = 0
+    total_available = 0
+
+    # Start every category at zero
+    for category in categories:
+        category_count[category] = 0
+
+    # Count courses and seats
+    for course in courses:
+
+        category = course["category"]
+
+        category_count[category] += 1
+
+        enrolled = count_enrollments(course["id"])
+
+        total_active += enrolled
+        total_seats += course["capacity"]
+        total_available += course["capacity"] - enrolled
+
+    return jsonify({
+        "total_courses": len(courses),
+        "total_active_enrollments": total_active,
+        "total_seats": total_seats,
+        "available_seats": total_available,
+        "category_summary": category_count
+    })
+
+
+# ============================================================
+# HOME ROUTE
+# ============================================================
+
+@app.route("/", methods=["GET"])
+def home():
+
+    return jsonify({
+        "message": "Online Course Enrollment API is running",
+        "endpoints": {
+            "all_courses": "GET /api/courses",
+            "one_course": "GET /api/courses/<id>",
+            "add_course": "POST /api/courses",
+            "update_course": "PUT /api/courses/<id>",
+            "delete_course": "DELETE /api/courses/<id>",
+            "course_status": "PUT /api/courses/<id>/status",
+            "enroll_student": "POST /api/courses/<id>/enroll",
+            "all_enrollments": "GET /api/enrollments",
+            "one_enrollment": "GET /api/enrollments/<id>",
+            "update_enrollment": "PUT /api/enrollments/<id>",
+            "cancel_enrollment": "DELETE /api/enrollments/<id>",
+            "filter_category": "GET /api/courses/category/<category>",
+            "open_courses": "GET /api/courses/open",
+            "summary": "GET /api/courses/summary"
+        }
+    })
+
+
+# ============================================================
+# START FLASK SERVER
+# ============================================================
+
+if __name__ == "__main__":
+
+    app.run(debug=True)

@@ -1,0 +1,166 @@
+
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+# Store student records in a list of dictionaries
+students = [
+    {"id": 101, "name": "Papun", "course": "Python"},
+    {"id": 102, "name": "Amit", "course": "Flask"},
+    {"id": 103, "name": "Rahul", "course": "Django"}
+]
+
+
+# --------------------------------------------------
+# 1. HOME ROUTE
+# Execution flow: Receive GET request -> Return message
+# --------------------------------------------------
+@app.route("/")
+def home():
+    return jsonify({"message": "Student Management API is running"})
+
+
+# --------------------------------------------------
+# 2. GET ALL STUDENTS
+# Execution flow: Request -> Read list -> Return JSON
+# --------------------------------------------------
+@app.route("/api/students", methods=["GET"])
+def get_students():
+    return jsonify(students), 200
+
+
+# --------------------------------------------------
+# 3. GET ONE STUDENT
+# Execution flow: Read ID -> Search list -> Return result
+# --------------------------------------------------
+@app.route("/api/students/<int:student_id>", methods=["GET"])
+def get_student(student_id):
+
+    for student in students:
+        if student["id"] == student_id:
+            return jsonify(student), 200
+
+    return jsonify({"error": "Student not found"}), 404
+
+
+# --------------------------------------------------
+# 4. ADD A NEW STUDENT
+# Execution flow: Read JSON -> Validate -> Check duplicate
+#                 -> Add student -> Return response
+# --------------------------------------------------
+@app.route("/api/students", methods=["POST"])
+def add_student():
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+        return jsonify({"error": "A valid JSON object is required"}), 400
+
+    if "id" not in data or "name" not in data or "course" not in data:
+        return jsonify({
+            "error": "id, name and course are required"
+        }), 400
+
+    student_id = data["id"]
+    name = data["name"]
+    course = data["course"]
+
+    if isinstance(student_id, bool) or not isinstance(student_id, int):
+        return jsonify({"error": "Student ID must be an integer"}), 400
+
+    if student_id <= 0:
+        return jsonify({"error": "Student ID must be greater than zero"}), 400
+
+    if not isinstance(name, str) or not isinstance(course, str):
+        return jsonify({"error": "Name and course must be text"}), 400
+
+    name = name.strip()
+    course = course.strip()
+
+    if not name or not course:
+        return jsonify({"error": "Name and course cannot be empty"}), 400
+
+    for student in students:
+        if student["id"] == student_id:
+            return jsonify({"error": "Student ID already exists"}), 409
+
+    new_student = {
+        "id": student_id,
+        "name": name,
+        "course": course
+    }
+
+    students.append(new_student)
+
+    return jsonify({
+        "message": "Student added successfully",
+        "student": new_student
+    }), 201
+
+
+# --------------------------------------------------
+# 5. UPDATE AN EXISTING STUDENT
+# Execution flow: Read ID -> Find student -> Validate data
+#                 -> Update record -> Return response
+# --------------------------------------------------
+@app.route("/api/students/<int:student_id>", methods=["PUT"])
+def update_student(student_id):
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+        return jsonify({"error": "A valid JSON object is required"}), 400
+
+    if "name" not in data or "course" not in data:
+        return jsonify({"error": "Name and course are required"}), 400
+
+    name = data["name"]
+    course = data["course"]
+
+    if not isinstance(name, str) or not isinstance(course, str):
+        return jsonify({"error": "Name and course must be text"}), 400
+
+    name = name.strip()
+    course = course.strip()
+
+    if not name or not course:
+        return jsonify({"error": "Name and course cannot be empty"}), 400
+
+    for student in students:
+        if student["id"] == student_id:
+            student["name"] = name
+            student["course"] = course
+
+            return jsonify({
+                "message": "Student updated successfully",
+                "student": student
+            }), 200
+
+    return jsonify({"error": "Student not found"}), 404
+
+
+# --------------------------------------------------
+# 6. DELETE A STUDENT
+# Execution flow: Read ID -> Find student -> Remove record
+#                 -> Return response
+# --------------------------------------------------
+@app.route("/api/students/<int:student_id>", methods=["DELETE"])
+def delete_student(student_id):
+
+    for student in students:
+        if student["id"] == student_id:
+            students.remove(student)
+
+            return jsonify({
+                "message": "Student deleted successfully"
+            }), 200
+
+    return jsonify({"error": "Student not found"}), 404
+
+
+# --------------------------------------------------
+# 7. START THE FLASK SERVER
+# Execution flow: Start server -> Wait for API requests
+# --------------------------------------------------
+if __name__ == "__main__":
+    app.run(debug=True)

@@ -1,0 +1,254 @@
+
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+
+# Store expense records in a list of dictionaries
+expenses = [
+    {
+        "id": 101,
+        "amount": 300,
+        "category": "Food",
+        "description": "Lunch"
+    },
+    {
+        "id": 102,
+        "amount": 500,
+        "category": "Travel",
+        "description": "Bus ticket"
+    },
+    {
+        "id": 103,
+        "amount": 200,
+        "category": "Shopping",
+        "description": "Shirt"
+    }
+]
+
+
+# --------------------------------------------------
+# 1. HOME ROUTE
+# Execution flow: Receive request -> Return message
+# --------------------------------------------------
+@app.route("/")
+def home():
+    return jsonify({
+        "message": "Expense Tracker API is running"
+    }), 200
+
+
+# --------------------------------------------------
+# 2. GET ALL EXPENSES
+# Execution flow: Read list -> Return expense records
+# --------------------------------------------------
+@app.route("/api/expenses", methods=["GET"])
+def get_expenses():
+    return jsonify(expenses), 200
+
+
+# --------------------------------------------------
+# 3. GET ONE EXPENSE
+# Execution flow: Read ID -> Search list -> Return result
+# --------------------------------------------------
+@app.route("/api/expenses/<int:expense_id>", methods=["GET"])
+def get_expense(expense_id):
+
+    for expense in expenses:
+        if expense["id"] == expense_id:
+            return jsonify(expense), 200
+
+    return jsonify({
+        "error": "Expense not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 4. ADD A NEW EXPENSE
+# Execution flow: Read JSON -> Validate -> Create ID
+#                 -> Save record -> Return response
+# --------------------------------------------------
+@app.route("/api/expenses", methods=["POST"])
+def add_expense():
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+        return jsonify({
+            "error": "A valid JSON object is required"
+        }), 400
+
+    if not all(key in data for key in
+               ["amount", "category", "description"]):
+        return jsonify({
+            "error": "Amount, category and description are required"
+        }), 400
+
+    amount = data["amount"]
+    category = data["category"]
+    description = data["description"]
+
+    if isinstance(amount, bool) or not isinstance(amount, (int, float)):
+        return jsonify({
+            "error": "Amount must be a number"
+        }), 400
+
+    if amount <= 0:
+        return jsonify({
+            "error": "Amount must be greater than zero"
+        }), 400
+
+    if not isinstance(category, str) or not isinstance(description, str):
+        return jsonify({
+            "error": "Category and description must be text"
+        }), 400
+
+    category = category.strip().title()
+    description = description.strip()
+
+    if not category or not description:
+        return jsonify({
+            "error": "Category and description cannot be empty"
+        }), 400
+
+    # Generate the next available ID
+    if expenses:
+        new_id = max(item["id"] for item in expenses) + 1
+    else:
+        new_id = 101
+
+    new_expense = {
+        "id": new_id,
+        "amount": amount,
+        "category": category,
+        "description": description
+    }
+
+    expenses.append(new_expense)
+
+    return jsonify({
+        "message": "Expense added successfully",
+        "expense": new_expense
+    }), 201
+
+
+# --------------------------------------------------
+# 5. UPDATE AN EXPENSE
+# Execution flow: Read JSON -> Validate -> Find expense
+#                 -> Update record -> Return response
+# --------------------------------------------------
+@app.route("/api/expenses/<int:expense_id>", methods=["PUT"])
+def update_expense(expense_id):
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+        return jsonify({
+            "error": "A valid JSON object is required"
+        }), 400
+
+    if not all(key in data for key in
+               ["amount", "category", "description"]):
+        return jsonify({
+            "error": "Amount, category and description are required"
+        }), 400
+
+    amount = data["amount"]
+    category = data["category"]
+    description = data["description"]
+
+    if isinstance(amount, bool) or not isinstance(amount, (int, float)):
+        return jsonify({
+            "error": "Amount must be a number"
+        }), 400
+
+    if amount <= 0:
+        return jsonify({
+            "error": "Amount must be greater than zero"
+        }), 400
+
+    if not isinstance(category, str) or not isinstance(description, str):
+        return jsonify({
+            "error": "Category and description must be text"
+        }), 400
+
+    category = category.strip().title()
+    description = description.strip()
+
+    if not category or not description:
+        return jsonify({
+            "error": "Category and description cannot be empty"
+        }), 400
+
+    for expense in expenses:
+        if expense["id"] == expense_id:
+            expense["amount"] = amount
+            expense["category"] = category
+            expense["description"] = description
+
+            return jsonify({
+                "message": "Expense updated successfully",
+                "expense": expense
+            }), 200
+
+    return jsonify({
+        "error": "Expense not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 6. DELETE AN EXPENSE
+# Execution flow: Read ID -> Find expense -> Remove it
+#                 -> Return response
+# --------------------------------------------------
+@app.route("/api/expenses/<int:expense_id>", methods=["DELETE"])
+def delete_expense(expense_id):
+
+    for expense in expenses:
+        if expense["id"] == expense_id:
+            expenses.remove(expense)
+
+            return jsonify({
+                "message": "Expense deleted successfully"
+            }), 200
+
+    return jsonify({
+        "error": "Expense not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 7. EXPENSE SUMMARY
+# Execution flow: Calculate total -> Find highest expense
+#                 -> Return summary
+# --------------------------------------------------
+@app.route("/api/expenses/summary", methods=["GET"])
+def expense_summary():
+
+    total_amount = sum(
+        expense["amount"] for expense in expenses
+    )
+
+    total_count = len(expenses)
+
+    if expenses:
+        highest_expense = max(
+            expenses,
+            key=lambda expense: expense["amount"]
+        )
+    else:
+        highest_expense = None
+
+    return jsonify({
+        "total_expenses": total_count,
+        "total_amount": total_amount,
+        "highest_expense": highest_expense
+    }), 200
+
+
+# --------------------------------------------------
+# 8. START THE SERVER
+# Execution flow: Start Flask -> Wait for API requests
+# --------------------------------------------------
+if __name__ == "__main__":
+    app.run(debug=True)

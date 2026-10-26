@@ -1,0 +1,273 @@
+
+from flask import Flask, request, jsonify
+import math
+
+app = Flask(__name__)
+
+
+# Sample product records
+products = [
+    {
+        "id": 101,
+        "name": "Keyboard",
+        "category": "Accessories",
+        "price": 800,
+        "quantity": 10
+    },
+    {
+        "id": 102,
+        "name": "Mouse",
+        "category": "Accessories",
+        "price": 400,
+        "quantity": 15
+    },
+    {
+        "id": 103,
+        "name": "Monitor",
+        "category": "Electronics",
+        "price": 7500,
+        "quantity": 3
+    }
+]
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE PRODUCT DATA
+# Flow: Check JSON fields -> Validate values -> Return data
+# --------------------------------------------------
+def validate_product(data):
+
+    if not isinstance(data, dict):
+        return None, "A valid JSON object is required"
+
+    required_fields = ["name", "category", "price", "quantity"]
+
+    for field in required_fields:
+        if field not in data:
+            return None, f"{field} is required"
+
+    name = data["name"]
+    category = data["category"]
+    price = data["price"]
+    quantity = data["quantity"]
+
+    if not isinstance(name, str) or not isinstance(category, str):
+        return None, "Name and category must be text"
+
+    name = name.strip()
+    category = category.strip()
+
+    if not name or not category:
+        return None, "Name and category cannot be empty"
+
+    if isinstance(price, bool) or not isinstance(price, (int, float)):
+        return None, "Price must be a number"
+
+    if not math.isfinite(price) or price < 0:
+        return None, "Price must be a finite, non-negative number"
+
+    if isinstance(quantity, bool) or not isinstance(quantity, int):
+        return None, "Quantity must be a whole number"
+
+    if quantity < 0:
+        return None, "Quantity cannot be negative"
+
+    product_data = {
+        "name": name,
+        "category": category,
+        "price": price,
+        "quantity": quantity
+    }
+
+    return product_data, None
+
+
+# --------------------------------------------------
+# 1. HOME ROUTE
+# Flow: Receive request -> Return welcome message
+# --------------------------------------------------
+@app.route("/")
+def home():
+
+    return jsonify({
+        "message": "Inventory Management API is running"
+    }), 200
+
+
+# --------------------------------------------------
+# 2. GET ALL PRODUCTS
+# Flow: Read product list -> Return JSON response
+# --------------------------------------------------
+@app.route("/api/products", methods=["GET"])
+def get_products():
+
+    return jsonify(products), 200
+
+
+# --------------------------------------------------
+# 3. GET ONE PRODUCT
+# Flow: Read ID -> Search list -> Return product
+# --------------------------------------------------
+@app.route("/api/products/<int:product_id>", methods=["GET"])
+def get_product(product_id):
+
+    for product in products:
+        if product["id"] == product_id:
+            return jsonify(product), 200
+
+    return jsonify({
+        "error": "Product not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 4. ADD A NEW PRODUCT
+# Flow: Read JSON -> Validate -> Generate ID
+#       -> Add product -> Return response
+# --------------------------------------------------
+@app.route("/api/products", methods=["POST"])
+def add_product():
+
+    data = request.get_json(silent=True)
+
+    product_data, error = validate_product(data)
+
+    if error:
+        return jsonify({"error": error}), 400
+
+    # Generate the next available product ID
+    if products:
+        new_id = max(product["id"] for product in products) + 1
+    else:
+        new_id = 101
+
+    new_product = {
+        "id": new_id,
+        **product_data
+    }
+
+    products.append(new_product)
+
+    return jsonify({
+        "message": "Product added successfully",
+        "product": new_product
+    }), 201
+
+
+# --------------------------------------------------
+# 5. UPDATE A PRODUCT
+# Flow: Read ID and JSON -> Validate -> Find product
+#       -> Update details -> Return response
+# --------------------------------------------------
+@app.route("/api/products/<int:product_id>", methods=["PUT"])
+def update_product(product_id):
+
+    data = request.get_json(silent=True)
+
+    product_data, error = validate_product(data)
+
+    if error:
+        return jsonify({"error": error}), 400
+
+    for product in products:
+        if product["id"] == product_id:
+
+            product.update(product_data)
+
+            return jsonify({
+                "message": "Product updated successfully",
+                "product": product
+            }), 200
+
+    return jsonify({
+        "error": "Product not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 6. DELETE A PRODUCT
+# Flow: Read ID -> Find product -> Remove -> Respond
+# --------------------------------------------------
+@app.route("/api/products/<int:product_id>", methods=["DELETE"])
+def delete_product(product_id):
+
+    for product in products:
+        if product["id"] == product_id:
+
+            products.remove(product)
+
+            return jsonify({
+                "message": "Product deleted successfully"
+            }), 200
+
+    return jsonify({
+        "error": "Product not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 7. FIND PRODUCTS WITH LOW STOCK
+# Flow: Read limit -> Filter products -> Return matches
+# --------------------------------------------------
+@app.route("/api/products/low-stock", methods=["GET"])
+def low_stock_products():
+
+    limit_text = request.args.get("limit", "5")
+
+    try:
+        limit = int(limit_text)
+    except ValueError:
+        return jsonify({
+            "error": "Limit must be a whole number"
+        }), 400
+
+    if limit < 0:
+        return jsonify({
+            "error": "Limit cannot be negative"
+        }), 400
+
+    low_stock = []
+
+    for product in products:
+        if product["quantity"] <= limit:
+            low_stock.append(product)
+
+    return jsonify({
+        "stock_limit": limit,
+        "count": len(low_stock),
+        "products": low_stock
+    }), 200
+
+
+# --------------------------------------------------
+# 8. INVENTORY SUMMARY
+# Flow: Count products -> Calculate quantity and value
+#       -> Return summary
+# --------------------------------------------------
+@app.route("/api/products/summary", methods=["GET"])
+def inventory_summary():
+
+    total_products = len(products)
+
+    total_quantity = sum(
+        product["quantity"] for product in products
+    )
+
+    inventory_value = sum(
+        product["price"] * product["quantity"]
+        for product in products
+    )
+
+    return jsonify({
+        "total_products": total_products,
+        "total_quantity": total_quantity,
+        "inventory_value": round(inventory_value, 2)
+    }), 200
+
+
+# --------------------------------------------------
+# 9. START THE FLASK SERVER
+# Flow: Start server -> Wait for API requests
+# --------------------------------------------------
+if __name__ == "__main__":
+    app.run(debug=True)

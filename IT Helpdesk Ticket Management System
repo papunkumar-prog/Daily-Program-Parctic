@@ -1,0 +1,320 @@
+
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+
+# Sample helpdesk ticket records
+tickets = [
+    {
+        "id": 401,
+        "employee": "Papun",
+        "issue": "System not starting",
+        "department": "Hardware",
+        "priority": "High",
+        "status": "Open",
+        "assigned_to": "Unassigned"
+    },
+    {
+        "id": 402,
+        "employee": "Amit",
+        "issue": "Database connection error",
+        "department": "Database",
+        "priority": "Medium",
+        "status": "In Progress",
+        "assigned_to": "Rahul"
+    },
+    {
+        "id": 403,
+        "employee": "Rahul",
+        "issue": "Printer not working",
+        "department": "Hardware",
+        "priority": "Low",
+        "status": "Resolved",
+        "assigned_to": "Amit"
+    }
+]
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE TICKET DATA
+# Flow: Receive JSON -> Check fields -> Validate values
+#       -> Return cleaned data
+# --------------------------------------------------
+def validate_ticket(data):
+
+    if not isinstance(data, dict):
+        return None, "A valid JSON object is required"
+
+    required_fields = [
+        "employee",
+        "issue",
+        "department",
+        "priority",
+        "status",
+        "assigned_to"
+    ]
+
+    for field in required_fields:
+        if field not in data:
+            return None, f"{field} is required"
+
+    employee = data["employee"]
+    issue = data["issue"]
+    department = data["department"]
+    priority = data["priority"]
+    status = data["status"]
+    assigned_to = data["assigned_to"]
+
+    # Check whether all fields contain text
+    fields = [employee, issue, department, priority, status, assigned_to]
+
+    if not all(isinstance(value, str) for value in fields):
+        return None, "All ticket fields must contain text"
+
+    # Remove unnecessary spaces
+    employee = employee.strip()
+    issue = issue.strip()
+    department = department.strip()
+    priority = priority.strip().title()
+    status = status.strip().title()
+    assigned_to = assigned_to.strip()
+
+    if not all([employee, issue, department, assigned_to]):
+        return None, "Ticket details cannot be empty"
+
+    # Check allowed priority values
+    allowed_priority = ["Low", "Medium", "High"]
+
+    if priority not in allowed_priority:
+        return None, "Priority must be Low, Medium or High"
+
+    # Check allowed ticket status
+    allowed_status = ["Open", "In Progress", "Resolved", "Closed"]
+
+    if status not in allowed_status:
+        return None, "Invalid ticket status"
+
+    ticket_data = {
+        "employee": employee,
+        "issue": issue,
+        "department": department,
+        "priority": priority,
+        "status": status,
+        "assigned_to": assigned_to
+    }
+
+    return ticket_data, None
+
+
+# --------------------------------------------------
+# 1. HOME ROUTE
+# Flow: Receive request -> Return welcome message
+# --------------------------------------------------
+@app.route("/")
+def home():
+
+    return jsonify({
+        "message": "IT Helpdesk API is running"
+    }), 200
+
+
+# --------------------------------------------------
+# 2. GET ALL TICKETS
+# Flow: Read query parameters -> Filter tickets
+#       -> Return matching records
+# --------------------------------------------------
+@app.route("/api/tickets", methods=["GET"])
+def get_tickets():
+
+    status = request.args.get("status")
+    priority = request.args.get("priority")
+
+    filtered_tickets = tickets
+
+    if status:
+        status = status.strip().title()
+
+        allowed_status = ["Open", "In Progress", "Resolved", "Closed"]
+
+        if status not in allowed_status:
+            return jsonify({
+                "error": "Invalid ticket status"
+            }), 400
+
+        filtered_tickets = [
+            ticket for ticket in filtered_tickets
+            if ticket["status"] == status
+        ]
+
+    if priority:
+        priority = priority.strip().title()
+
+        allowed_priority = ["Low", "Medium", "High"]
+
+        if priority not in allowed_priority:
+            return jsonify({
+                "error": "Invalid ticket priority"
+            }), 400
+
+        filtered_tickets = [
+            ticket for ticket in filtered_tickets
+            if ticket["priority"] == priority
+        ]
+
+    return jsonify({
+        "count": len(filtered_tickets),
+        "tickets": filtered_tickets
+    }), 200
+
+
+# --------------------------------------------------
+# 3. GET ONE TICKET
+# Flow: Read ticket ID -> Search list -> Return ticket
+# --------------------------------------------------
+@app.route("/api/tickets/<int:ticket_id>", methods=["GET"])
+def get_ticket(ticket_id):
+
+    for ticket in tickets:
+        if ticket["id"] == ticket_id:
+            return jsonify(ticket), 200
+
+    return jsonify({
+        "error": "Ticket not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 4. CREATE A NEW TICKET
+# Flow: Read JSON -> Validate -> Generate ID
+#       -> Store ticket -> Return response
+# --------------------------------------------------
+@app.route("/api/tickets", methods=["POST"])
+def create_ticket():
+
+    data = request.get_json(silent=True)
+
+    ticket_data, error = validate_ticket(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    # Generate the next available ticket ID
+    if tickets:
+        new_id = max(ticket["id"] for ticket in tickets) + 1
+    else:
+        new_id = 401
+
+    new_ticket = {
+        "id": new_id,
+        **ticket_data
+    }
+
+    tickets.append(new_ticket)
+
+    return jsonify({
+        "message": "Ticket created successfully",
+        "ticket": new_ticket
+    }), 201
+
+
+# --------------------------------------------------
+# 5. UPDATE A TICKET
+# Flow: Read ID -> Read JSON -> Validate -> Find ticket
+#       -> Update details -> Return response
+# --------------------------------------------------
+@app.route("/api/tickets/<int:ticket_id>", methods=["PUT"])
+def update_ticket(ticket_id):
+
+    data = request.get_json(silent=True)
+
+    ticket_data, error = validate_ticket(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    for ticket in tickets:
+        if ticket["id"] == ticket_id:
+
+            ticket.update(ticket_data)
+
+            return jsonify({
+                "message": "Ticket updated successfully",
+                "ticket": ticket
+            }), 200
+
+    return jsonify({
+        "error": "Ticket not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 6. DELETE A TICKET
+# Flow: Read ID -> Find ticket -> Remove record
+#       -> Return response
+# --------------------------------------------------
+@app.route("/api/tickets/<int:ticket_id>", methods=["DELETE"])
+def delete_ticket(ticket_id):
+
+    for ticket in tickets:
+        if ticket["id"] == ticket_id:
+
+            tickets.remove(ticket)
+
+            return jsonify({
+                "message": "Ticket deleted successfully"
+            }), 200
+
+    return jsonify({
+        "error": "Ticket not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 7. TICKET SUMMARY
+# Flow: Count tickets -> Calculate status totals
+#       -> Return statistics
+# --------------------------------------------------
+@app.route("/api/tickets/summary", methods=["GET"])
+def ticket_summary():
+
+    total_tickets = len(tickets)
+
+    open_tickets = 0
+    progress_tickets = 0
+    resolved_tickets = 0
+    closed_tickets = 0
+
+    for ticket in tickets:
+
+        if ticket["status"] == "Open":
+            open_tickets += 1
+
+        elif ticket["status"] == "In Progress":
+            progress_tickets += 1
+
+        elif ticket["status"] == "Resolved":
+            resolved_tickets += 1
+
+        elif ticket["status"] == "Closed":
+            closed_tickets += 1
+
+    return jsonify({
+        "total_tickets": total_tickets,
+        "open_tickets": open_tickets,
+        "in_progress_tickets": progress_tickets,
+        "resolved_tickets": resolved_tickets,
+        "closed_tickets": closed_tickets
+    }), 200
+
+
+# --------------------------------------------------
+# 8. START FLASK SERVER
+# Flow: Start server -> Wait for API requests
+# --------------------------------------------------
+if __name__ == "__main__":
+    app.run(debug=True)

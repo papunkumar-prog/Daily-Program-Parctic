@@ -1,0 +1,380 @@
+
+from flask import Flask, request, jsonify
+from datetime import datetime
+
+app = Flask(__name__)
+
+
+# Sample employee attendance records
+attendance = [
+    {
+        "id": 501,
+        "employee_id": 101,
+        "employee_name": "Papun",
+        "date": "2026-11-01",
+        "status": "Present"
+    },
+    {
+        "id": 502,
+        "employee_id": 102,
+        "employee_name": "Amit",
+        "date": "2026-11-01",
+        "status": "Absent"
+    },
+    {
+        "id": 503,
+        "employee_id": 103,
+        "employee_name": "Rahul",
+        "date": "2026-11-01",
+        "status": "Half Day"
+    }
+]
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE ATTENDANCE DATA
+# Flow: Receive JSON -> Check fields -> Validate values
+#       -> Return cleaned attendance data
+# --------------------------------------------------
+def validate_attendance(data):
+
+    if not isinstance(data, dict):
+        return None, "A valid JSON object is required"
+
+    required_fields = [
+        "employee_id",
+        "employee_name",
+        "date",
+        "status"
+    ]
+
+    for field in required_fields:
+        if field not in data:
+            return None, f"{field} is required"
+
+    employee_id = data["employee_id"]
+    employee_name = data["employee_name"]
+    date = data["date"]
+    status = data["status"]
+
+    # Validate employee ID
+    if isinstance(employee_id, bool) or not isinstance(employee_id, int):
+        return None, "Employee ID must be an integer"
+
+    if employee_id <= 0:
+        return None, "Employee ID must be greater than zero"
+
+    # Validate employee name
+    if not isinstance(employee_name, str):
+        return None, "Employee name must be text"
+
+    employee_name = employee_name.strip()
+
+    if not employee_name:
+        return None, "Employee name cannot be empty"
+
+    # Validate date format
+    if not isinstance(date, str):
+        return None, "Date must be text"
+
+    try:
+        parsed_date = datetime.strptime(date, "%Y-%m-%d")
+
+        if parsed_date.strftime("%Y-%m-%d") != date:
+            return None, "Date must use YYYY-MM-DD format"
+
+    except ValueError:
+        return None, "Invalid date. Use YYYY-MM-DD format"
+
+    # Validate attendance status
+    if not isinstance(status, str):
+        return None, "Status must be text"
+
+    status = status.strip().title()
+
+    allowed_status = [
+        "Present",
+        "Absent",
+        "Half Day",
+        "Leave"
+    ]
+
+    if status not in allowed_status:
+        return None, "Status must be Present, Absent, Half Day or Leave"
+
+    attendance_data = {
+        "employee_id": employee_id,
+        "employee_name": employee_name,
+        "date": date,
+        "status": status
+    }
+
+    return attendance_data, None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: CHECK DUPLICATE ATTENDANCE
+# Flow: Check employee and date -> Find existing record
+# --------------------------------------------------
+def check_duplicate(employee_id, date, exclude_id=None):
+
+    for record in attendance:
+
+        if (
+            record["employee_id"] == employee_id
+            and record["date"] == date
+            and record["id"] != exclude_id
+        ):
+            return True
+
+    return False
+
+
+# --------------------------------------------------
+# 1. HOME ROUTE
+# Flow: Receive request -> Return welcome message
+# --------------------------------------------------
+@app.route("/")
+def home():
+
+    return jsonify({
+        "message": "Employee Attendance API is running"
+    }), 200
+
+
+# --------------------------------------------------
+# 2. GET ALL ATTENDANCE RECORDS
+# Flow: Read filters -> Filter records -> Return results
+# --------------------------------------------------
+@app.route("/api/attendance", methods=["GET"])
+def get_attendance():
+
+    filtered_records = attendance
+
+    # Filter using employee ID
+    employee_id = request.args.get("employee_id")
+
+    if employee_id is not None:
+
+        try:
+            employee_id = int(employee_id)
+        except ValueError:
+            return jsonify({
+                "error": "Employee ID must be an integer"
+            }), 400
+
+        if employee_id <= 0:
+            return jsonify({
+                "error": "Employee ID must be greater than zero"
+            }), 400
+
+        filtered_records = [
+            record for record in filtered_records
+            if record["employee_id"] == employee_id
+        ]
+
+    # Filter using attendance status
+    status = request.args.get("status")
+
+    if status:
+        status = status.strip().title()
+
+        allowed_status = [
+            "Present",
+            "Absent",
+            "Half Day",
+            "Leave"
+        ]
+
+        if status not in allowed_status:
+            return jsonify({
+                "error": "Invalid attendance status"
+            }), 400
+
+        filtered_records = [
+            record for record in filtered_records
+            if record["status"] == status
+        ]
+
+    return jsonify({
+        "count": len(filtered_records),
+        "attendance": filtered_records
+    }), 200
+
+
+# --------------------------------------------------
+# 3. GET ONE ATTENDANCE RECORD
+# Flow: Read record ID -> Search -> Return record
+# --------------------------------------------------
+@app.route("/api/attendance/<int:record_id>", methods=["GET"])
+def get_one_attendance(record_id):
+
+    for record in attendance:
+
+        if record["id"] == record_id:
+            return jsonify(record), 200
+
+    return jsonify({
+        "error": "Attendance record not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 4. MARK EMPLOYEE ATTENDANCE
+# Flow: Read JSON -> Validate -> Check duplicate
+#       -> Generate ID -> Save record -> Return response
+# --------------------------------------------------
+@app.route("/api/attendance", methods=["POST"])
+def mark_attendance():
+
+    data = request.get_json(silent=True)
+
+    attendance_data, error = validate_attendance(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    # Prevent duplicate attendance for the same employee/date
+    if check_duplicate(
+        attendance_data["employee_id"],
+        attendance_data["date"]
+    ):
+        return jsonify({
+            "error": "Attendance already exists for this employee and date"
+        }), 409
+
+    # Generate the next available attendance ID
+    if attendance:
+        new_id = max(record["id"] for record in attendance) + 1
+    else:
+        new_id = 501
+
+    new_record = {
+        "id": new_id,
+        **attendance_data
+    }
+
+    attendance.append(new_record)
+
+    return jsonify({
+        "message": "Attendance marked successfully",
+        "record": new_record
+    }), 201
+
+
+# --------------------------------------------------
+# 5. UPDATE ATTENDANCE
+# Flow: Read ID -> Validate JSON -> Check duplicate
+#       -> Find record -> Update -> Return response
+# --------------------------------------------------
+@app.route("/api/attendance/<int:record_id>", methods=["PUT"])
+def update_attendance(record_id):
+
+    data = request.get_json(silent=True)
+
+    attendance_data, error = validate_attendance(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    for record in attendance:
+
+        if record["id"] == record_id:
+
+            if check_duplicate(
+                attendance_data["employee_id"],
+                attendance_data["date"],
+                exclude_id=record_id
+            ):
+                return jsonify({
+                    "error": "Attendance already exists for this employee and date"
+                }), 409
+
+            record.update(attendance_data)
+
+            return jsonify({
+                "message": "Attendance updated successfully",
+                "record": record
+            }), 200
+
+    return jsonify({
+        "error": "Attendance record not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 6. DELETE ATTENDANCE
+# Flow: Read record ID -> Search -> Remove -> Respond
+# --------------------------------------------------
+@app.route("/api/attendance/<int:record_id>", methods=["DELETE"])
+def delete_attendance(record_id):
+
+    for record in attendance:
+
+        if record["id"] == record_id:
+
+            attendance.remove(record)
+
+            return jsonify({
+                "message": "Attendance deleted successfully"
+            }), 200
+
+    return jsonify({
+        "error": "Attendance record not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 7. ATTENDANCE SUMMARY
+# Flow: Count records -> Calculate status totals
+#       -> Return attendance statistics
+# --------------------------------------------------
+@app.route("/api/attendance/summary", methods=["GET"])
+def attendance_summary():
+
+    total_records = len(attendance)
+
+    present = 0
+    absent = 0
+    half_day = 0
+    leave = 0
+
+    for record in attendance:
+
+        if record["status"] == "Present":
+            present += 1
+
+        elif record["status"] == "Absent":
+            absent += 1
+
+        elif record["status"] == "Half Day":
+            half_day += 1
+
+        elif record["status"] == "Leave":
+            leave += 1
+
+    # Count unique employees in the records
+    employee_ids = set(
+        record["employee_id"] for record in attendance
+    )
+
+    return jsonify({
+        "total_records": total_records,
+        "total_employees": len(employee_ids),
+        "present": present,
+        "absent": absent,
+        "half_day": half_day,
+        "leave": leave
+    }), 200
+
+
+# --------------------------------------------------
+# 8. START FLASK SERVER
+# Flow: Start server -> Wait for API requests
+# --------------------------------------------------
+if __name__ == "__main__":
+    app.run(debug=True)

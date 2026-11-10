@@ -1,0 +1,421 @@
+
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+
+# --------------------------------------------------
+# SAMPLE FOOD MENU
+# --------------------------------------------------
+
+menu = [
+    {
+        "id": 101,
+        "name": "Pizza",
+        "category": "Fast Food",
+        "price": 250
+    },
+    {
+        "id": 102,
+        "name": "Burger",
+        "category": "Fast Food",
+        "price": 120
+    },
+    {
+        "id": 103,
+        "name": "Sandwich",
+        "category": "Snacks",
+        "price": 100
+    },
+    {
+        "id": 104,
+        "name": "Coffee",
+        "category": "Beverages",
+        "price": 80
+    }
+]
+
+
+# Store customer orders
+orders = []
+
+
+# Allowed order statuses
+ORDER_STATUSES = [
+    "Pending",
+    "Preparing",
+    "Out For Delivery",
+    "Delivered",
+    "Cancelled"
+]
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: FIND FOOD ITEM
+# Flow: Receive menu ID -> Search menu -> Return item
+# --------------------------------------------------
+def find_food(menu_id):
+
+    for food in menu:
+
+        if food["id"] == menu_id:
+            return food
+
+    return None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE ORDER DATA
+# Flow: Receive JSON -> Validate customer details
+#       -> Check food items -> Calculate total amount
+#       -> Return order details
+# --------------------------------------------------
+def validate_order(data, require_status=False):
+
+    if not isinstance(data, dict):
+        return None, "A valid JSON object is required"
+
+    required_fields = [
+        "customer_name",
+        "delivery_address",
+        "items"
+    ]
+
+    if require_status:
+        required_fields.append("status")
+
+    for field in required_fields:
+
+        if field not in data:
+            return None, f"{field} is required"
+
+    customer_name = data["customer_name"]
+    delivery_address = data["delivery_address"]
+    selected_items = data["items"]
+
+    if not isinstance(customer_name, str):
+        return None, "Customer name must be text"
+
+    if not isinstance(delivery_address, str):
+        return None, "Delivery address must be text"
+
+    customer_name = customer_name.strip()
+    delivery_address = delivery_address.strip()
+
+    if not customer_name or not delivery_address:
+        return None, "Customer name and address cannot be empty"
+
+    if not isinstance(selected_items, list) or not selected_items:
+        return None, "At least one food item is required"
+
+    order_items = []
+    total_amount = 0
+    selected_ids = set()
+
+    for item in selected_items:
+
+        if not isinstance(item, dict):
+            return None, "Each item must be a JSON object"
+
+        menu_id = item.get("menu_id")
+        quantity = item.get("quantity")
+
+        if isinstance(menu_id, bool) or not isinstance(menu_id, int):
+            return None, "Menu ID must be an integer"
+
+        if isinstance(quantity, bool) or not isinstance(quantity, int):
+            return None, "Quantity must be a whole number"
+
+        if quantity <= 0:
+            return None, "Quantity must be greater than zero"
+
+        if menu_id in selected_ids:
+            return None, "Duplicate food items are not allowed"
+
+        selected_ids.add(menu_id)
+
+        food = find_food(menu_id)
+
+        if food is None:
+            return None, f"Food item {menu_id} not found"
+
+        subtotal = food["price"] * quantity
+
+        order_items.append({
+            "menu_id": menu_id,
+            "food_name": food["name"],
+            "price": food["price"],
+            "quantity": quantity,
+            "subtotal": subtotal
+        })
+
+        total_amount += subtotal
+
+    order_data = {
+        "customer_name": customer_name,
+        "delivery_address": delivery_address,
+        "items": order_items,
+        "total_amount": total_amount
+    }
+
+    if require_status:
+
+        status = data["status"]
+
+        if not isinstance(status, str):
+            return None, "Status must be text"
+
+        status = status.strip().title()
+
+        if status not in ORDER_STATUSES:
+            return None, "Invalid order status"
+
+        order_data["status"] = status
+
+    return order_data, None
+
+
+# --------------------------------------------------
+# 1. HOME ROUTE
+# Flow: Receive request -> Return welcome message
+# --------------------------------------------------
+@app.route("/")
+def home():
+
+    return jsonify({
+        "message": "Food Ordering API is running"
+    }), 200
+
+
+# --------------------------------------------------
+# 2. GET ALL FOOD ITEMS
+# Flow: Read menu -> Return all food items
+# --------------------------------------------------
+@app.route("/api/menu", methods=["GET"])
+def get_menu():
+
+    return jsonify({
+        "total_food_items": len(menu),
+        "menu": menu
+    }), 200
+
+
+# --------------------------------------------------
+# 3. GET ONE FOOD ITEM
+# Flow: Read menu ID -> Search menu -> Return food
+# --------------------------------------------------
+@app.route("/api/menu/<int:menu_id>", methods=["GET"])
+def get_food(menu_id):
+
+    food = find_food(menu_id)
+
+    if food is None:
+        return jsonify({
+            "error": "Food item not found"
+        }), 404
+
+    return jsonify(food), 200
+
+
+# --------------------------------------------------
+# 4. GET ALL ORDERS
+# Flow: Read filters -> Filter orders -> Return records
+# --------------------------------------------------
+@app.route("/api/orders", methods=["GET"])
+def get_orders():
+
+    filtered_orders = orders
+
+    status = request.args.get("status")
+    customer = request.args.get("customer")
+
+    if status:
+
+        status = status.strip().title()
+
+        if status not in ORDER_STATUSES:
+            return jsonify({
+                "error": "Invalid order status"
+            }), 400
+
+        filtered_orders = [
+            order for order in filtered_orders
+            if order["status"] == status
+        ]
+
+    if customer:
+
+        customer = customer.strip().lower()
+
+        if not customer:
+            return jsonify({
+                "error": "Customer name cannot be empty"
+            }), 400
+
+        filtered_orders = [
+            order for order in filtered_orders
+            if customer in order["customer_name"].lower()
+        ]
+
+    return jsonify({
+        "count": len(filtered_orders),
+        "orders": filtered_orders
+    }), 200
+
+
+# --------------------------------------------------
+# 5. GET ONE ORDER
+# Flow: Read order ID -> Search orders -> Return order
+# --------------------------------------------------
+@app.route("/api/orders/<int:order_id>", methods=["GET"])
+def get_order(order_id):
+
+    for order in orders:
+
+        if order["id"] == order_id:
+            return jsonify(order), 200
+
+    return jsonify({
+        "error": "Order not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 6. PLACE A NEW ORDER
+# Flow: Read JSON -> Validate -> Calculate bill
+#       -> Generate ID -> Save order -> Return response
+# --------------------------------------------------
+@app.route("/api/orders", methods=["POST"])
+def create_order():
+
+    data = request.get_json(silent=True)
+
+    order_data, error = validate_order(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    # Generate the next available order ID
+    if orders:
+        new_id = max(order["id"] for order in orders) + 1
+    else:
+        new_id = 701
+
+    new_order = {
+        "id": new_id,
+        **order_data,
+        "status": "Pending"
+    }
+
+    orders.append(new_order)
+
+    return jsonify({
+        "message": "Order placed successfully",
+        "order": new_order
+    }), 201
+
+
+# --------------------------------------------------
+# 7. UPDATE AN EXISTING ORDER
+# Flow: Read ID -> Validate JSON -> Find order
+#       -> Update details -> Return response
+# --------------------------------------------------
+@app.route("/api/orders/<int:order_id>", methods=["PUT"])
+def update_order(order_id):
+
+    data = request.get_json(silent=True)
+
+    order_data, error = validate_order(
+        data,
+        require_status=True
+    )
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    for order in orders:
+
+        if order["id"] == order_id:
+
+            if order["status"] in ["Delivered", "Cancelled"]:
+                return jsonify({
+                    "error": "Delivered or cancelled orders cannot be updated"
+                }), 409
+
+            order.update(order_data)
+
+            return jsonify({
+                "message": "Order updated successfully",
+                "order": order
+            }), 200
+
+    return jsonify({
+        "error": "Order not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 8. DELETE AN ORDER
+# Flow: Read ID -> Find order -> Remove order
+#       -> Return response
+# --------------------------------------------------
+@app.route("/api/orders/<int:order_id>", methods=["DELETE"])
+def delete_order(order_id):
+
+    for order in orders:
+
+        if order["id"] == order_id:
+
+            orders.remove(order)
+
+            return jsonify({
+                "message": "Order deleted successfully"
+            }), 200
+
+    return jsonify({
+        "error": "Order not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 9. ORDER SUMMARY
+# Flow: Count orders -> Calculate status totals
+#       -> Calculate order value -> Return summary
+# --------------------------------------------------
+@app.route("/api/orders/summary", methods=["GET"])
+def order_summary():
+
+    status_counts = {
+        status: 0 for status in ORDER_STATUSES
+    }
+
+    total_order_value = 0
+
+    for order in orders:
+
+        status_counts[order["status"]] += 1
+
+        if order["status"] != "Cancelled":
+            total_order_value += order["total_amount"]
+
+    return jsonify({
+        "total_orders": len(orders),
+        "pending_orders": status_counts["Pending"],
+        "preparing_orders": status_counts["Preparing"],
+        "out_for_delivery_orders": status_counts["Out For Delivery"],
+        "delivered_orders": status_counts["Delivered"],
+        "cancelled_orders": status_counts["Cancelled"],
+        "total_order_value": total_order_value
+    }), 200
+
+
+# --------------------------------------------------
+# 10. START FLASK SERVER
+# Flow: Start server -> Wait for API requests
+# --------------------------------------------------
+if __name__ == "__main__":
+    app.run(debug=True)

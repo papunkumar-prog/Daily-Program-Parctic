@@ -1,0 +1,367 @@
+
+from flask import Flask, request, jsonify
+from datetime import datetime
+import math
+
+app = Flask(__name__)
+
+
+# Sample vehicle service booking records
+bookings = [
+    {
+        "id": 601,
+        "customer_name": "Papun",
+        "vehicle_number": "OD02AB1234",
+        "vehicle_model": "Maruti Swift",
+        "service_type": "General Service",
+        "booking_date": "2026-11-10",
+        "estimated_cost": 2500,
+        "status": "Booked"
+    },
+    {
+        "id": 602,
+        "customer_name": "Amit",
+        "vehicle_number": "OD02CD5678",
+        "vehicle_model": "Hyundai i20",
+        "service_type": "Engine Repair",
+        "booking_date": "2026-11-11",
+        "estimated_cost": 5000,
+        "status": "In Progress"
+    },
+    {
+        "id": 603,
+        "customer_name": "Rahul",
+        "vehicle_number": "OD02EF9012",
+        "vehicle_model": "Tata Nexon",
+        "service_type": "Oil Change",
+        "booking_date": "2026-11-12",
+        "estimated_cost": 1500,
+        "status": "Completed"
+    }
+]
+
+
+# Allowed booking statuses
+BOOKING_STATUSES = [
+    "Booked",
+    "In Progress",
+    "Completed",
+    "Cancelled"
+]
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE BOOKING DATA
+# Flow: Receive JSON -> Check fields -> Validate values
+#       -> Return cleaned booking data
+# --------------------------------------------------
+def validate_booking(data, require_status=False):
+
+    if not isinstance(data, dict):
+        return None, "A valid JSON object is required"
+
+    required_fields = [
+        "customer_name",
+        "vehicle_number",
+        "vehicle_model",
+        "service_type",
+        "booking_date",
+        "estimated_cost"
+    ]
+
+    if require_status:
+        required_fields.append("status")
+
+    for field in required_fields:
+
+        if field not in data:
+            return None, f"{field} is required"
+
+    customer_name = data["customer_name"]
+    vehicle_number = data["vehicle_number"]
+    vehicle_model = data["vehicle_model"]
+    service_type = data["service_type"]
+    booking_date = data["booking_date"]
+    estimated_cost = data["estimated_cost"]
+
+    # Validate text fields
+    text_fields = [
+        customer_name,
+        vehicle_number,
+        vehicle_model,
+        service_type
+    ]
+
+    if not all(isinstance(value, str) for value in text_fields):
+        return None, "Customer and vehicle details must be text"
+
+    customer_name = customer_name.strip()
+    vehicle_number = vehicle_number.strip().upper()
+    vehicle_model = vehicle_model.strip()
+    service_type = service_type.strip()
+
+    if not all([customer_name, vehicle_number, vehicle_model, service_type]):
+        return None, "Booking details cannot be empty"
+
+    # Validate booking date
+    if not isinstance(booking_date, str):
+        return None, "Booking date must be text"
+
+    try:
+        parsed_date = datetime.strptime(
+            booking_date, "%Y-%m-%d"
+        )
+
+        if parsed_date.strftime("%Y-%m-%d") != booking_date:
+            return None, "Date must use YYYY-MM-DD format"
+
+    except ValueError:
+        return None, "Invalid booking date"
+
+    # Validate estimated cost
+    if (
+        isinstance(estimated_cost, bool)
+        or not isinstance(estimated_cost, (int, float))
+    ):
+        return None, "Estimated cost must be a number"
+
+    if not math.isfinite(estimated_cost) or estimated_cost < 0:
+        return None, "Estimated cost must be non-negative and finite"
+
+    # Validate status
+    status = data.get("status", "Booked")
+
+    if not isinstance(status, str):
+        return None, "Status must be text"
+
+    status = status.strip().title()
+
+    if status not in BOOKING_STATUSES:
+        return None, "Invalid booking status"
+
+    booking_data = {
+        "customer_name": customer_name,
+        "vehicle_number": vehicle_number,
+        "vehicle_model": vehicle_model,
+        "service_type": service_type,
+        "booking_date": booking_date,
+        "estimated_cost": estimated_cost,
+        "status": status
+    }
+
+    return booking_data, None
+
+
+# --------------------------------------------------
+# 1. HOME ROUTE
+# Flow: Receive request -> Return welcome message
+# --------------------------------------------------
+@app.route("/")
+def home():
+
+    return jsonify({
+        "message": "Vehicle Service API is running"
+    }), 200
+
+
+# --------------------------------------------------
+# 2. GET ALL BOOKINGS
+# Flow: Read filters -> Filter bookings -> Return results
+# --------------------------------------------------
+@app.route("/api/bookings", methods=["GET"])
+def get_bookings():
+
+    filtered_bookings = bookings
+
+    # Filter using booking status
+    status = request.args.get("status")
+
+    if status:
+
+        status = status.strip().title()
+
+        if status not in BOOKING_STATUSES:
+            return jsonify({
+                "error": "Invalid booking status"
+            }), 400
+
+        filtered_bookings = [
+            booking for booking in filtered_bookings
+            if booking["status"] == status
+        ]
+
+    # Filter using vehicle number
+    vehicle_number = request.args.get("vehicle_number")
+
+    if vehicle_number is not None:
+
+        vehicle_number = vehicle_number.strip().upper()
+
+        if not vehicle_number:
+            return jsonify({
+                "error": "Vehicle number cannot be empty"
+            }), 400
+
+        filtered_bookings = [
+            booking for booking in filtered_bookings
+            if booking["vehicle_number"] == vehicle_number
+        ]
+
+    return jsonify({
+        "total_bookings": len(filtered_bookings),
+        "bookings": filtered_bookings
+    }), 200
+
+
+# --------------------------------------------------
+# 3. GET ONE BOOKING
+# Flow: Read booking ID -> Search list -> Return booking
+# --------------------------------------------------
+@app.route("/api/bookings/<int:booking_id>", methods=["GET"])
+def get_booking(booking_id):
+
+    for booking in bookings:
+
+        if booking["id"] == booking_id:
+            return jsonify(booking), 200
+
+    return jsonify({
+        "error": "Booking not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 4. CREATE A NEW BOOKING
+# Flow: Read JSON -> Validate -> Generate ID
+#       -> Save booking -> Return response
+# --------------------------------------------------
+@app.route("/api/bookings", methods=["POST"])
+def create_booking():
+
+    data = request.get_json(silent=True)
+
+    booking_data, error = validate_booking(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    # Generate the next available booking ID
+    if bookings:
+        new_id = max(
+            booking["id"] for booking in bookings
+        ) + 1
+    else:
+        new_id = 601
+
+    new_booking = {
+        "id": new_id,
+        **booking_data
+    }
+
+    bookings.append(new_booking)
+
+    return jsonify({
+        "message": "Service booking created successfully",
+        "booking": new_booking
+    }), 201
+
+
+# --------------------------------------------------
+# 5. UPDATE AN EXISTING BOOKING
+# Flow: Read ID -> Read JSON -> Validate -> Find booking
+#       -> Update details -> Return response
+# --------------------------------------------------
+@app.route("/api/bookings/<int:booking_id>", methods=["PUT"])
+def update_booking(booking_id):
+
+    data = request.get_json(silent=True)
+
+    booking_data, error = validate_booking(
+        data,
+        require_status=True
+    )
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    for booking in bookings:
+
+        if booking["id"] == booking_id:
+
+            booking.update(booking_data)
+
+            return jsonify({
+                "message": "Booking updated successfully",
+                "booking": booking
+            }), 200
+
+    return jsonify({
+        "error": "Booking not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 6. DELETE A BOOKING
+# Flow: Read ID -> Find booking -> Remove booking
+#       -> Return response
+# --------------------------------------------------
+@app.route("/api/bookings/<int:booking_id>", methods=["DELETE"])
+def delete_booking(booking_id):
+
+    for booking in bookings:
+
+        if booking["id"] == booking_id:
+
+            bookings.remove(booking)
+
+            return jsonify({
+                "message": "Booking deleted successfully"
+            }), 200
+
+    return jsonify({
+        "error": "Booking not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 7. BOOKING SUMMARY
+# Flow: Count bookings -> Calculate status totals
+#       -> Calculate estimated service value
+#       -> Return summary
+# --------------------------------------------------
+@app.route("/api/bookings/summary", methods=["GET"])
+def booking_summary():
+
+    status_counts = {
+        status: 0 for status in BOOKING_STATUSES
+    }
+
+    total_estimated_cost = 0
+
+    for booking in bookings:
+
+        status_counts[booking["status"]] += 1
+
+        if booking["status"] != "Cancelled":
+            total_estimated_cost += booking["estimated_cost"]
+
+    return jsonify({
+        "total_bookings": len(bookings),
+        "booked": status_counts["Booked"],
+        "in_progress": status_counts["In Progress"],
+        "completed": status_counts["Completed"],
+        "cancelled": status_counts["Cancelled"],
+        "total_estimated_cost": round(total_estimated_cost, 2)
+    }), 200
+
+
+# --------------------------------------------------
+# 8. START FLASK SERVER
+# Flow: Start server -> Wait for API requests
+# --------------------------------------------------
+if __name__ == "__main__":
+    app.run(debug=True)

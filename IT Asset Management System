@@ -1,0 +1,375 @@
+
+from flask import Flask, request, jsonify
+import math
+
+app = Flask(__name__)
+
+
+# --------------------------------------------------
+# SAMPLE IT ASSET RECORDS
+# --------------------------------------------------
+
+assets = [
+    {
+        "id": 801,
+        "asset_name": "Dell Laptop",
+        "category": "Laptop",
+        "serial_number": "DL1001",
+        "assigned_to": "Papun",
+        "status": "Assigned",
+        "purchase_price": 55000
+    },
+    {
+        "id": 802,
+        "asset_name": "Dell Monitor",
+        "category": "Monitor",
+        "serial_number": "DM1002",
+        "assigned_to": "Amit",
+        "status": "Assigned",
+        "purchase_price": 12000
+    },
+    {
+        "id": 803,
+        "asset_name": "HP Printer",
+        "category": "Printer",
+        "serial_number": "HP1003",
+        "assigned_to": "Unassigned",
+        "status": "Available",
+        "purchase_price": 18000
+    }
+]
+
+
+# Allowed asset statuses
+ASSET_STATUSES = [
+    "Available",
+    "Assigned",
+    "Under Repair",
+    "Retired"
+]
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE ASSET DATA
+# Flow: Receive JSON -> Check fields -> Validate values
+#       -> Return cleaned asset data
+# --------------------------------------------------
+def validate_asset(data):
+
+    if not isinstance(data, dict):
+        return None, "A valid JSON object is required"
+
+    required_fields = [
+        "asset_name",
+        "category",
+        "serial_number",
+        "assigned_to",
+        "status",
+        "purchase_price"
+    ]
+
+    for field in required_fields:
+
+        if field not in data:
+            return None, f"{field} is required"
+
+    asset_name = data["asset_name"]
+    category = data["category"]
+    serial_number = data["serial_number"]
+    assigned_to = data["assigned_to"]
+    status = data["status"]
+    purchase_price = data["purchase_price"]
+
+    # Validate text fields
+    text_fields = [
+        asset_name,
+        category,
+        serial_number,
+        assigned_to,
+        status
+    ]
+
+    if not all(isinstance(value, str) for value in text_fields):
+        return None, "Asset details must contain text"
+
+    asset_name = asset_name.strip()
+    category = category.strip()
+    serial_number = serial_number.strip().upper()
+    assigned_to = assigned_to.strip()
+    status = status.strip().title()
+
+    if not all([
+        asset_name,
+        category,
+        serial_number,
+        assigned_to
+    ]):
+        return None, "Asset details cannot be empty"
+
+    # Validate asset status
+    if status not in ASSET_STATUSES:
+        return None, "Invalid asset status"
+
+    # Validate purchase price
+    if (
+        isinstance(purchase_price, bool)
+        or not isinstance(purchase_price, (int, float))
+    ):
+        return None, "Purchase price must be a number"
+
+    if not math.isfinite(purchase_price) or purchase_price < 0:
+        return None, "Purchase price must be non-negative and finite"
+
+    asset_data = {
+        "asset_name": asset_name,
+        "category": category,
+        "serial_number": serial_number,
+        "assigned_to": assigned_to,
+        "status": status,
+        "purchase_price": purchase_price
+    }
+
+    return asset_data, None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: CHECK DUPLICATE SERIAL NUMBER
+# Flow: Read serial number -> Search assets
+#       -> Return True if duplicate exists
+# --------------------------------------------------
+def check_duplicate_serial(serial_number, exclude_id=None):
+
+    for asset in assets:
+
+        if (
+            asset["serial_number"].upper() == serial_number.upper()
+            and asset["id"] != exclude_id
+        ):
+            return True
+
+    return False
+
+
+# --------------------------------------------------
+# 1. HOME ROUTE
+# Flow: Receive request -> Return welcome message
+# --------------------------------------------------
+@app.route("/")
+def home():
+
+    return jsonify({
+        "message": "IT Asset Management API is running"
+    }), 200
+
+
+# --------------------------------------------------
+# 2. GET ALL ASSETS
+# Flow: Read filters -> Filter asset records
+#       -> Return matching assets
+# --------------------------------------------------
+@app.route("/api/assets", methods=["GET"])
+def get_assets():
+
+    filtered_assets = assets
+
+    # Filter by asset status
+    status = request.args.get("status")
+
+    if status:
+
+        status = status.strip().title()
+
+        if status not in ASSET_STATUSES:
+            return jsonify({
+                "error": "Invalid asset status"
+            }), 400
+
+        filtered_assets = [
+            asset for asset in filtered_assets
+            if asset["status"] == status
+        ]
+
+    # Filter by employee name
+    assigned_to = request.args.get("assigned_to")
+
+    if assigned_to is not None:
+
+        assigned_to = assigned_to.strip().lower()
+
+        if not assigned_to:
+            return jsonify({
+                "error": "Employee name cannot be empty"
+            }), 400
+
+        filtered_assets = [
+            asset for asset in filtered_assets
+            if assigned_to in asset["assigned_to"].lower()
+        ]
+
+    return jsonify({
+        "total_assets": len(filtered_assets),
+        "assets": filtered_assets
+    }), 200
+
+
+# --------------------------------------------------
+# 3. GET ONE ASSET
+# Flow: Read asset ID -> Search list -> Return asset
+# --------------------------------------------------
+@app.route("/api/assets/<int:asset_id>", methods=["GET"])
+def get_asset(asset_id):
+
+    for asset in assets:
+
+        if asset["id"] == asset_id:
+            return jsonify(asset), 200
+
+    return jsonify({
+        "error": "Asset not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 4. ADD A NEW ASSET
+# Flow: Read JSON -> Validate -> Check duplicate serial
+#       -> Generate ID -> Save asset -> Return response
+# --------------------------------------------------
+@app.route("/api/assets", methods=["POST"])
+def add_asset():
+
+    data = request.get_json(silent=True)
+
+    asset_data, error = validate_asset(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    # Prevent duplicate serial numbers
+    if check_duplicate_serial(asset_data["serial_number"]):
+        return jsonify({
+            "error": "Serial number already exists"
+        }), 409
+
+    # Generate the next available asset ID
+    if assets:
+        new_id = max(asset["id"] for asset in assets) + 1
+    else:
+        new_id = 801
+
+    new_asset = {
+        "id": new_id,
+        **asset_data
+    }
+
+    assets.append(new_asset)
+
+    return jsonify({
+        "message": "Asset added successfully",
+        "asset": new_asset
+    }), 201
+
+
+# --------------------------------------------------
+# 5. UPDATE AN EXISTING ASSET
+# Flow: Read ID -> Validate JSON -> Find asset
+#       -> Check duplicate serial -> Update -> Respond
+# --------------------------------------------------
+@app.route("/api/assets/<int:asset_id>", methods=["PUT"])
+def update_asset(asset_id):
+
+    data = request.get_json(silent=True)
+
+    asset_data, error = validate_asset(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    for asset in assets:
+
+        if asset["id"] == asset_id:
+
+            # Check serial number excluding current asset
+            if check_duplicate_serial(
+                asset_data["serial_number"],
+                exclude_id=asset_id
+            ):
+                return jsonify({
+                    "error": "Serial number already belongs to another asset"
+                }), 409
+
+            asset.update(asset_data)
+
+            return jsonify({
+                "message": "Asset updated successfully",
+                "asset": asset
+            }), 200
+
+    return jsonify({
+        "error": "Asset not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 6. DELETE AN ASSET
+# Flow: Read ID -> Find asset -> Remove asset
+#       -> Return response
+# --------------------------------------------------
+@app.route("/api/assets/<int:asset_id>", methods=["DELETE"])
+def delete_asset(asset_id):
+
+    for asset in assets:
+
+        if asset["id"] == asset_id:
+
+            assets.remove(asset)
+
+            return jsonify({
+                "message": "Asset deleted successfully"
+            }), 200
+
+    return jsonify({
+        "error": "Asset not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 7. ASSET SUMMARY
+# Flow: Count assets -> Calculate status totals
+#       -> Calculate total purchase value
+#       -> Return summary
+# --------------------------------------------------
+@app.route("/api/assets/summary", methods=["GET"])
+def asset_summary():
+
+    status_counts = {
+        status: 0 for status in ASSET_STATUSES
+    }
+
+    total_purchase_value = 0
+
+    for asset in assets:
+
+        status_counts[asset["status"]] += 1
+
+        total_purchase_value += asset["purchase_price"]
+
+    return jsonify({
+        "total_assets": len(assets),
+        "available_assets": status_counts["Available"],
+        "assigned_assets": status_counts["Assigned"],
+        "under_repair_assets": status_counts["Under Repair"],
+        "retired_assets": status_counts["Retired"],
+        "total_purchase_value": round(total_purchase_value, 2)
+    }), 200
+
+
+# --------------------------------------------------
+# 8. START FLASK SERVER
+# Flow: Start server -> Wait for API requests
+# --------------------------------------------------
+if __name__ == "__main__":
+    app.run(debug=True)

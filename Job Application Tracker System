@@ -1,0 +1,358 @@
+
+from flask import Flask, request, jsonify
+from datetime import datetime
+
+app = Flask(__name__)
+
+
+# --------------------------------------------------
+# SAMPLE JOB APPLICATION RECORDS
+# --------------------------------------------------
+
+applications = [
+    {
+        "id": 901,
+        "company": "TCS",
+        "job_title": "Python Developer",
+        "location": "Bangalore",
+        "applied_date": "2026-11-10",
+        "status": "Applied",
+        "source": "Naukri"
+    },
+    {
+        "id": 902,
+        "company": "Infosys",
+        "job_title": "Application Support Engineer",
+        "location": "Chennai",
+        "applied_date": "2026-11-11",
+        "status": "Interview",
+        "source": "LinkedIn"
+    },
+    {
+        "id": 903,
+        "company": "Wipro",
+        "job_title": "Python Developer",
+        "location": "Hyderabad",
+        "applied_date": "2026-11-12",
+        "status": "Rejected",
+        "source": "Company Website"
+    }
+]
+
+
+# Allowed application statuses
+ALLOWED_STATUSES = [
+    "Applied",
+    "Interview",
+    "Offered",
+    "Rejected",
+    "Withdrawn"
+]
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE APPLICATION DATA
+# Flow: Receive JSON -> Check fields -> Validate values
+#       -> Return cleaned application data
+# --------------------------------------------------
+def validate_application(data):
+
+    if not isinstance(data, dict):
+        return None, "A valid JSON object is required"
+
+    required_fields = [
+        "company",
+        "job_title",
+        "location",
+        "applied_date",
+        "status",
+        "source"
+    ]
+
+    for field in required_fields:
+
+        if field not in data:
+            return None, f"{field} is required"
+
+    company = data["company"]
+    job_title = data["job_title"]
+    location = data["location"]
+    applied_date = data["applied_date"]
+    status = data["status"]
+    source = data["source"]
+
+    # Validate text fields
+    text_fields = [
+        company,
+        job_title,
+        location,
+        status,
+        source
+    ]
+
+    if not all(isinstance(value, str) for value in text_fields):
+        return None, "Application details must contain text"
+
+    company = company.strip()
+    job_title = job_title.strip()
+    location = location.strip()
+    status = status.strip().title()
+    source = source.strip()
+
+    if not all([
+        company,
+        job_title,
+        location,
+        source
+    ]):
+        return None, "Application details cannot be empty"
+
+    # Validate date format
+    if not isinstance(applied_date, str):
+        return None, "Applied date must be text"
+
+    try:
+        parsed_date = datetime.strptime(
+            applied_date, "%Y-%m-%d"
+        )
+
+        if parsed_date.strftime("%Y-%m-%d") != applied_date:
+            return None, "Date must use YYYY-MM-DD format"
+
+    except ValueError:
+        return None, "Invalid application date"
+
+    # Validate application status
+    if status not in ALLOWED_STATUSES:
+        return None, "Invalid application status"
+
+    application_data = {
+        "company": company,
+        "job_title": job_title,
+        "location": location,
+        "applied_date": applied_date,
+        "status": status,
+        "source": source
+    }
+
+    return application_data, None
+
+
+# --------------------------------------------------
+# 1. HOME ROUTE
+# Flow: Receive request -> Return welcome message
+# --------------------------------------------------
+@app.route("/")
+def home():
+
+    return jsonify({
+        "message": "Job Application Tracker API is running"
+    }), 200
+
+
+# --------------------------------------------------
+# 2. GET ALL APPLICATIONS
+# Flow: Read query parameters -> Filter applications
+#       -> Return matching records
+# --------------------------------------------------
+@app.route("/api/applications", methods=["GET"])
+def get_applications():
+
+    filtered_applications = applications
+
+    # Filter by application status
+    status = request.args.get("status")
+
+    if status:
+
+        status = status.strip().title()
+
+        if status not in ALLOWED_STATUSES:
+            return jsonify({
+                "error": "Invalid application status"
+            }), 400
+
+        filtered_applications = [
+            application for application in filtered_applications
+            if application["status"] == status
+        ]
+
+    # Search by company name
+    company = request.args.get("company")
+
+    if company is not None:
+
+        company = company.strip().lower()
+
+        if not company:
+            return jsonify({
+                "error": "Company name cannot be empty"
+            }), 400
+
+        filtered_applications = [
+            application for application in filtered_applications
+            if company in application["company"].lower()
+        ]
+
+    return jsonify({
+        "total_applications": len(filtered_applications),
+        "applications": filtered_applications
+    }), 200
+
+
+# --------------------------------------------------
+# 3. GET ONE APPLICATION
+# Flow: Read application ID -> Search -> Return record
+# --------------------------------------------------
+@app.route("/api/applications/<int:application_id>", methods=["GET"])
+def get_application(application_id):
+
+    for application in applications:
+
+        if application["id"] == application_id:
+            return jsonify(application), 200
+
+    return jsonify({
+        "error": "Application not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 4. ADD A NEW APPLICATION
+# Flow: Read JSON -> Validate -> Generate ID
+#       -> Save application -> Return response
+# --------------------------------------------------
+@app.route("/api/applications", methods=["POST"])
+def add_application():
+
+    data = request.get_json(silent=True)
+
+    application_data, error = validate_application(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    # Generate the next available application ID
+    if applications:
+        new_id = max(
+            application["id"] for application in applications
+        ) + 1
+    else:
+        new_id = 901
+
+    new_application = {
+        "id": new_id,
+        **application_data
+    }
+
+    applications.append(new_application)
+
+    return jsonify({
+        "message": "Job application added successfully",
+        "application": new_application
+    }), 201
+
+
+# --------------------------------------------------
+# 5. UPDATE AN APPLICATION
+# Flow: Read ID -> Read JSON -> Validate -> Find record
+#       -> Update details -> Return response
+# --------------------------------------------------
+@app.route("/api/applications/<int:application_id>", methods=["PUT"])
+def update_application(application_id):
+
+    data = request.get_json(silent=True)
+
+    application_data, error = validate_application(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    for application in applications:
+
+        if application["id"] == application_id:
+
+            application.update(application_data)
+
+            return jsonify({
+                "message": "Application updated successfully",
+                "application": application
+            }), 200
+
+    return jsonify({
+        "error": "Application not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 6. DELETE AN APPLICATION
+# Flow: Read ID -> Search application -> Remove
+#       -> Return response
+# --------------------------------------------------
+@app.route("/api/applications/<int:application_id>", methods=["DELETE"])
+def delete_application(application_id):
+
+    for application in applications:
+
+        if application["id"] == application_id:
+
+            applications.remove(application)
+
+            return jsonify({
+                "message": "Application deleted successfully"
+            }), 200
+
+    return jsonify({
+        "error": "Application not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 7. APPLICATION SUMMARY
+# Flow: Count applications -> Calculate status totals
+#       -> Calculate success percentage
+#       -> Return statistics
+# --------------------------------------------------
+@app.route("/api/applications/summary", methods=["GET"])
+def application_summary():
+
+    status_counts = {
+        status: 0 for status in ALLOWED_STATUSES
+    }
+
+    for application in applications:
+
+        status_counts[application["status"]] += 1
+
+    total_applications = len(applications)
+
+    offered_applications = status_counts["Offered"]
+
+    if total_applications > 0:
+        offer_percentage = (
+            offered_applications / total_applications
+        ) * 100
+    else:
+        offer_percentage = 0
+
+    return jsonify({
+        "total_applications": total_applications,
+        "applied": status_counts["Applied"],
+        "interview": status_counts["Interview"],
+        "offered": status_counts["Offered"],
+        "rejected": status_counts["Rejected"],
+        "withdrawn": status_counts["Withdrawn"],
+        "offer_percentage": round(offer_percentage, 2)
+    }), 200
+
+
+# --------------------------------------------------
+# 8. START FLASK SERVER
+# Flow: Start server -> Wait for API requests
+# --------------------------------------------------
+if __name__ == "__main__":
+    app.run(debug=True)

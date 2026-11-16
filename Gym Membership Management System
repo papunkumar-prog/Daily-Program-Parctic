@@ -1,0 +1,443 @@
+
+from flask import Flask, request, jsonify
+from datetime import datetime, date, timedelta
+import math
+
+app = Flask(__name__)
+
+
+# --------------------------------------------------
+# SAMPLE GYM MEMBERSHIP RECORDS
+# --------------------------------------------------
+
+members = [
+    {
+        "id": 1001,
+        "name": "Papun",
+        "phone": "9876543210",
+        "plan": "Premium",
+        "monthly_fee": 1500,
+        "start_date": "2025-12-01",
+        "end_date": "2026-11-30",
+        "status": "Active"
+    },
+    {
+        "id": 1002,
+        "name": "Amit",
+        "phone": "9876543211",
+        "plan": "Standard",
+        "monthly_fee": 1000,
+        "start_date": "2026-05-01",
+        "end_date": "2027-04-30",
+        "status": "Active"
+    },
+    {
+        "id": 1003,
+        "name": "Rahul",
+        "phone": "9876543212",
+        "plan": "Basic",
+        "monthly_fee": 500,
+        "start_date": "2025-11-01",
+        "end_date": "2026-10-31",
+        "status": "Expired"
+    }
+]
+
+
+# Allowed membership plans
+ALLOWED_PLANS = [
+    "Basic",
+    "Standard",
+    "Premium"
+]
+
+# Allowed membership statuses
+ALLOWED_STATUSES = [
+    "Active",
+    "Paused",
+    "Expired",
+    "Cancelled"
+]
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE MEMBER DATA
+# Flow: Receive JSON -> Check fields -> Validate values
+#       -> Return cleaned member information
+# --------------------------------------------------
+def validate_member(data):
+
+    if not isinstance(data, dict):
+        return None, "A valid JSON object is required"
+
+    required_fields = [
+        "name",
+        "phone",
+        "plan",
+        "monthly_fee",
+        "start_date",
+        "end_date",
+        "status"
+    ]
+
+    for field in required_fields:
+
+        if field not in data:
+            return None, f"{field} is required"
+
+    name = data["name"]
+    phone = data["phone"]
+    plan = data["plan"]
+    monthly_fee = data["monthly_fee"]
+    start_date = data["start_date"]
+    end_date = data["end_date"]
+    status = data["status"]
+
+    # Validate text fields
+    if not all(isinstance(value, str) for value in
+               [name, phone, plan, start_date, end_date, status]):
+        return None, "Member details must contain text"
+
+    name = name.strip()
+    phone = phone.strip()
+    plan = plan.strip().title()
+    status = status.strip().title()
+
+    if not all([name, phone]):
+        return None, "Name and phone cannot be empty"
+
+    # Validate membership plan
+    if plan not in ALLOWED_PLANS:
+        return None, "Plan must be Basic, Standard or Premium"
+
+    # Validate membership status
+    if status not in ALLOWED_STATUSES:
+        return None, "Invalid membership status"
+
+    # Validate monthly fee
+    if (
+        isinstance(monthly_fee, bool)
+        or not isinstance(monthly_fee, (int, float))
+    ):
+        return None, "Monthly fee must be a number"
+
+    if not math.isfinite(monthly_fee) or monthly_fee < 0:
+        return None, "Monthly fee must be non-negative and finite"
+
+    # Validate joining date
+    try:
+        parsed_start = datetime.strptime(start_date, "%Y-%m-%d")
+
+        if parsed_start.strftime("%Y-%m-%d") != start_date:
+            return None, "Start date must use YYYY-MM-DD format"
+
+    except ValueError:
+        return None, "Invalid start date"
+
+    # Validate expiry date
+    try:
+        parsed_end = datetime.strptime(end_date, "%Y-%m-%d")
+
+        if parsed_end.strftime("%Y-%m-%d") != end_date:
+            return None, "End date must use YYYY-MM-DD format"
+
+    except ValueError:
+        return None, "Invalid end date"
+
+    if parsed_end < parsed_start:
+        return None, "End date cannot be before start date"
+
+    member_data = {
+        "name": name,
+        "phone": phone,
+        "plan": plan,
+        "monthly_fee": monthly_fee,
+        "start_date": start_date,
+        "end_date": end_date,
+        "status": status
+    }
+
+    return member_data, None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: CHECK DUPLICATE PHONE NUMBER
+# Flow: Read phone -> Search members -> Check duplicate
+# --------------------------------------------------
+def check_duplicate_phone(phone, exclude_id=None):
+
+    for member in members:
+
+        if (
+            member["phone"] == phone
+            and member["id"] != exclude_id
+        ):
+            return True
+
+    return False
+
+
+# --------------------------------------------------
+# 1. HOME ROUTE
+# Flow: Receive request -> Return welcome message
+# --------------------------------------------------
+@app.route("/")
+def home():
+
+    return jsonify({
+        "message": "Gym Membership API is running"
+    }), 200
+
+
+# --------------------------------------------------
+# 2. GET ALL MEMBERS
+# Flow: Read filters -> Filter members -> Return results
+# --------------------------------------------------
+@app.route("/api/members", methods=["GET"])
+def get_members():
+
+    filtered_members = members
+
+    # Filter by membership status
+    status = request.args.get("status")
+
+    if status:
+
+        status = status.strip().title()
+
+        if status not in ALLOWED_STATUSES:
+            return jsonify({
+                "error": "Invalid membership status"
+            }), 400
+
+        filtered_members = [
+            member for member in filtered_members
+            if member["status"] == status
+        ]
+
+    # Filter by membership plan
+    plan = request.args.get("plan")
+
+    if plan:
+
+        plan = plan.strip().title()
+
+        if plan not in ALLOWED_PLANS:
+            return jsonify({
+                "error": "Invalid membership plan"
+            }), 400
+
+        filtered_members = [
+            member for member in filtered_members
+            if member["plan"] == plan
+        ]
+
+    return jsonify({
+        "total_members": len(filtered_members),
+        "members": filtered_members
+    }), 200
+
+
+# --------------------------------------------------
+# 3. GET ONE MEMBER
+# Flow: Read member ID -> Search list -> Return member
+# --------------------------------------------------
+@app.route("/api/members/<int:member_id>", methods=["GET"])
+def get_member(member_id):
+
+    for member in members:
+
+        if member["id"] == member_id:
+            return jsonify(member), 200
+
+    return jsonify({
+        "error": "Member not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 4. REGISTER A NEW MEMBER
+# Flow: Read JSON -> Validate -> Check duplicate phone
+#       -> Generate ID -> Save member -> Return response
+# --------------------------------------------------
+@app.route("/api/members", methods=["POST"])
+def add_member():
+
+    data = request.get_json(silent=True)
+
+    member_data, error = validate_member(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    # Prevent duplicate phone numbers
+    if check_duplicate_phone(member_data["phone"]):
+        return jsonify({
+            "error": "Phone number already registered"
+        }), 409
+
+    # Generate next available member ID
+    if members:
+        new_id = max(member["id"] for member in members) + 1
+    else:
+        new_id = 1001
+
+    new_member = {
+        "id": new_id,
+        **member_data
+    }
+
+    members.append(new_member)
+
+    return jsonify({
+        "message": "Member registered successfully",
+        "member": new_member
+    }), 201
+
+
+# --------------------------------------------------
+# 5. UPDATE MEMBER DETAILS
+# Flow: Read ID -> Validate JSON -> Find member
+#       -> Check duplicate phone -> Update -> Respond
+# --------------------------------------------------
+@app.route("/api/members/<int:member_id>", methods=["PUT"])
+def update_member(member_id):
+
+    data = request.get_json(silent=True)
+
+    member_data, error = validate_member(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    for member in members:
+
+        if member["id"] == member_id:
+
+            if check_duplicate_phone(
+                member_data["phone"],
+                exclude_id=member_id
+            ):
+                return jsonify({
+                    "error": "Phone number already registered to another member"
+                }), 409
+
+            member.update(member_data)
+
+            return jsonify({
+                "message": "Member updated successfully",
+                "member": member
+            }), 200
+
+    return jsonify({
+        "error": "Member not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 6. DELETE A MEMBER
+# Flow: Read ID -> Search member -> Remove -> Respond
+# --------------------------------------------------
+@app.route("/api/members/<int:member_id>", methods=["DELETE"])
+def delete_member(member_id):
+
+    for member in members:
+
+        if member["id"] == member_id:
+
+            members.remove(member)
+
+            return jsonify({
+                "message": "Member deleted successfully"
+            }), 200
+
+    return jsonify({
+        "error": "Member not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 7. FIND MEMBERSHIPS EXPIRING SOON
+# Flow: Read days -> Calculate expiry range
+#       -> Filter active members -> Return results
+# --------------------------------------------------
+@app.route("/api/members/expiring", methods=["GET"])
+def expiring_members():
+
+    days_text = request.args.get("within_days", "30")
+
+    try:
+        days = int(days_text)
+    except ValueError:
+        return jsonify({
+            "error": "within_days must be a whole number"
+        }), 400
+
+    if days < 0:
+        return jsonify({
+            "error": "Days cannot be negative"
+        }), 400
+
+    today = date.today()
+    expiry_limit = today + timedelta(days=days)
+
+    expiring = []
+
+    for member in members:
+
+        end_date = date.fromisoformat(member["end_date"])
+
+        if (
+            member["status"] == "Active"
+            and today <= end_date <= expiry_limit
+        ):
+            expiring.append(member)
+
+    return jsonify({
+        "within_days": days,
+        "expiring_members_count": len(expiring),
+        "members": expiring
+    }), 200
+
+
+# --------------------------------------------------
+# 8. MEMBERSHIP SUMMARY
+# Flow: Count membership statuses -> Calculate active fees
+#       -> Return membership statistics
+# --------------------------------------------------
+@app.route("/api/members/summary", methods=["GET"])
+def membership_summary():
+
+    status_counts = {
+        status: 0 for status in ALLOWED_STATUSES
+    }
+
+    active_monthly_fee = 0
+
+    for member in members:
+
+        status_counts[member["status"]] += 1
+
+        if member["status"] == "Active":
+            active_monthly_fee += member["monthly_fee"]
+
+    return jsonify({
+        "total_members": len(members),
+        "active_members": status_counts["Active"],
+        "paused_members": status_counts["Paused"],
+        "expired_members": status_counts["Expired"],
+        "cancelled_members": status_counts["Cancelled"],
+        "active_monthly_fee_total": round(active_monthly_fee, 2)
+    }), 200
+
+
+# --------------------------------------------------
+# 9. START FLASK SERVER
+# Flow: Start server -> Wait for API requests
+# --------------------------------------------------
+if __name__ == "__main__":
+    app.run(debug=True)

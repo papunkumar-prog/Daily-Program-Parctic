@@ -1,0 +1,600 @@
+
+from flask import Flask, request, jsonify
+from datetime import datetime
+
+app = Flask(__name__)
+
+
+# --------------------------------------------------
+# SAMPLE HOTEL ROOM RECORDS
+# --------------------------------------------------
+
+rooms = [
+    {
+        "id": 101,
+        "room_type": "Standard",
+        "price_per_night": 2500,
+        "capacity": 2
+    },
+    {
+        "id": 102,
+        "room_type": "Deluxe",
+        "price_per_night": 4000,
+        "capacity": 3
+    },
+    {
+        "id": 103,
+        "room_type": "Suite",
+        "price_per_night": 6500,
+        "capacity": 4
+    }
+]
+
+
+# Sample hotel bookings
+bookings = [
+    {
+        "id": 701,
+        "guest_name": "Papun",
+        "room_id": 101,
+        "check_in": "2026-11-20",
+        "check_out": "2026-11-22",
+        "guests": 2,
+        "status": "Confirmed",
+        "nights": 2,
+        "nightly_rate": 2500,
+        "total_amount": 5000
+    },
+    {
+        "id": 702,
+        "guest_name": "Amit",
+        "room_id": 102,
+        "check_in": "2026-11-21",
+        "check_out": "2026-11-24",
+        "guests": 3,
+        "status": "Confirmed",
+        "nights": 3,
+        "nightly_rate": 4000,
+        "total_amount": 12000
+    },
+    {
+        "id": 703,
+        "guest_name": "Rahul",
+        "room_id": 103,
+        "check_in": "2026-11-25",
+        "check_out": "2026-11-27",
+        "guests": 2,
+        "status": "Confirmed",
+        "nights": 2,
+        "nightly_rate": 6500,
+        "total_amount": 13000
+    }
+]
+
+
+# Allowed booking statuses
+BOOKING_STATUSES = [
+    "Confirmed",
+    "Checked In",
+    "Checked Out",
+    "Cancelled"
+]
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: FIND ROOM
+# Flow: Receive room ID -> Search room list -> Return room
+# --------------------------------------------------
+def find_room(room_id):
+
+    for room in rooms:
+
+        if room["id"] == room_id:
+            return room
+
+    return None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE DATE
+# Flow: Receive date -> Check format -> Return date
+# --------------------------------------------------
+def parse_date(value):
+
+    if not isinstance(value, str):
+        return None
+
+    try:
+        parsed = datetime.strptime(value, "%Y-%m-%d").date()
+
+        if parsed.isoformat() != value:
+            return None
+
+        return parsed
+
+    except ValueError:
+        return None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: CHECK ROOM AVAILABILITY
+# Flow: Read room ID -> Check existing bookings
+#       -> Check date overlap -> Return availability
+# --------------------------------------------------
+def is_room_available(
+    room_id,
+    new_check_in,
+    new_check_out,
+    exclude_booking_id=None
+):
+
+    for booking in bookings:
+
+        if booking["room_id"] != room_id:
+            continue
+
+        if booking["status"] == "Cancelled":
+            continue
+
+        if booking["id"] == exclude_booking_id:
+            continue
+
+        existing_check_in = parse_date(booking["check_in"])
+        existing_check_out = parse_date(booking["check_out"])
+
+        # Check whether the requested dates overlap
+        if (
+            new_check_in < existing_check_out
+            and existing_check_in < new_check_out
+        ):
+            return False
+
+    return True
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE BOOKING DATA
+# Flow: Read JSON -> Validate fields -> Check room
+#       -> Calculate nights and total price
+#       -> Return booking data
+# --------------------------------------------------
+def validate_booking(data, require_status=False):
+
+    if not isinstance(data, dict):
+        return None, "A valid JSON object is required"
+
+    required_fields = [
+        "guest_name",
+        "room_id",
+        "check_in",
+        "check_out",
+        "guests"
+    ]
+
+    if require_status:
+        required_fields.append("status")
+
+    for field in required_fields:
+
+        if field not in data:
+            return None, f"{field} is required"
+
+    guest_name = data["guest_name"]
+    room_id = data["room_id"]
+    check_in = data["check_in"]
+    check_out = data["check_out"]
+    guest_count = data["guests"]
+
+    # Validate guest name
+    if not isinstance(guest_name, str):
+        return None, "Guest name must be text"
+
+    guest_name = guest_name.strip()
+
+    if not guest_name:
+        return None, "Guest name cannot be empty"
+
+    # Validate room ID
+    if isinstance(room_id, bool) or not isinstance(room_id, int):
+        return None, "Room ID must be an integer"
+
+    if room_id <= 0:
+        return None, "Room ID must be greater than zero"
+
+    # Check whether room exists
+    room = find_room(room_id)
+
+    if room is None:
+        return None, "Room not found"
+
+    # Validate number of guests
+    if isinstance(guest_count, bool) or not isinstance(guest_count, int):
+        return None, "Guest count must be an integer"
+
+    if guest_count <= 0:
+        return None, "Guest count must be greater than zero"
+
+    if guest_count > room["capacity"]:
+        return None, "Guest count exceeds room capacity"
+
+    # Validate check-in date
+    parsed_check_in = parse_date(check_in)
+
+    if parsed_check_in is None:
+        return None, "Invalid check-in date. Use YYYY-MM-DD"
+
+    # Validate check-out date
+    parsed_check_out = parse_date(check_out)
+
+    if parsed_check_out is None:
+        return None, "Invalid check-out date. Use YYYY-MM-DD"
+
+    if parsed_check_out <= parsed_check_in:
+        return None, "Check-out must be after check-in"
+
+    # Validate booking status
+    if require_status:
+
+        status = data["status"]
+
+        if not isinstance(status, str):
+            return None, "Status must be text"
+
+        status = status.strip().title()
+
+        if status not in BOOKING_STATUSES:
+            return None, "Invalid booking status"
+
+    else:
+        status = "Confirmed"
+
+    # Calculate number of nights
+    total_nights = (parsed_check_out - parsed_check_in).days
+
+    # Calculate total booking amount
+    nightly_rate = room["price_per_night"]
+
+    total_amount = nightly_rate * total_nights
+
+    booking_data = {
+        "guest_name": guest_name,
+        "room_id": room_id,
+        "check_in": check_in,
+        "check_out": check_out,
+        "guests": guest_count,
+        "status": status,
+        "nights": total_nights,
+        "nightly_rate": nightly_rate,
+        "total_amount": total_amount
+    }
+
+    return booking_data, None
+
+
+# --------------------------------------------------
+# 1. HOME ROUTE
+# Flow: Receive request -> Return welcome message
+# --------------------------------------------------
+@app.route("/")
+def home():
+
+    return jsonify({
+        "message": "Hotel Booking API is running"
+    }), 200
+
+
+# --------------------------------------------------
+# 2. GET ALL ROOMS
+# Flow: Read room list -> Return room records
+# --------------------------------------------------
+@app.route("/api/rooms", methods=["GET"])
+def get_rooms():
+
+    return jsonify({
+        "total_rooms": len(rooms),
+        "rooms": rooms
+    }), 200
+
+
+# --------------------------------------------------
+# 3. GET ONE ROOM
+# Flow: Read room ID -> Search -> Return room details
+# --------------------------------------------------
+@app.route("/api/rooms/<int:room_id>", methods=["GET"])
+def get_room(room_id):
+
+    room = find_room(room_id)
+
+    if room is None:
+        return jsonify({
+            "error": "Room not found"
+        }), 404
+
+    return jsonify(room), 200
+
+
+# --------------------------------------------------
+# 4. FIND AVAILABLE ROOMS
+# Flow: Read dates -> Validate -> Check room availability
+#       -> Return available rooms
+# --------------------------------------------------
+@app.route("/api/rooms/availability", methods=["GET"])
+def available_rooms():
+
+    check_in = request.args.get("check_in")
+    check_out = request.args.get("check_out")
+    guests_text = request.args.get("guests", "1")
+
+    start_date = parse_date(check_in)
+    end_date = parse_date(check_out)
+
+    if start_date is None or end_date is None:
+        return jsonify({
+            "error": "Valid check-in and check-out dates are required"
+        }), 400
+
+    if end_date <= start_date:
+        return jsonify({
+            "error": "Check-out must be after check-in"
+        }), 400
+
+    try:
+        guest_count = int(guests_text)
+    except ValueError:
+        return jsonify({
+            "error": "Guests must be a whole number"
+        }), 400
+
+    if guest_count <= 0:
+        return jsonify({
+            "error": "Guests must be greater than zero"
+        }), 400
+
+    available = []
+
+    for room in rooms:
+
+        if guest_count > room["capacity"]:
+            continue
+
+        if is_room_available(
+            room["id"],
+            start_date,
+            end_date
+        ):
+            available.append(room)
+
+    return jsonify({
+        "check_in": check_in,
+        "check_out": check_out,
+        "available_rooms": len(available),
+        "rooms": available
+    }), 200
+
+
+# --------------------------------------------------
+# 5. GET ALL BOOKINGS
+# Flow: Read filters -> Filter bookings -> Return records
+# --------------------------------------------------
+@app.route("/api/bookings", methods=["GET"])
+def get_bookings():
+
+    filtered_bookings = bookings
+
+    status = request.args.get("status")
+
+    if status:
+
+        status = status.strip().title()
+
+        if status not in BOOKING_STATUSES:
+            return jsonify({
+                "error": "Invalid booking status"
+            }), 400
+
+        filtered_bookings = [
+            booking for booking in filtered_bookings
+            if booking["status"] == status
+        ]
+
+    guest = request.args.get("guest")
+
+    if guest is not None:
+
+        guest = guest.strip().lower()
+
+        if not guest:
+            return jsonify({
+                "error": "Guest name cannot be empty"
+            }), 400
+
+        filtered_bookings = [
+            booking for booking in filtered_bookings
+            if guest in booking["guest_name"].lower()
+        ]
+
+    return jsonify({
+        "total_bookings": len(filtered_bookings),
+        "bookings": filtered_bookings
+    }), 200
+
+
+# --------------------------------------------------
+# 6. GET ONE BOOKING
+# Flow: Read booking ID -> Search -> Return booking
+# --------------------------------------------------
+@app.route("/api/bookings/<int:booking_id>", methods=["GET"])
+def get_booking(booking_id):
+
+    for booking in bookings:
+
+        if booking["id"] == booking_id:
+            return jsonify(booking), 200
+
+    return jsonify({
+        "error": "Booking not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 7. CREATE A NEW BOOKING
+# Flow: Read JSON -> Validate -> Check availability
+#       -> Generate ID -> Save booking -> Respond
+# --------------------------------------------------
+@app.route("/api/bookings", methods=["POST"])
+def create_booking():
+
+    data = request.get_json(silent=True)
+
+    booking_data, error = validate_booking(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    start_date = parse_date(booking_data["check_in"])
+    end_date = parse_date(booking_data["check_out"])
+
+    if not is_room_available(
+        booking_data["room_id"],
+        start_date,
+        end_date
+    ):
+        return jsonify({
+            "error": "Room is already booked for the selected dates"
+        }), 409
+
+    # Generate the next available booking ID
+    if bookings:
+        new_id = max(
+            booking["id"] for booking in bookings
+        ) + 1
+    else:
+        new_id = 701
+
+    new_booking = {
+        "id": new_id,
+        **booking_data
+    }
+
+    bookings.append(new_booking)
+
+    return jsonify({
+        "message": "Hotel booking created successfully",
+        "booking": new_booking
+    }), 201
+
+
+# --------------------------------------------------
+# 8. UPDATE AN EXISTING BOOKING
+# Flow: Read ID -> Validate JSON -> Check availability
+#       -> Update booking -> Return response
+# --------------------------------------------------
+@app.route("/api/bookings/<int:booking_id>", methods=["PUT"])
+def update_booking(booking_id):
+
+    data = request.get_json(silent=True)
+
+    booking_data, error = validate_booking(
+        data,
+        require_status=True
+    )
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    # Find the booking first
+    for booking in bookings:
+
+        if booking["id"] == booking_id:
+
+            # Check availability unless the booking is cancelled
+            if booking_data["status"] != "Cancelled":
+
+                start_date = parse_date(booking_data["check_in"])
+                end_date = parse_date(booking_data["check_out"])
+
+                if not is_room_available(
+                    booking_data["room_id"],
+                    start_date,
+                    end_date,
+                    exclude_booking_id=booking_id
+                ):
+                    return jsonify({
+                        "error": "Room is already booked for the selected dates"
+                    }), 409
+
+            booking.update(booking_data)
+
+            return jsonify({
+                "message": "Booking updated successfully",
+                "booking": booking
+            }), 200
+
+    return jsonify({
+        "error": "Booking not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 9. DELETE A BOOKING
+# Flow: Read ID -> Find booking -> Remove -> Respond
+# --------------------------------------------------
+@app.route("/api/bookings/<int:booking_id>", methods=["DELETE"])
+def delete_booking(booking_id):
+
+    for booking in bookings:
+
+        if booking["id"] == booking_id:
+
+            bookings.remove(booking)
+
+            return jsonify({
+                "message": "Booking deleted successfully"
+            }), 200
+
+    return jsonify({
+        "error": "Booking not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 10. BOOKING SUMMARY
+# Flow: Count bookings -> Calculate status totals
+#       -> Calculate booking value -> Return summary
+# --------------------------------------------------
+@app.route("/api/bookings/summary", methods=["GET"])
+def booking_summary():
+
+    status_counts = {
+        status: 0 for status in BOOKING_STATUSES
+    }
+
+    total_booking_value = 0
+
+    for booking in bookings:
+
+        status_counts[booking["status"]] += 1
+
+        if booking["status"] != "Cancelled":
+            total_booking_value += booking["total_amount"]
+
+    return jsonify({
+        "total_bookings": len(bookings),
+        "confirmed_bookings": status_counts["Confirmed"],
+        "checked_in_bookings": status_counts["Checked In"],
+        "checked_out_bookings": status_counts["Checked Out"],
+        "cancelled_bookings": status_counts["Cancelled"],
+        "total_booking_value": total_booking_value
+    }), 200
+
+
+# --------------------------------------------------
+# 11. START FLASK SERVER
+# Flow: Start server -> Wait for API requests
+# --------------------------------------------------
+if __name__ == "__main__":
+    app.run(debug=True)

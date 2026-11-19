@@ -1,0 +1,650 @@
+
+from flask import Flask, request, jsonify
+from datetime import date, timedelta
+
+app = Flask(__name__)
+
+
+# --------------------------------------------------
+# SAMPLE BOOK RECORDS
+# --------------------------------------------------
+
+books = [
+    {
+        "id": 201,
+        "title": "Python Basics",
+        "author": "Rahul",
+        "isbn": "ISBN1001",
+        "total_copies": 5,
+        "available_copies": 5
+    },
+    {
+        "id": 202,
+        "title": "Learn Flask",
+        "author": "Amit",
+        "isbn": "ISBN1002",
+        "total_copies": 3,
+        "available_copies": 3
+    },
+    {
+        "id": 203,
+        "title": "SQL for Beginners",
+        "author": "Priya",
+        "isbn": "ISBN1003",
+        "total_copies": 4,
+        "available_copies": 4
+    }
+]
+
+
+# Store issued and returned book records
+loans = []
+
+
+# Fine charged for each overdue day
+FINE_PER_DAY = 10
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: FIND BOOK
+# Flow: Receive book ID -> Search book list -> Return book
+# --------------------------------------------------
+def find_book(book_id):
+
+    for book in books:
+
+        if book["id"] == book_id:
+            return book
+
+    return None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: FIND LOAN
+# Flow: Receive loan ID -> Search loan list -> Return loan
+# --------------------------------------------------
+def find_loan(loan_id):
+
+    for loan in loans:
+
+        if loan["id"] == loan_id:
+            return loan
+
+    return None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE BOOK DATA
+# Flow: Receive JSON -> Check fields -> Validate values
+#       -> Return cleaned book information
+# --------------------------------------------------
+def validate_book(data):
+
+    if not isinstance(data, dict):
+        return None, "A valid JSON object is required"
+
+    required_fields = [
+        "title",
+        "author",
+        "isbn",
+        "total_copies"
+    ]
+
+    for field in required_fields:
+
+        if field not in data:
+            return None, f"{field} is required"
+
+    title = data["title"]
+    author = data["author"]
+    isbn = data["isbn"]
+    total_copies = data["total_copies"]
+
+    if not all(
+        isinstance(value, str)
+        for value in [title, author, isbn]
+    ):
+        return None, "Title, author and ISBN must be text"
+
+    title = title.strip()
+    author = author.strip()
+    isbn = isbn.strip().upper()
+
+    if not all([title, author, isbn]):
+        return None, "Book details cannot be empty"
+
+    if isinstance(total_copies, bool) or not isinstance(total_copies, int):
+        return None, "Total copies must be a whole number"
+
+    if total_copies <= 0:
+        return None, "Total copies must be greater than zero"
+
+    return {
+        "title": title,
+        "author": author,
+        "isbn": isbn,
+        "total_copies": total_copies
+    }, None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE LOAN DATA
+# Flow: Read JSON -> Validate member and book IDs
+#       -> Validate loan days -> Return loan details
+# --------------------------------------------------
+def validate_loan(data):
+
+    if not isinstance(data, dict):
+        return None, "A valid JSON object is required"
+
+    required_fields = [
+        "book_id",
+        "member_id",
+        "member_name"
+    ]
+
+    for field in required_fields:
+
+        if field not in data:
+            return None, f"{field} is required"
+
+    book_id = data["book_id"]
+    member_id = data["member_id"]
+    member_name = data["member_name"]
+    loan_days = data.get("loan_days", 14)
+
+    if isinstance(book_id, bool) or not isinstance(book_id, int):
+        return None, "Book ID must be an integer"
+
+    if book_id <= 0:
+        return None, "Book ID must be greater than zero"
+
+    if isinstance(member_id, bool) or not isinstance(member_id, int):
+        return None, "Member ID must be an integer"
+
+    if member_id <= 0:
+        return None, "Member ID must be greater than zero"
+
+    if not isinstance(member_name, str):
+        return None, "Member name must be text"
+
+    member_name = member_name.strip()
+
+    if not member_name:
+        return None, "Member name cannot be empty"
+
+    if isinstance(loan_days, bool) or not isinstance(loan_days, int):
+        return None, "Loan days must be a whole number"
+
+    if loan_days < 1 or loan_days > 60:
+        return None, "Loan period must be between 1 and 60 days"
+
+    return {
+        "book_id": book_id,
+        "member_id": member_id,
+        "member_name": member_name,
+        "loan_days": loan_days
+    }, None
+
+
+# --------------------------------------------------
+# 1. HOME ROUTE
+# Flow: Receive request -> Return welcome message
+# --------------------------------------------------
+@app.route("/")
+def home():
+
+    return jsonify({
+        "message": "Library Management API is running"
+    }), 200
+
+
+# --------------------------------------------------
+# 2. GET ALL BOOKS
+# Flow: Read book records -> Return JSON response
+# --------------------------------------------------
+@app.route("/api/books", methods=["GET"])
+def get_books():
+
+    search = request.args.get("search", "").strip().lower()
+
+    filtered_books = []
+
+    for book in books:
+
+        if (
+            not search
+            or search in book["title"].lower()
+            or search in book["author"].lower()
+        ):
+            filtered_books.append(book)
+
+    return jsonify({
+        "total_books": len(filtered_books),
+        "books": filtered_books
+    }), 200
+
+
+# --------------------------------------------------
+# 3. GET ONE BOOK
+# Flow: Read book ID -> Search -> Return book details
+# --------------------------------------------------
+@app.route("/api/books/<int:book_id>", methods=["GET"])
+def get_book(book_id):
+
+    book = find_book(book_id)
+
+    if book is None:
+        return jsonify({
+            "error": "Book not found"
+        }), 404
+
+    return jsonify(book), 200
+
+
+# --------------------------------------------------
+# 4. ADD A NEW BOOK
+# Flow: Read JSON -> Validate -> Check duplicate ISBN
+#       -> Generate ID -> Add book -> Return response
+# --------------------------------------------------
+@app.route("/api/books", methods=["POST"])
+def add_book():
+
+    data = request.get_json(silent=True)
+
+    book_data, error = validate_book(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    # Check whether ISBN already exists
+    for book in books:
+
+        if book["isbn"] == book_data["isbn"]:
+            return jsonify({
+                "error": "ISBN already exists"
+            }), 409
+
+    # Generate next available book ID
+    if books:
+        new_id = max(book["id"] for book in books) + 1
+    else:
+        new_id = 201
+
+    new_book = {
+        "id": new_id,
+        **book_data,
+        "available_copies": book_data["total_copies"]
+    }
+
+    books.append(new_book)
+
+    return jsonify({
+        "message": "Book added successfully",
+        "book": new_book
+    }), 201
+
+
+# --------------------------------------------------
+# 5. UPDATE BOOK DETAILS
+# Flow: Read ID -> Validate -> Find book
+#       -> Check ISBN -> Preserve issued copies -> Update
+# --------------------------------------------------
+@app.route("/api/books/<int:book_id>", methods=["PUT"])
+def update_book(book_id):
+
+    data = request.get_json(silent=True)
+
+    book_data, error = validate_book(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    book = find_book(book_id)
+
+    if book is None:
+        return jsonify({
+            "error": "Book not found"
+        }), 404
+
+    # Check duplicate ISBN in other books
+    for existing_book in books:
+
+        if (
+            existing_book["isbn"] == book_data["isbn"]
+            and existing_book["id"] != book_id
+        ):
+            return jsonify({
+                "error": "ISBN already belongs to another book"
+            }), 409
+
+    # Calculate how many copies are currently issued
+    issued_copies = book["total_copies"] - book["available_copies"]
+
+    if book_data["total_copies"] < issued_copies:
+        return jsonify({
+            "error": "Total copies cannot be less than issued copies"
+        }), 400
+
+    book.update(book_data)
+
+    # Preserve the number of issued copies
+    book["available_copies"] = (
+        book_data["total_copies"] - issued_copies
+    )
+
+    return jsonify({
+        "message": "Book updated successfully",
+        "book": book
+    }), 200
+
+
+# --------------------------------------------------
+# 6. DELETE A BOOK
+# Flow: Read ID -> Find book -> Check issued copies
+#       -> Delete book -> Return response
+# --------------------------------------------------
+@app.route("/api/books/<int:book_id>", methods=["DELETE"])
+def delete_book(book_id):
+
+    book = find_book(book_id)
+
+    if book is None:
+        return jsonify({
+            "error": "Book not found"
+        }), 404
+
+    # Prevent deletion when copies are issued
+    if book["available_copies"] != book["total_copies"]:
+        return jsonify({
+            "error": "Cannot delete a book with issued copies"
+        }), 409
+
+    books.remove(book)
+
+    return jsonify({
+        "message": "Book deleted successfully"
+    }), 200
+
+
+# --------------------------------------------------
+# 7. ISSUE A BOOK
+# Flow: Read JSON -> Validate -> Find book
+#       -> Check availability -> Calculate due date
+#       -> Create loan -> Reduce available copies
+# --------------------------------------------------
+@app.route("/api/loans", methods=["POST"])
+def issue_book():
+
+    data = request.get_json(silent=True)
+
+    loan_data, error = validate_loan(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    book = find_book(loan_data["book_id"])
+
+    if book is None:
+        return jsonify({
+            "error": "Book not found"
+        }), 404
+
+    if book["available_copies"] <= 0:
+        return jsonify({
+            "error": "No copies available for issuing"
+        }), 409
+
+    # Prevent issuing the same book twice to one
+    # member while the earlier loan is still active
+    for loan in loans:
+
+        if (
+            loan["book_id"] == loan_data["book_id"]
+            and loan["member_id"] == loan_data["member_id"]
+            and loan["status"] == "Issued"
+        ):
+            return jsonify({
+                "error": "This member already has this book"
+            }), 409
+
+    # Calculate issue date and due date
+    issue_date = date.today()
+    due_date = issue_date + timedelta(
+        days=loan_data["loan_days"]
+    )
+
+    # Generate next available loan ID
+    if loans:
+        new_id = max(loan["id"] for loan in loans) + 1
+    else:
+        new_id = 501
+
+    new_loan = {
+        "id": new_id,
+        "book_id": book["id"],
+        "book_title": book["title"],
+        "member_id": loan_data["member_id"],
+        "member_name": loan_data["member_name"],
+        "issue_date": issue_date.isoformat(),
+        "due_date": due_date.isoformat(),
+        "return_date": None,
+        "status": "Issued",
+        "late_days": 0,
+        "fine_amount": 0
+    }
+
+    loans.append(new_loan)
+
+    # Reduce available copies after issuing
+    book["available_copies"] -= 1
+
+    return jsonify({
+        "message": "Book issued successfully",
+        "loan": new_loan
+    }), 201
+
+
+# --------------------------------------------------
+# 8. GET ALL LOANS
+# Flow: Read filter -> Filter loan records -> Respond
+# --------------------------------------------------
+@app.route("/api/loans", methods=["GET"])
+def get_loans():
+
+    filtered_loans = loans
+
+    status = request.args.get("status")
+
+    if status:
+
+        status = status.strip().title()
+
+        if status not in ["Issued", "Returned"]:
+            return jsonify({
+                "error": "Status must be Issued or Returned"
+            }), 400
+
+        filtered_loans = [
+            loan for loan in filtered_loans
+            if loan["status"] == status
+        ]
+
+    member_id = request.args.get("member_id")
+
+    if member_id is not None:
+
+        try:
+            member_id = int(member_id)
+        except ValueError:
+            return jsonify({
+                "error": "Member ID must be an integer"
+            }), 400
+
+        if member_id <= 0:
+            return jsonify({
+                "error": "Member ID must be greater than zero"
+            }), 400
+
+        filtered_loans = [
+            loan for loan in filtered_loans
+            if loan["member_id"] == member_id
+        ]
+
+    return jsonify({
+        "total_loans": len(filtered_loans),
+        "loans": filtered_loans
+    }), 200
+
+
+# --------------------------------------------------
+# 9. GET ONE LOAN
+# Flow: Read loan ID -> Search -> Return loan
+# --------------------------------------------------
+@app.route("/api/loans/<int:loan_id>", methods=["GET"])
+def get_loan(loan_id):
+
+    loan = find_loan(loan_id)
+
+    if loan is None:
+        return jsonify({
+            "error": "Loan record not found"
+        }), 404
+
+    return jsonify(loan), 200
+
+
+# --------------------------------------------------
+# 10. RETURN A BOOK
+# Flow: Read loan ID -> Find loan -> Check status
+#       -> Calculate late days and fine
+#       -> Update loan -> Increase available copies
+# --------------------------------------------------
+@app.route("/api/loans/<int:loan_id>/return", methods=["POST"])
+def return_book(loan_id):
+
+    loan = find_loan(loan_id)
+
+    if loan is None:
+        return jsonify({
+            "error": "Loan record not found"
+        }), 404
+
+    if loan["status"] == "Returned":
+        return jsonify({
+            "error": "This book has already been returned"
+        }), 409
+
+    return_date = date.today()
+    due_date = date.fromisoformat(loan["due_date"])
+
+    # Calculate overdue days
+    late_days = max(0, (return_date - due_date).days)
+
+    # Calculate late return fine
+    fine_amount = late_days * FINE_PER_DAY
+
+    loan["return_date"] = return_date.isoformat()
+    loan["status"] = "Returned"
+    loan["late_days"] = late_days
+    loan["fine_amount"] = fine_amount
+
+    # Increase available copies after return
+    book = find_book(loan["book_id"])
+
+    if book is not None:
+        book["available_copies"] += 1
+
+    return jsonify({
+        "message": "Book returned successfully",
+        "loan": loan,
+        "late_days": late_days,
+        "fine_amount": fine_amount
+    }), 200
+
+
+# --------------------------------------------------
+# 11. FIND OVERDUE BOOKS
+# Flow: Check issued loans -> Compare due dates
+#       -> Calculate overdue days -> Return results
+# --------------------------------------------------
+@app.route("/api/loans/overdue", methods=["GET"])
+def overdue_loans():
+
+    today = date.today()
+    overdue = []
+
+    for loan in loans:
+
+        due_date = date.fromisoformat(loan["due_date"])
+
+        if (
+            loan["status"] == "Issued"
+            and due_date < today
+        ):
+            record = loan.copy()
+            record["days_overdue"] = (today - due_date).days
+            record["current_fine"] = (
+                record["days_overdue"] * FINE_PER_DAY
+            )
+
+            overdue.append(record)
+
+    return jsonify({
+        "overdue_count": len(overdue),
+        "loans": overdue
+    }), 200
+
+
+# --------------------------------------------------
+# 12. LIBRARY SUMMARY
+# Flow: Count books and loans -> Calculate fines
+#       -> Return library statistics
+# --------------------------------------------------
+@app.route("/api/loans/summary", methods=["GET"])
+def library_summary():
+
+    issued_loans = 0
+    returned_loans = 0
+    total_fines = 0
+
+    for loan in loans:
+
+        if loan["status"] == "Issued":
+            issued_loans += 1
+
+        elif loan["status"] == "Returned":
+            returned_loans += 1
+            total_fines += loan["fine_amount"]
+
+    total_copies = sum(
+        book["total_copies"] for book in books
+    )
+
+    available_copies = sum(
+        book["available_copies"] for book in books
+    )
+
+    return jsonify({
+        "total_book_titles": len(books),
+        "total_book_copies": total_copies,
+        "available_copies": available_copies,
+        "issued_loans": issued_loans,
+        "returned_loans": returned_loans,
+        "total_loans": len(loans),
+        "total_fines_collected": total_fines
+    }), 200
+
+
+# --------------------------------------------------
+# 13. START FLASK SERVER
+# Flow: Start server -> Wait for API requests
+# --------------------------------------------------
+if __name__ == "__main__":
+    app.run(debug=True)

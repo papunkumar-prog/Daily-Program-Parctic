@@ -1,0 +1,414 @@
+
+from flask import Flask, request, jsonify
+import math
+
+app = Flask(__name__)
+
+
+# --------------------------------------------------
+# SAMPLE COURIER SHIPMENT RECORDS
+# --------------------------------------------------
+
+shipments = [
+    {
+        "id": 1101,
+        "tracking_number": "TRK1101",
+        "sender_name": "Papun",
+        "receiver_name": "Amit",
+        "pickup_city": "Chennai",
+        "delivery_city": "Bangalore",
+        "weight_kg": 2.5,
+        "shipping_cost": 100,
+        "status": "In Transit"
+    },
+    {
+        "id": 1102,
+        "tracking_number": "TRK1102",
+        "sender_name": "Rahul",
+        "receiver_name": "Suman",
+        "pickup_city": "Delhi",
+        "delivery_city": "Mumbai",
+        "weight_kg": 1,
+        "shipping_cost": 70,
+        "status": "Delivered"
+    },
+    {
+        "id": 1103,
+        "tracking_number": "TRK1103",
+        "sender_name": "Amit",
+        "receiver_name": "Papun",
+        "pickup_city": "Hyderabad",
+        "delivery_city": "Chennai",
+        "weight_kg": 5,
+        "shipping_cost": 150,
+        "status": "Booked"
+    }
+]
+
+
+# Allowed shipment statuses
+SHIPMENT_STATUSES = [
+    "Booked",
+    "Picked Up",
+    "In Transit",
+    "Out For Delivery",
+    "Delivered",
+    "Cancelled"
+]
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: CALCULATE SHIPPING CHARGE
+# Flow: Receive weight -> Calculate charge -> Return cost
+# Formula: Base charge + (Weight * Rate)
+# --------------------------------------------------
+def calculate_shipping_cost(weight):
+
+    base_charge = 50
+    rate_per_kg = 20
+
+    shipping_cost = base_charge + (weight * rate_per_kg)
+
+    return round(shipping_cost, 2)
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE SHIPMENT DATA
+# Flow: Receive JSON -> Check fields -> Validate values
+#       -> Calculate shipping cost -> Return data
+# --------------------------------------------------
+def validate_shipment(data, require_status=False):
+
+    if not isinstance(data, dict):
+        return None, "A valid JSON object is required"
+
+    required_fields = [
+        "sender_name",
+        "receiver_name",
+        "pickup_city",
+        "delivery_city",
+        "weight_kg"
+    ]
+
+    if require_status:
+        required_fields.append("status")
+
+    for field in required_fields:
+
+        if field not in data:
+            return None, f"{field} is required"
+
+    sender_name = data["sender_name"]
+    receiver_name = data["receiver_name"]
+    pickup_city = data["pickup_city"]
+    delivery_city = data["delivery_city"]
+    weight = data["weight_kg"]
+
+    # Validate text fields
+    text_fields = [
+        sender_name,
+        receiver_name,
+        pickup_city,
+        delivery_city
+    ]
+
+    if not all(isinstance(value, str) for value in text_fields):
+        return None, "Shipment details must contain text"
+
+    sender_name = sender_name.strip()
+    receiver_name = receiver_name.strip()
+    pickup_city = pickup_city.strip().title()
+    delivery_city = delivery_city.strip().title()
+
+    if not all([
+        sender_name,
+        receiver_name,
+        pickup_city,
+        delivery_city
+    ]):
+        return None, "Shipment details cannot be empty"
+
+    # Validate weight
+    if isinstance(weight, bool) or not isinstance(weight, (int, float)):
+        return None, "Weight must be a number"
+
+    if not math.isfinite(weight) or weight <= 0:
+        return None, "Weight must be greater than zero"
+
+    # Calculate delivery charge
+    shipping_cost = calculate_shipping_cost(weight)
+
+    # Validate shipment status
+    if require_status:
+
+        status = data["status"]
+
+        if not isinstance(status, str):
+            return None, "Status must be text"
+
+        status = status.strip().title()
+
+        if status not in SHIPMENT_STATUSES:
+            return None, "Invalid shipment status"
+
+    else:
+        status = "Booked"
+
+    shipment_data = {
+        "sender_name": sender_name,
+        "receiver_name": receiver_name,
+        "pickup_city": pickup_city,
+        "delivery_city": delivery_city,
+        "weight_kg": weight,
+        "shipping_cost": shipping_cost,
+        "status": status
+    }
+
+    return shipment_data, None
+
+
+# --------------------------------------------------
+# 1. HOME ROUTE
+# Flow: Receive request -> Return welcome message
+# --------------------------------------------------
+@app.route("/")
+def home():
+
+    return jsonify({
+        "message": "Courier Tracking API is running"
+    }), 200
+
+
+# --------------------------------------------------
+# 2. GET ALL SHIPMENTS
+# Flow: Read filters -> Filter shipment records
+#       -> Return matching shipments
+# --------------------------------------------------
+@app.route("/api/shipments", methods=["GET"])
+def get_shipments():
+
+    filtered_shipments = shipments
+
+    # Filter using shipment status
+    status = request.args.get("status")
+
+    if status:
+
+        status = status.strip().title()
+
+        if status not in SHIPMENT_STATUSES:
+            return jsonify({
+                "error": "Invalid shipment status"
+            }), 400
+
+        filtered_shipments = [
+            shipment for shipment in filtered_shipments
+            if shipment["status"] == status
+        ]
+
+    # Filter using destination city
+    destination = request.args.get("destination")
+
+    if destination is not None:
+
+        destination = destination.strip().lower()
+
+        if not destination:
+            return jsonify({
+                "error": "Destination cannot be empty"
+            }), 400
+
+        filtered_shipments = [
+            shipment for shipment in filtered_shipments
+            if destination in shipment["delivery_city"].lower()
+        ]
+
+    return jsonify({
+        "total_shipments": len(filtered_shipments),
+        "shipments": filtered_shipments
+    }), 200
+
+
+# --------------------------------------------------
+# 3. GET ONE SHIPMENT
+# Flow: Read shipment ID -> Search -> Return shipment
+# --------------------------------------------------
+@app.route("/api/shipments/<int:shipment_id>", methods=["GET"])
+def get_shipment(shipment_id):
+
+    for shipment in shipments:
+
+        if shipment["id"] == shipment_id:
+            return jsonify(shipment), 200
+
+    return jsonify({
+        "error": "Shipment not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 4. TRACK PARCEL USING TRACKING NUMBER
+# Flow: Read tracking number -> Search records
+#       -> Return delivery information
+# --------------------------------------------------
+@app.route("/api/shipments/track/<tracking_number>", methods=["GET"])
+def track_shipment(tracking_number):
+
+    for shipment in shipments:
+
+        if shipment["tracking_number"].upper() == tracking_number.upper():
+
+            return jsonify({
+                "message": "Shipment details found",
+                "tracking_number": shipment["tracking_number"],
+                "receiver_name": shipment["receiver_name"],
+                "pickup_city": shipment["pickup_city"],
+                "delivery_city": shipment["delivery_city"],
+                "status": shipment["status"]
+            }), 200
+
+    return jsonify({
+        "error": "Tracking number not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 5. CREATE A NEW SHIPMENT
+# Flow: Read JSON -> Validate -> Generate tracking number
+#       -> Calculate cost -> Save shipment -> Respond
+# --------------------------------------------------
+@app.route("/api/shipments", methods=["POST"])
+def create_shipment():
+
+    data = request.get_json(silent=True)
+
+    shipment_data, error = validate_shipment(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    # Generate the next available shipment ID
+    if shipments:
+        new_id = max(
+            shipment["id"] for shipment in shipments
+        ) + 1
+    else:
+        new_id = 1101
+
+    # Generate unique tracking number
+    tracking_number = f"TRK{new_id}"
+
+    new_shipment = {
+        "id": new_id,
+        "tracking_number": tracking_number,
+        **shipment_data
+    }
+
+    shipments.append(new_shipment)
+
+    return jsonify({
+        "message": "Shipment created successfully",
+        "shipment": new_shipment
+    }), 201
+
+
+# --------------------------------------------------
+# 6. UPDATE AN EXISTING SHIPMENT
+# Flow: Read ID -> Validate data -> Find shipment
+#       -> Update details -> Return response
+# --------------------------------------------------
+@app.route("/api/shipments/<int:shipment_id>", methods=["PUT"])
+def update_shipment(shipment_id):
+
+    data = request.get_json(silent=True)
+
+    shipment_data, error = validate_shipment(
+        data,
+        require_status=True
+    )
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    for shipment in shipments:
+
+        if shipment["id"] == shipment_id:
+
+            shipment.update(shipment_data)
+
+            return jsonify({
+                "message": "Shipment updated successfully",
+                "shipment": shipment
+            }), 200
+
+    return jsonify({
+        "error": "Shipment not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 7. DELETE A SHIPMENT
+# Flow: Read ID -> Search shipment -> Remove -> Respond
+# --------------------------------------------------
+@app.route("/api/shipments/<int:shipment_id>", methods=["DELETE"])
+def delete_shipment(shipment_id):
+
+    for shipment in shipments:
+
+        if shipment["id"] == shipment_id:
+
+            shipments.remove(shipment)
+
+            return jsonify({
+                "message": "Shipment deleted successfully"
+            }), 200
+
+    return jsonify({
+        "error": "Shipment not found"
+    }), 404
+
+
+# --------------------------------------------------
+# 8. SHIPMENT SUMMARY
+# Flow: Count shipments -> Calculate status totals
+#       -> Calculate total shipping revenue
+#       -> Return summary
+# --------------------------------------------------
+@app.route("/api/shipments/summary", methods=["GET"])
+def shipment_summary():
+
+    status_counts = {
+        status: 0 for status in SHIPMENT_STATUSES
+    }
+
+    total_shipping_revenue = 0
+
+    for shipment in shipments:
+
+        status_counts[shipment["status"]] += 1
+
+        if shipment["status"] != "Cancelled":
+            total_shipping_revenue += shipment["shipping_cost"]
+
+    return jsonify({
+        "total_shipments": len(shipments),
+        "booked": status_counts["Booked"],
+        "picked_up": status_counts["Picked Up"],
+        "in_transit": status_counts["In Transit"],
+        "out_for_delivery": status_counts["Out For Delivery"],
+        "delivered": status_counts["Delivered"],
+        "cancelled": status_counts["Cancelled"],
+        "total_shipping_revenue": round(total_shipping_revenue, 2)
+    }), 200
+
+
+# --------------------------------------------------
+# 9. START FLASK SERVER
+# Flow: Start server -> Wait for API requests
+# --------------------------------------------------
+if __name__ == "__main__":
+    app.run(debug=True)

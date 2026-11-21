@@ -1,0 +1,603 @@
+
+from flask import Flask, request, jsonify
+from datetime import date, datetime
+import math
+
+app = Flask(__name__)
+
+
+# --------------------------------------------------
+# SAMPLE EVENT RECORDS
+# --------------------------------------------------
+
+events = [
+    {
+        "id": 1201,
+        "event_name": "Python Developer Workshop",
+        "venue": "Chennai",
+        "event_date": "2026-12-15",
+        "ticket_price": 500,
+        "total_seats": 100,
+        "available_seats": 98
+    },
+    {
+        "id": 1202,
+        "event_name": "Technology Conference",
+        "venue": "Bangalore",
+        "event_date": "2026-12-20",
+        "ticket_price": 1000,
+        "total_seats": 50,
+        "available_seats": 49
+    },
+    {
+        "id": 1203,
+        "event_name": "Web Development Seminar",
+        "venue": "Hyderabad",
+        "event_date": "2027-01-10",
+        "ticket_price": 300,
+        "total_seats": 200,
+        "available_seats": 200
+    }
+]
+
+
+# --------------------------------------------------
+# SAMPLE REGISTRATION RECORDS
+# --------------------------------------------------
+
+registrations = [
+    {
+        "id": 801,
+        "event_id": 1201,
+        "participant_name": "Papun",
+        "email": "papun@example.com",
+        "tickets": 2,
+        "total_amount": 1000,
+        "status": "Confirmed"
+    },
+    {
+        "id": 802,
+        "event_id": 1202,
+        "participant_name": "Amit",
+        "email": "amit@example.com",
+        "tickets": 1,
+        "total_amount": 1000,
+        "status": "Confirmed"
+    }
+]
+
+
+# Allowed registration statuses
+REGISTRATION_STATUSES = [
+    "Confirmed",
+    "Checked In",
+    "Cancelled"
+]
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: FIND EVENT
+# Flow: Receive event ID -> Search event list
+#       -> Return matching event
+# --------------------------------------------------
+def find_event(event_id):
+
+    for event in events:
+
+        if event["id"] == event_id:
+            return event
+
+    return None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: FIND REGISTRATION
+# Flow: Receive registration ID -> Search records
+#       -> Return matching registration
+# --------------------------------------------------
+def find_registration(registration_id):
+
+    for registration in registrations:
+
+        if registration["id"] == registration_id:
+            return registration
+
+    return None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE EVENT DATA
+# Flow: Read JSON -> Validate details -> Check date
+#       -> Return cleaned event information
+# --------------------------------------------------
+def validate_event(data):
+
+    if not isinstance(data, dict):
+        return None, "A valid JSON object is required"
+
+    required_fields = [
+        "event_name",
+        "venue",
+        "event_date",
+        "ticket_price",
+        "total_seats"
+    ]
+
+    for field in required_fields:
+
+        if field not in data:
+            return None, f"{field} is required"
+
+    event_name = data["event_name"]
+    venue = data["venue"]
+    event_date = data["event_date"]
+    ticket_price = data["ticket_price"]
+    total_seats = data["total_seats"]
+
+    # Validate text fields
+    if not isinstance(event_name, str):
+        return None, "Event name must be text"
+
+    if not isinstance(venue, str):
+        return None, "Venue must be text"
+
+    event_name = event_name.strip()
+    venue = venue.strip()
+
+    if not event_name or not venue:
+        return None, "Event name and venue cannot be empty"
+
+    # Validate event date
+    if not isinstance(event_date, str):
+        return None, "Event date must be text"
+
+    try:
+        parsed_date = datetime.strptime(
+            event_date, "%Y-%m-%d"
+        ).date()
+
+        if parsed_date.isoformat() != event_date:
+            return None, "Date must use YYYY-MM-DD format"
+
+    except ValueError:
+        return None, "Invalid event date"
+
+    if parsed_date < date.today():
+        return None, "Event date cannot be in the past"
+
+    # Validate ticket price
+    if (
+        isinstance(ticket_price, bool)
+        or not isinstance(ticket_price, (int, float))
+    ):
+        return None, "Ticket price must be a number"
+
+    if not math.isfinite(ticket_price) or ticket_price < 0:
+        return None, "Ticket price must be non-negative and finite"
+
+    # Validate total seats
+    if isinstance(total_seats, bool) or not isinstance(total_seats, int):
+        return None, "Total seats must be a whole number"
+
+    if total_seats <= 0:
+        return None, "Total seats must be greater than zero"
+
+    event_data = {
+        "event_name": event_name,
+        "venue": venue,
+        "event_date": event_date,
+        "ticket_price": ticket_price,
+        "total_seats": total_seats
+    }
+
+    return event_data, None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE REGISTRATION DATA
+# Flow: Read JSON -> Validate participant details
+#       -> Check event -> Return registration data
+# --------------------------------------------------
+def validate_registration(data):
+
+    if not isinstance(data, dict):
+        return None, "A valid JSON object is required"
+
+    required_fields = [
+        "event_id",
+        "participant_name",
+        "email",
+        "tickets"
+    ]
+
+    for field in required_fields:
+
+        if field not in data:
+            return None, f"{field} is required"
+
+    event_id = data["event_id"]
+    participant_name = data["participant_name"]
+    email = data["email"]
+    tickets = data["tickets"]
+
+    # Validate event ID
+    if isinstance(event_id, bool) or not isinstance(event_id, int):
+        return None, "Event ID must be an integer"
+
+    if event_id <= 0:
+        return None, "Event ID must be greater than zero"
+
+    # Validate participant name
+    if not isinstance(participant_name, str):
+        return None, "Participant name must be text"
+
+    participant_name = participant_name.strip()
+
+    if not participant_name:
+        return None, "Participant name cannot be empty"
+
+    # Validate email
+    if not isinstance(email, str):
+        return None, "Email must be text"
+
+    email = email.strip().lower()
+
+    if "@" not in email or "." not in email.split("@")[-1]:
+        return None, "Please enter a valid email address"
+
+    # Validate ticket quantity
+    if isinstance(tickets, bool) or not isinstance(tickets, int):
+        return None, "Tickets must be a whole number"
+
+    if tickets <= 0:
+        return None, "Tickets must be greater than zero"
+
+    # Check whether event exists
+    event = find_event(event_id)
+
+    if event is None:
+        return None, "Event not found"
+
+    registration_data = {
+        "event_id": event_id,
+        "participant_name": participant_name,
+        "email": email,
+        "tickets": tickets
+    }
+
+    return registration_data, None
+
+
+# --------------------------------------------------
+# 1. HOME ROUTE
+# Flow: Receive request -> Return welcome message
+# --------------------------------------------------
+@app.route("/")
+def home():
+
+    return jsonify({
+        "message": "Event Registration API is running"
+    }), 200
+
+
+# --------------------------------------------------
+# 2. GET ALL EVENTS
+# Flow: Read event list -> Return event information
+# --------------------------------------------------
+@app.route("/api/events", methods=["GET"])
+def get_events():
+
+    return jsonify({
+        "total_events": len(events),
+        "events": events
+    }), 200
+
+
+# --------------------------------------------------
+# 3. GET ONE EVENT
+# Flow: Read event ID -> Search -> Return event
+# --------------------------------------------------
+@app.route("/api/events/<int:event_id>", methods=["GET"])
+def get_event(event_id):
+
+    event = find_event(event_id)
+
+    if event is None:
+        return jsonify({
+            "error": "Event not found"
+        }), 404
+
+    return jsonify(event), 200
+
+
+# --------------------------------------------------
+# 4. CREATE A NEW EVENT
+# Flow: Read JSON -> Validate -> Generate ID
+#       -> Save event -> Return response
+# --------------------------------------------------
+@app.route("/api/events", methods=["POST"])
+def create_event():
+
+    data = request.get_json(silent=True)
+
+    event_data, error = validate_event(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    # Generate next available event ID
+    if events:
+        new_id = max(event["id"] for event in events) + 1
+    else:
+        new_id = 1201
+
+    new_event = {
+        "id": new_id,
+        **event_data,
+        "available_seats": event_data["total_seats"]
+    }
+
+    events.append(new_event)
+
+    return jsonify({
+        "message": "Event created successfully",
+        "event": new_event
+    }), 201
+
+
+# --------------------------------------------------
+# 5. GET ALL REGISTRATIONS
+# Flow: Read filters -> Filter registrations
+#       -> Return matching records
+# --------------------------------------------------
+@app.route("/api/registrations", methods=["GET"])
+def get_registrations():
+
+    filtered_registrations = registrations
+
+    # Filter by registration status
+    status = request.args.get("status")
+
+    if status:
+
+        status = status.strip().title()
+
+        if status not in REGISTRATION_STATUSES:
+            return jsonify({
+                "error": "Invalid registration status"
+            }), 400
+
+        filtered_registrations = [
+            record for record in filtered_registrations
+            if record["status"] == status
+        ]
+
+    # Filter by event ID
+    event_id = request.args.get("event_id")
+
+    if event_id is not None:
+
+        try:
+            event_id = int(event_id)
+        except ValueError:
+            return jsonify({
+                "error": "Event ID must be an integer"
+            }), 400
+
+        filtered_registrations = [
+            record for record in filtered_registrations
+            if record["event_id"] == event_id
+        ]
+
+    return jsonify({
+        "total_registrations": len(filtered_registrations),
+        "registrations": filtered_registrations
+    }), 200
+
+
+# --------------------------------------------------
+# 6. GET ONE REGISTRATION
+# Flow: Read registration ID -> Search -> Return details
+# --------------------------------------------------
+@app.route("/api/registrations/<int:registration_id>", methods=["GET"])
+def get_registration(registration_id):
+
+    registration = find_registration(registration_id)
+
+    if registration is None:
+        return jsonify({
+            "error": "Registration not found"
+        }), 404
+
+    return jsonify(registration), 200
+
+
+# --------------------------------------------------
+# 7. REGISTER A PARTICIPANT
+# Flow: Read JSON -> Validate -> Check duplicate
+#       -> Check seats -> Calculate amount
+#       -> Save registration -> Reduce seats
+# --------------------------------------------------
+@app.route("/api/registrations", methods=["POST"])
+def register_participant():
+
+    data = request.get_json(silent=True)
+
+    registration_data, error = validate_registration(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    event = find_event(registration_data["event_id"])
+
+    # Check duplicate registration
+    for registration in registrations:
+
+        if (
+            registration["event_id"] == registration_data["event_id"]
+            and registration["email"] == registration_data["email"]
+            and registration["status"] != "Cancelled"
+        ):
+            return jsonify({
+                "error": "This email is already registered for the event"
+            }), 409
+
+    tickets = registration_data["tickets"]
+
+    # Check available seats
+    if event["available_seats"] < tickets:
+        return jsonify({
+            "error": "Not enough seats available",
+            "available_seats": event["available_seats"]
+        }), 409
+
+    # Calculate ticket amount
+    total_amount = event["ticket_price"] * tickets
+
+    # Generate registration ID
+    if registrations:
+        new_id = max(record["id"] for record in registrations) + 1
+    else:
+        new_id = 801
+
+    new_registration = {
+        "id": new_id,
+        **registration_data,
+        "total_amount": total_amount,
+        "status": "Confirmed"
+    }
+
+    registrations.append(new_registration)
+
+    # Reduce available seats
+    event["available_seats"] -= tickets
+
+    return jsonify({
+        "message": "Registration completed successfully",
+        "registration": new_registration
+    }), 201
+
+
+# --------------------------------------------------
+# 8. CANCEL REGISTRATION
+# Flow: Find registration -> Check status -> Cancel
+#       -> Restore available seats -> Return response
+# --------------------------------------------------
+@app.route("/api/registrations/<int:registration_id>/cancel", methods=["POST"])
+def cancel_registration(registration_id):
+
+    registration = find_registration(registration_id)
+
+    if registration is None:
+        return jsonify({
+            "error": "Registration not found"
+        }), 404
+
+    if registration["status"] != "Confirmed":
+        return jsonify({
+            "error": "Only confirmed registrations can be cancelled"
+        }), 409
+
+    # Find the event
+    event = find_event(registration["event_id"])
+
+    if event is not None:
+        event["available_seats"] += registration["tickets"]
+
+    registration["status"] = "Cancelled"
+
+    return jsonify({
+        "message": "Registration cancelled successfully",
+        "registration": registration
+    }), 200
+
+
+# --------------------------------------------------
+# 9. CHECK IN PARTICIPANT
+# Flow: Find registration -> Verify status
+#       -> Update status -> Return response
+# --------------------------------------------------
+@app.route("/api/registrations/<int:registration_id>/check-in", methods=["POST"])
+def check_in_participant(registration_id):
+
+    registration = find_registration(registration_id)
+
+    if registration is None:
+        return jsonify({
+            "error": "Registration not found"
+        }), 404
+
+    if registration["status"] != "Confirmed":
+        return jsonify({
+            "error": "Only confirmed participants can check in"
+        }), 409
+
+    registration["status"] = "Checked In"
+
+    return jsonify({
+        "message": "Participant checked in successfully",
+        "registration": registration
+    }), 200
+
+
+# --------------------------------------------------
+# 10. EVENT SUMMARY
+# Flow: Count events and registrations
+#       -> Calculate ticket sales and revenue
+#       -> Return statistics
+# --------------------------------------------------
+@app.route("/api/events/summary", methods=["GET"])
+def event_summary():
+
+    confirmed = 0
+    checked_in = 0
+    cancelled = 0
+    tickets_sold = 0
+    total_revenue = 0
+
+    for registration in registrations:
+
+        if registration["status"] == "Confirmed":
+            confirmed += 1
+
+        elif registration["status"] == "Checked In":
+            checked_in += 1
+
+        elif registration["status"] == "Cancelled":
+            cancelled += 1
+
+        if registration["status"] != "Cancelled":
+            tickets_sold += registration["tickets"]
+            total_revenue += registration["total_amount"]
+
+    total_seats = sum(
+        event["total_seats"] for event in events
+    )
+
+    available_seats = sum(
+        event["available_seats"] for event in events
+    )
+
+    return jsonify({
+        "total_events": len(events),
+        "total_registrations": len(registrations),
+        "confirmed_registrations": confirmed,
+        "checked_in_registrations": checked_in,
+        "cancelled_registrations": cancelled,
+        "tickets_sold": tickets_sold,
+        "total_seats": total_seats,
+        "available_seats": available_seats,
+        "total_revenue": total_revenue
+    }), 200
+
+
+# --------------------------------------------------
+# 11. START FLASK SERVER
+# Flow: Start server -> Wait for API requests
+# --------------------------------------------------
+if __name__ == "__main__":
+    app.run(debug=True)

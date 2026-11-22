@@ -1,0 +1,802 @@
+
+from flask import Flask, request, jsonify
+from datetime import date
+import math
+
+app = Flask(__name__)
+
+
+# --------------------------------------------------
+# SAMPLE STUDENT RECORDS
+# --------------------------------------------------
+
+students = [
+    {
+        "id": 1001,
+        "name": "Papun",
+        "email": "papun@example.com",
+        "class_name": "10th"
+    },
+    {
+        "id": 1002,
+        "name": "Amit",
+        "email": "amit@example.com",
+        "class_name": "10th"
+    },
+    {
+        "id": 1003,
+        "name": "Rahul",
+        "email": "rahul@example.com",
+        "class_name": "10th"
+    }
+]
+
+
+# --------------------------------------------------
+# SAMPLE EXAMINATION RESULTS
+# --------------------------------------------------
+
+results = [
+    {
+        "id": 501,
+        "student_id": 1001,
+        "subject": "Mathematics",
+        "exam_name": "Mid Term",
+        "marks_obtained": 85,
+        "max_marks": 100,
+        "percentage": 85.0,
+        "grade": "A",
+        "result_status": "Pass",
+        "exam_date": "2026-11-10"
+    },
+    {
+        "id": 502,
+        "student_id": 1001,
+        "subject": "English",
+        "exam_name": "Mid Term",
+        "marks_obtained": 72,
+        "max_marks": 100,
+        "percentage": 72.0,
+        "grade": "B",
+        "result_status": "Pass",
+        "exam_date": "2026-11-10"
+    },
+    {
+        "id": 503,
+        "student_id": 1002,
+        "subject": "Mathematics",
+        "exam_name": "Mid Term",
+        "marks_obtained": 92,
+        "max_marks": 100,
+        "percentage": 92.0,
+        "grade": "A+",
+        "result_status": "Pass",
+        "exam_date": "2026-11-10"
+    },
+    {
+        "id": 504,
+        "student_id": 1003,
+        "subject": "Science",
+        "exam_name": "Mid Term",
+        "marks_obtained": 30,
+        "max_marks": 100,
+        "percentage": 30.0,
+        "grade": "F",
+        "result_status": "Fail",
+        "exam_date": "2026-11-10"
+    }
+]
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: FIND STUDENT
+# Flow: Receive student ID -> Search student list
+#       -> Return student record
+# --------------------------------------------------
+def find_student(student_id):
+
+    for student in students:
+
+        if student["id"] == student_id:
+            return student
+
+    return None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: FIND RESULT
+# Flow: Receive result ID -> Search result list
+#       -> Return matching result
+# --------------------------------------------------
+def find_result(result_id):
+
+    for result in results:
+
+        if result["id"] == result_id:
+            return result
+
+    return None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE STUDENT DATA
+# Flow: Receive JSON -> Check fields -> Validate
+#       -> Return cleaned student information
+# --------------------------------------------------
+def validate_student(data):
+
+    if not isinstance(data, dict):
+        return None, "A valid JSON object is required"
+
+    required_fields = [
+        "name",
+        "email",
+        "class_name"
+    ]
+
+    for field in required_fields:
+
+        if field not in data:
+            return None, f"{field} is required"
+
+    name = data["name"]
+    email = data["email"]
+    class_name = data["class_name"]
+
+    if not all(
+        isinstance(value, str)
+        for value in [name, email, class_name]
+    ):
+        return None, "Student details must be text"
+
+    name = name.strip()
+    email = email.strip().lower()
+    class_name = class_name.strip()
+
+    if not all([name, email, class_name]):
+        return None, "Student details cannot be empty"
+
+    if "@" not in email or "." not in email.split("@")[-1]:
+        return None, "Enter a valid email address"
+
+    student_data = {
+        "name": name,
+        "email": email,
+        "class_name": class_name
+    }
+
+    return student_data, None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: CHECK DUPLICATE EMAIL
+# Flow: Search existing students -> Check email
+#       -> Return True if duplicate exists
+# --------------------------------------------------
+def check_duplicate_email(email, exclude_id=None):
+
+    for student in students:
+
+        if (
+            student["email"] == email
+            and student["id"] != exclude_id
+        ):
+            return True
+
+    return False
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: CALCULATE GRADE
+# Flow: Receive percentage -> Check conditions
+#       -> Return grade and pass/fail status
+# --------------------------------------------------
+def calculate_grade(percentage):
+
+    if percentage >= 90:
+        grade = "A+"
+
+    elif percentage >= 80:
+        grade = "A"
+
+    elif percentage >= 70:
+        grade = "B"
+
+    elif percentage >= 60:
+        grade = "C"
+
+    elif percentage >= 50:
+        grade = "D"
+
+    else:
+        grade = "F"
+
+    if percentage >= 35:
+        status = "Pass"
+    else:
+        status = "Fail"
+
+    return grade, status
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE RESULT DATA
+# Flow: Read JSON -> Validate student -> Validate marks
+#       -> Validate exam date -> Calculate percentage
+#       -> Calculate grade -> Return result data
+# --------------------------------------------------
+def validate_result(data):
+
+    if not isinstance(data, dict):
+        return None, "A valid JSON object is required"
+
+    required_fields = [
+        "student_id",
+        "subject",
+        "exam_name",
+        "marks_obtained",
+        "max_marks",
+        "exam_date"
+    ]
+
+    for field in required_fields:
+
+        if field not in data:
+            return None, f"{field} is required"
+
+    student_id = data["student_id"]
+    subject = data["subject"]
+    exam_name = data["exam_name"]
+    marks = data["marks_obtained"]
+    max_marks = data["max_marks"]
+    exam_date = data["exam_date"]
+
+    # Validate student ID
+    if isinstance(student_id, bool) or not isinstance(student_id, int):
+        return None, "Student ID must be an integer"
+
+    if student_id <= 0:
+        return None, "Student ID must be greater than zero"
+
+    student = find_student(student_id)
+
+    if student is None:
+        return None, "Student not found"
+
+    # Validate subject and exam name
+    if not isinstance(subject, str) or not isinstance(exam_name, str):
+        return None, "Subject and exam name must be text"
+
+    subject = subject.strip().title()
+    exam_name = exam_name.strip().title()
+
+    if not subject or not exam_name:
+        return None, "Subject and exam name cannot be empty"
+
+    # Validate marks
+    if (
+        isinstance(marks, bool)
+        or not isinstance(marks, (int, float))
+    ):
+        return None, "Marks obtained must be a number"
+
+    if (
+        isinstance(max_marks, bool)
+        or not isinstance(max_marks, (int, float))
+    ):
+        return None, "Maximum marks must be a number"
+
+    if not math.isfinite(marks) or not math.isfinite(max_marks):
+        return None, "Marks must be finite numbers"
+
+    if marks < 0:
+        return None, "Marks cannot be negative"
+
+    if max_marks <= 0:
+        return None, "Maximum marks must be greater than zero"
+
+    if marks > max_marks:
+        return None, "Marks cannot exceed maximum marks"
+
+    # Validate examination date
+    if not isinstance(exam_date, str):
+        return None, "Exam date must be text"
+
+    try:
+        parsed_date = date.fromisoformat(exam_date)
+
+        if parsed_date.isoformat() != exam_date:
+            return None, "Date must use YYYY-MM-DD format"
+
+    except ValueError:
+        return None, "Invalid examination date"
+
+    # Calculate percentage
+    percentage = round((marks / max_marks) * 100, 2)
+
+    # Generate grade and pass/fail status
+    grade, status = calculate_grade(percentage)
+
+    result_data = {
+        "student_id": student_id,
+        "subject": subject,
+        "exam_name": exam_name,
+        "marks_obtained": marks,
+        "max_marks": max_marks,
+        "percentage": percentage,
+        "grade": grade,
+        "result_status": status,
+        "exam_date": exam_date
+    }
+
+    return result_data, None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: CHECK DUPLICATE EXAM RESULT
+# Flow: Compare student, subject and exam details
+#       -> Return True if duplicate exists
+# --------------------------------------------------
+def check_duplicate_result(data, exclude_id=None):
+
+    for result in results:
+
+        if result["id"] == exclude_id:
+            continue
+
+        if (
+            result["student_id"] == data["student_id"]
+            and result["subject"].lower() == data["subject"].lower()
+            and result["exam_name"].lower() == data["exam_name"].lower()
+            and result["exam_date"] == data["exam_date"]
+        ):
+            return True
+
+    return False
+
+
+# --------------------------------------------------
+# 1. HOME ROUTE
+# Flow: Receive request -> Return welcome message
+# --------------------------------------------------
+@app.route("/")
+def home():
+
+    return jsonify({
+        "message": "Student Result Management API is running"
+    }), 200
+
+
+# --------------------------------------------------
+# 2. GET ALL STUDENTS
+# Flow: Read student list -> Return all records
+# --------------------------------------------------
+@app.route("/api/students", methods=["GET"])
+def get_students():
+
+    return jsonify({
+        "total_students": len(students),
+        "students": students
+    }), 200
+
+
+# --------------------------------------------------
+# 3. GET ONE STUDENT
+# Flow: Read student ID -> Search -> Return student
+# --------------------------------------------------
+@app.route("/api/students/<int:student_id>", methods=["GET"])
+def get_student(student_id):
+
+    student = find_student(student_id)
+
+    if student is None:
+        return jsonify({
+            "error": "Student not found"
+        }), 404
+
+    return jsonify(student), 200
+
+
+# --------------------------------------------------
+# 4. ADD A NEW STUDENT
+# Flow: Read JSON -> Validate -> Check duplicate email
+#       -> Generate ID -> Save student -> Respond
+# --------------------------------------------------
+@app.route("/api/students", methods=["POST"])
+def add_student():
+
+    data = request.get_json(silent=True)
+
+    student_data, error = validate_student(data)
+
+    if error:
+        return jsonify({"error": error}), 400
+
+    if check_duplicate_email(student_data["email"]):
+        return jsonify({
+            "error": "Email already registered"
+        }), 409
+
+    if students:
+        new_id = max(student["id"] for student in students) + 1
+    else:
+        new_id = 1001
+
+    new_student = {
+        "id": new_id,
+        **student_data
+    }
+
+    students.append(new_student)
+
+    return jsonify({
+        "message": "Student added successfully",
+        "student": new_student
+    }), 201
+
+
+# --------------------------------------------------
+# 5. UPDATE STUDENT DETAILS
+# Flow: Read ID -> Validate -> Find student
+#       -> Check duplicate email -> Update -> Respond
+# --------------------------------------------------
+@app.route("/api/students/<int:student_id>", methods=["PUT"])
+def update_student(student_id):
+
+    data = request.get_json(silent=True)
+
+    student_data, error = validate_student(data)
+
+    if error:
+        return jsonify({"error": error}), 400
+
+    student = find_student(student_id)
+
+    if student is None:
+        return jsonify({
+            "error": "Student not found"
+        }), 404
+
+    if check_duplicate_email(
+        student_data["email"],
+        exclude_id=student_id
+    ):
+        return jsonify({
+            "error": "Email already belongs to another student"
+        }), 409
+
+    student.update(student_data)
+
+    return jsonify({
+        "message": "Student updated successfully",
+        "student": student
+    }), 200
+
+
+# --------------------------------------------------
+# 6. DELETE A STUDENT
+# Flow: Read ID -> Find student -> Check results
+#       -> Delete student -> Return response
+# --------------------------------------------------
+@app.route("/api/students/<int:student_id>", methods=["DELETE"])
+def delete_student(student_id):
+
+    student = find_student(student_id)
+
+    if student is None:
+        return jsonify({
+            "error": "Student not found"
+        }), 404
+
+    # Prevent deletion when examination results exist
+    for result in results:
+
+        if result["student_id"] == student_id:
+            return jsonify({
+                "error": "Cannot delete student because examination results exist"
+            }), 409
+
+    students.remove(student)
+
+    return jsonify({
+        "message": "Student deleted successfully"
+    }), 200
+
+
+# --------------------------------------------------
+# 7. GET ALL RESULTS
+# Flow: Read filters -> Filter result records
+#       -> Return matching results
+# --------------------------------------------------
+@app.route("/api/results", methods=["GET"])
+def get_results():
+
+    filtered_results = results
+
+    student_id = request.args.get("student_id")
+
+    if student_id is not None:
+
+        try:
+            student_id = int(student_id)
+        except ValueError:
+            return jsonify({
+                "error": "Student ID must be an integer"
+            }), 400
+
+        filtered_results = [
+            result for result in filtered_results
+            if result["student_id"] == student_id
+        ]
+
+    exam_name = request.args.get("exam_name")
+
+    if exam_name is not None:
+
+        exam_name = exam_name.strip().lower()
+
+        if not exam_name:
+            return jsonify({
+                "error": "Exam name cannot be empty"
+            }), 400
+
+        filtered_results = [
+            result for result in filtered_results
+            if exam_name in result["exam_name"].lower()
+        ]
+
+    status = request.args.get("status")
+
+    if status is not None:
+
+        status = status.strip().title()
+
+        if status not in ["Pass", "Fail"]:
+            return jsonify({
+                "error": "Status must be Pass or Fail"
+            }), 400
+
+        filtered_results = [
+            result for result in filtered_results
+            if result["result_status"] == status
+        ]
+
+    return jsonify({
+        "total_results": len(filtered_results),
+        "results": filtered_results
+    }), 200
+
+
+# --------------------------------------------------
+# 8. GET ONE RESULT
+# Flow: Read result ID -> Search -> Return result
+# --------------------------------------------------
+@app.route("/api/results/<int:result_id>", methods=["GET"])
+def get_result(result_id):
+
+    result = find_result(result_id)
+
+    if result is None:
+        return jsonify({
+            "error": "Result not found"
+        }), 404
+
+    return jsonify(result), 200
+
+
+# --------------------------------------------------
+# 9. ADD EXAMINATION RESULT
+# Flow: Read JSON -> Validate -> Check duplicate
+#       -> Generate ID -> Save result -> Respond
+# --------------------------------------------------
+@app.route("/api/results", methods=["POST"])
+def add_result():
+
+    data = request.get_json(silent=True)
+
+    result_data, error = validate_result(data)
+
+    if error:
+        return jsonify({"error": error}), 400
+
+    if check_duplicate_result(result_data):
+        return jsonify({
+            "error": "This student's result already exists for this subject and exam"
+        }), 409
+
+    if results:
+        new_id = max(result["id"] for result in results) + 1
+    else:
+        new_id = 501
+
+    new_result = {
+        "id": new_id,
+        **result_data
+    }
+
+    results.append(new_result)
+
+    return jsonify({
+        "message": "Examination result added successfully",
+        "result": new_result
+    }), 201
+
+
+# --------------------------------------------------
+# 10. UPDATE EXAMINATION RESULT
+# Flow: Read ID -> Validate -> Find result
+#       -> Check duplicate -> Update -> Respond
+# --------------------------------------------------
+@app.route("/api/results/<int:result_id>", methods=["PUT"])
+def update_result(result_id):
+
+    data = request.get_json(silent=True)
+
+    result_data, error = validate_result(data)
+
+    if error:
+        return jsonify({"error": error}), 400
+
+    result = find_result(result_id)
+
+    if result is None:
+        return jsonify({
+            "error": "Result not found"
+        }), 404
+
+    if check_duplicate_result(
+        result_data,
+        exclude_id=result_id
+    ):
+        return jsonify({
+            "error": "Duplicate examination result"
+        }), 409
+
+    result.update(result_data)
+
+    return jsonify({
+        "message": "Result updated successfully",
+        "result": result
+    }), 200
+
+
+# --------------------------------------------------
+# 11. DELETE EXAMINATION RESULT
+# Flow: Read result ID -> Search -> Remove -> Respond
+# --------------------------------------------------
+@app.route("/api/results/<int:result_id>", methods=["DELETE"])
+def delete_result(result_id):
+
+    result = find_result(result_id)
+
+    if result is None:
+        return jsonify({
+            "error": "Result not found"
+        }), 404
+
+    results.remove(result)
+
+    return jsonify({
+        "message": "Result deleted successfully"
+    }), 200
+
+
+# --------------------------------------------------
+# 12. STUDENT PERFORMANCE REPORT
+# Flow: Read student ID -> Find results
+#       -> Calculate total marks and percentage
+#       -> Generate overall grade -> Return report
+# --------------------------------------------------
+@app.route("/api/students/<int:student_id>/report", methods=["GET"])
+def student_report(student_id):
+
+    student = find_student(student_id)
+
+    if student is None:
+        return jsonify({
+            "error": "Student not found"
+        }), 404
+
+    student_results = [
+        result for result in results
+        if result["student_id"] == student_id
+    ]
+
+    if not student_results:
+        return jsonify({
+            "message": "No examination results available",
+            "student": student
+        }), 200
+
+    total_marks = sum(
+        result["marks_obtained"] for result in student_results
+    )
+
+    maximum_marks = sum(
+        result["max_marks"] for result in student_results
+    )
+
+    overall_percentage = round(
+        (total_marks / maximum_marks) * 100, 2
+    )
+
+    overall_grade, overall_status = calculate_grade(
+        overall_percentage
+    )
+
+    failed_subjects = [
+        result["subject"]
+        for result in student_results
+        if result["result_status"] == "Fail"
+    ]
+
+    report = {
+        "student": student,
+        "total_subjects": len(student_results),
+        "total_marks_obtained": total_marks,
+        "maximum_marks": maximum_marks,
+        "overall_percentage": overall_percentage,
+        "overall_grade": overall_grade,
+        "overall_status": overall_status,
+        "failed_subjects": failed_subjects,
+        "subject_results": student_results
+    }
+
+    return jsonify(report), 200
+
+
+# --------------------------------------------------
+# 13. EXAMINATION SUMMARY
+# Flow: Count results -> Calculate pass/fail totals
+#       -> Calculate average percentage -> Respond
+# --------------------------------------------------
+@app.route("/api/results/summary", methods=["GET"])
+def result_summary():
+
+    passed = 0
+    failed = 0
+    total_percentage = 0
+
+    grade_counts = {
+        "A+": 0,
+        "A": 0,
+        "B": 0,
+        "C": 0,
+        "D": 0,
+        "F": 0
+    }
+
+    for result in results:
+
+        total_percentage += result["percentage"]
+
+        grade_counts[result["grade"]] += 1
+
+        if result["result_status"] == "Pass":
+            passed += 1
+        else:
+            failed += 1
+
+    if results:
+        average_percentage = round(
+            total_percentage / len(results), 2
+        )
+    else:
+        average_percentage = 0
+
+    return jsonify({
+        "total_students": len(students),
+        "total_exam_results": len(results),
+        "passed_results": passed,
+        "failed_results": failed,
+        "average_percentage": average_percentage,
+        "grade_distribution": grade_counts
+    }), 200
+
+
+# --------------------------------------------------
+# 14. START FLASK SERVER
+# Flow: Start server -> Wait for API requests
+# --------------------------------------------------
+if __name__ == "__main__":
+    app.run(debug=True)

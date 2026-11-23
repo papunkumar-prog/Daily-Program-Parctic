@@ -1,0 +1,715 @@
+
+from flask import Flask, request, jsonify
+from datetime import date
+import calendar
+import math
+
+app = Flask(__name__)
+
+
+# --------------------------------------------------
+# SAMPLE EMPLOYEE RECORDS
+# --------------------------------------------------
+
+employees = [
+    {
+        "id": 1001,
+        "name": "Papun",
+        "email": "papun@example.com",
+        "department": "IT",
+        "designation": "Python Developer",
+        "basic_salary": 30000,
+        "hra_percent": 20,
+        "other_allowances": 5000,
+        "pf_percent": 12,
+        "tax_percent": 5,
+        "status": "Active"
+    },
+    {
+        "id": 1002,
+        "name": "Amit",
+        "email": "amit@example.com",
+        "department": "HR",
+        "designation": "HR Executive",
+        "basic_salary": 40000,
+        "hra_percent": 20,
+        "other_allowances": 7000,
+        "pf_percent": 12,
+        "tax_percent": 5,
+        "status": "Active"
+    },
+    {
+        "id": 1003,
+        "name": "Rahul",
+        "email": "rahul@example.com",
+        "department": "Support",
+        "designation": "Support Engineer",
+        "basic_salary": 25000,
+        "hra_percent": 15,
+        "other_allowances": 3000,
+        "pf_percent": 12,
+        "tax_percent": 3,
+        "status": "Active"
+    }
+]
+
+
+# Payroll records will be stored here
+payrolls = []
+
+
+# Allowed employee statuses
+EMPLOYEE_STATUSES = ["Active", "Inactive"]
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: FIND EMPLOYEE
+# Flow: Receive employee ID -> Search employee list
+#       -> Return employee record
+# --------------------------------------------------
+def find_employee(employee_id):
+
+    for employee in employees:
+
+        if employee["id"] == employee_id:
+            return employee
+
+    return None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: FIND PAYROLL
+# Flow: Receive payroll ID -> Search payroll list
+#       -> Return matching payroll
+# --------------------------------------------------
+def find_payroll(payroll_id):
+
+    for payroll in payrolls:
+
+        if payroll["id"] == payroll_id:
+            return payroll
+
+    return None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: CHECK DUPLICATE EMAIL
+# Flow: Search existing employees -> Check email
+#       -> Return True if duplicate exists
+# --------------------------------------------------
+def check_duplicate_email(email, exclude_id=None):
+
+    for employee in employees:
+
+        if (
+            employee["email"] == email
+            and employee["id"] != exclude_id
+        ):
+            return True
+
+    return False
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE EMPLOYEE DATA
+# Flow: Receive JSON -> Check fields -> Validate values
+#       -> Return cleaned employee information
+# --------------------------------------------------
+def validate_employee(data):
+
+    if not isinstance(data, dict):
+        return None, "A valid JSON object is required"
+
+    required_fields = [
+        "name",
+        "email",
+        "department",
+        "designation",
+        "basic_salary",
+        "hra_percent",
+        "other_allowances",
+        "pf_percent",
+        "tax_percent"
+    ]
+
+    for field in required_fields:
+
+        if field not in data:
+            return None, f"{field} is required"
+
+    name = data["name"]
+    email = data["email"]
+    department = data["department"]
+    designation = data["designation"]
+
+    numeric_fields = [
+        "basic_salary",
+        "hra_percent",
+        "other_allowances",
+        "pf_percent",
+        "tax_percent"
+    ]
+
+    # Validate text fields
+    if not all(
+        isinstance(value, str)
+        for value in [name, email, department, designation]
+    ):
+        return None, "Employee details must be text"
+
+    name = name.strip()
+    email = email.strip().lower()
+    department = department.strip()
+    designation = designation.strip()
+
+    if not all([name, email, department, designation]):
+        return None, "Employee details cannot be empty"
+
+    if "@" not in email or "." not in email.split("@")[-1]:
+        return None, "Enter a valid email address"
+
+    # Validate salary and percentage fields
+    for field in numeric_fields:
+
+        value = data[field]
+
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return None, f"{field} must be a number"
+
+        if not math.isfinite(value):
+            return None, f"{field} must be a finite number"
+
+        if value < 0:
+            return None, f"{field} cannot be negative"
+
+    if data["basic_salary"] <= 0:
+        return None, "Basic salary must be greater than zero"
+
+    # Validate percentage limits
+    for field in ["hra_percent", "pf_percent", "tax_percent"]:
+
+        if data[field] > 100:
+            return None, f"{field} cannot exceed 100"
+
+    # Employee status
+    status = data.get("status", "Active")
+
+    if not isinstance(status, str):
+        return None, "Employee status must be text"
+
+    status = status.strip().title()
+
+    if status not in EMPLOYEE_STATUSES:
+        return None, "Status must be Active or Inactive"
+
+    employee_data = {
+        "name": name,
+        "email": email,
+        "department": department,
+        "designation": designation,
+        "basic_salary": data["basic_salary"],
+        "hra_percent": data["hra_percent"],
+        "other_allowances": data["other_allowances"],
+        "pf_percent": data["pf_percent"],
+        "tax_percent": data["tax_percent"],
+        "status": status
+    }
+
+    return employee_data, None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: CALCULATE SALARY
+# Flow: Read employee salary -> Calculate HRA
+#       -> Calculate gross salary -> Calculate deductions
+#       -> Calculate net salary -> Return salary details
+# --------------------------------------------------
+def calculate_salary(employee):
+
+    basic_salary = employee["basic_salary"]
+
+    # Calculate House Rent Allowance
+    hra = round(
+        basic_salary * employee["hra_percent"] / 100, 2
+    )
+
+    other_allowances = employee["other_allowances"]
+
+    # Gross salary = Basic + HRA + Other Allowances
+    gross_salary = round(
+        basic_salary + hra + other_allowances, 2
+    )
+
+    # Calculate Provident Fund deduction
+    pf_deduction = round(
+        basic_salary * employee["pf_percent"] / 100, 2
+    )
+
+    # Calculate tax deduction on gross salary
+    tax_deduction = round(
+        gross_salary * employee["tax_percent"] / 100, 2
+    )
+
+    total_deductions = round(
+        pf_deduction + tax_deduction, 2
+    )
+
+    net_salary = round(
+        gross_salary - total_deductions, 2
+    )
+
+    return {
+        "basic_salary": basic_salary,
+        "hra": hra,
+        "other_allowances": other_allowances,
+        "gross_salary": gross_salary,
+        "pf_deduction": pf_deduction,
+        "tax_deduction": tax_deduction,
+        "total_deductions": total_deductions,
+        "net_salary": net_salary
+    }
+
+
+# --------------------------------------------------
+# 1. HOME ROUTE
+# Flow: Receive request -> Return welcome message
+# --------------------------------------------------
+@app.route("/")
+def home():
+
+    return jsonify({
+        "message": "Employee Payroll Management API is running"
+    }), 200
+
+
+# --------------------------------------------------
+# 2. GET ALL EMPLOYEES
+# Flow: Read employee list -> Return employee records
+# --------------------------------------------------
+@app.route("/api/employees", methods=["GET"])
+def get_employees():
+
+    return jsonify({
+        "total_employees": len(employees),
+        "employees": employees
+    }), 200
+
+
+# --------------------------------------------------
+# 3. GET ONE EMPLOYEE
+# Flow: Read employee ID -> Search -> Return employee
+# --------------------------------------------------
+@app.route("/api/employees/<int:employee_id>", methods=["GET"])
+def get_employee(employee_id):
+
+    employee = find_employee(employee_id)
+
+    if employee is None:
+        return jsonify({
+            "error": "Employee not found"
+        }), 404
+
+    return jsonify(employee), 200
+
+
+# --------------------------------------------------
+# 4. ADD A NEW EMPLOYEE
+# Flow: Read JSON -> Validate -> Check duplicate email
+#       -> Generate ID -> Save employee -> Respond
+# --------------------------------------------------
+@app.route("/api/employees", methods=["POST"])
+def add_employee():
+
+    data = request.get_json(silent=True)
+
+    employee_data, error = validate_employee(data)
+
+    if error:
+        return jsonify({"error": error}), 400
+
+    if check_duplicate_email(employee_data["email"]):
+        return jsonify({
+            "error": "Email already registered"
+        }), 409
+
+    # Generate next available employee ID
+    if employees:
+        new_id = max(employee["id"] for employee in employees) + 1
+    else:
+        new_id = 1001
+
+    new_employee = {
+        "id": new_id,
+        **employee_data
+    }
+
+    employees.append(new_employee)
+
+    return jsonify({
+        "message": "Employee added successfully",
+        "employee": new_employee
+    }), 201
+
+
+# --------------------------------------------------
+# 5. UPDATE EMPLOYEE DETAILS
+# Flow: Read ID -> Validate -> Find employee
+#       -> Check email -> Update details -> Respond
+# --------------------------------------------------
+@app.route("/api/employees/<int:employee_id>", methods=["PUT"])
+def update_employee(employee_id):
+
+    data = request.get_json(silent=True)
+
+    employee_data, error = validate_employee(data)
+
+    if error:
+        return jsonify({"error": error}), 400
+
+    employee = find_employee(employee_id)
+
+    if employee is None:
+        return jsonify({
+            "error": "Employee not found"
+        }), 404
+
+    if check_duplicate_email(
+        employee_data["email"],
+        exclude_id=employee_id
+    ):
+        return jsonify({
+            "error": "Email already belongs to another employee"
+        }), 409
+
+    employee.update(employee_data)
+
+    return jsonify({
+        "message": "Employee updated successfully",
+        "employee": employee
+    }), 200
+
+
+# --------------------------------------------------
+# 6. DELETE AN EMPLOYEE
+# Flow: Read ID -> Find employee -> Check payroll history
+#       -> Delete employee -> Return response
+# --------------------------------------------------
+@app.route("/api/employees/<int:employee_id>", methods=["DELETE"])
+def delete_employee(employee_id):
+
+    employee = find_employee(employee_id)
+
+    if employee is None:
+        return jsonify({
+            "error": "Employee not found"
+        }), 404
+
+    # Preserve employee records linked to payroll history
+    for payroll in payrolls:
+
+        if payroll["employee_id"] == employee_id:
+            return jsonify({
+                "error": "Cannot delete employee because payroll records exist"
+            }), 409
+
+    employees.remove(employee)
+
+    return jsonify({
+        "message": "Employee deleted successfully"
+    }), 200
+
+
+# --------------------------------------------------
+# 7. GENERATE MONTHLY PAYROLL
+# Flow: Read JSON -> Validate month and year
+#       -> Find employee -> Check duplicate payroll
+#       -> Calculate salary -> Save payroll
+# --------------------------------------------------
+@app.route("/api/payrolls", methods=["POST"])
+def generate_payroll():
+
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+        return jsonify({
+            "error": "A valid JSON object is required"
+        }), 400
+
+    required_fields = ["employee_id", "month", "year"]
+
+    for field in required_fields:
+
+        if field not in data:
+            return jsonify({
+                "error": f"{field} is required"
+            }), 400
+
+    employee_id = data["employee_id"]
+    month = data["month"]
+    year = data["year"]
+
+    # Validate employee ID
+    if isinstance(employee_id, bool) or not isinstance(employee_id, int):
+        return jsonify({
+            "error": "Employee ID must be an integer"
+        }), 400
+
+    if employee_id <= 0:
+        return jsonify({
+            "error": "Employee ID must be greater than zero"
+        }), 400
+
+    # Validate month and year
+    if isinstance(month, bool) or not isinstance(month, int):
+        return jsonify({
+            "error": "Month must be an integer"
+        }), 400
+
+    if isinstance(year, bool) or not isinstance(year, int):
+        return jsonify({
+            "error": "Year must be an integer"
+        }), 400
+
+    if month < 1 or month > 12:
+        return jsonify({
+            "error": "Month must be between 1 and 12"
+        }), 400
+
+    if year < 2000 or year > 2100:
+        return jsonify({
+            "error": "Enter a valid payroll year"
+        }), 400
+
+    # Find employee
+    employee = find_employee(employee_id)
+
+    if employee is None:
+        return jsonify({
+            "error": "Employee not found"
+        }), 404
+
+    if employee["status"] != "Active":
+        return jsonify({
+            "error": "Payroll cannot be generated for an inactive employee"
+        }), 409
+
+    # Prevent duplicate monthly payroll
+    for payroll in payrolls:
+
+        if (
+            payroll["employee_id"] == employee_id
+            and payroll["month"] == month
+            and payroll["year"] == year
+        ):
+            return jsonify({
+                "error": "Payroll already generated for this employee and month"
+            }), 409
+
+    # Calculate salary
+    salary_details = calculate_salary(employee)
+
+    if salary_details["net_salary"] < 0:
+        return jsonify({
+            "error": "Total deductions cannot exceed gross salary"
+        }), 400
+
+    # Generate payroll ID
+    if payrolls:
+        new_id = max(payroll["id"] for payroll in payrolls) + 1
+    else:
+        new_id = 701
+
+    new_payroll = {
+        "id": new_id,
+        "employee_id": employee["id"],
+        "employee_name": employee["name"],
+        "department": employee["department"],
+        "designation": employee["designation"],
+        "month": month,
+        "month_name": calendar.month_name[month],
+        "year": year,
+        **salary_details,
+        "processed_on": date.today().isoformat()
+    }
+
+    payrolls.append(new_payroll)
+
+    return jsonify({
+        "message": "Payroll generated successfully",
+        "payroll": new_payroll
+    }), 201
+
+
+# --------------------------------------------------
+# 8. GET ALL PAYROLL RECORDS
+# Flow: Read filters -> Filter payroll records
+#       -> Return matching payrolls
+# --------------------------------------------------
+@app.route("/api/payrolls", methods=["GET"])
+def get_payrolls():
+
+    filtered_payrolls = payrolls
+
+    employee_id = request.args.get("employee_id")
+
+    if employee_id is not None:
+
+        try:
+            employee_id = int(employee_id)
+        except ValueError:
+            return jsonify({
+                "error": "Employee ID must be an integer"
+            }), 400
+
+        filtered_payrolls = [
+            payroll for payroll in filtered_payrolls
+            if payroll["employee_id"] == employee_id
+        ]
+
+    month = request.args.get("month")
+
+    if month is not None:
+
+        try:
+            month = int(month)
+        except ValueError:
+            return jsonify({
+                "error": "Month must be an integer"
+            }), 400
+
+        if month < 1 or month > 12:
+            return jsonify({
+                "error": "Month must be between 1 and 12"
+            }), 400
+
+        filtered_payrolls = [
+            payroll for payroll in filtered_payrolls
+            if payroll["month"] == month
+        ]
+
+    year = request.args.get("year")
+
+    if year is not None:
+
+        try:
+            year = int(year)
+        except ValueError:
+            return jsonify({
+                "error": "Year must be an integer"
+            }), 400
+
+        filtered_payrolls = [
+            payroll for payroll in filtered_payrolls
+            if payroll["year"] == year
+        ]
+
+    return jsonify({
+        "total_payrolls": len(filtered_payrolls),
+        "payrolls": filtered_payrolls
+    }), 200
+
+
+# --------------------------------------------------
+# 9. GET ONE PAYROLL
+# Flow: Read payroll ID -> Search -> Return payslip
+# --------------------------------------------------
+@app.route("/api/payrolls/<int:payroll_id>", methods=["GET"])
+def get_payroll(payroll_id):
+
+    payroll = find_payroll(payroll_id)
+
+    if payroll is None:
+        return jsonify({
+            "error": "Payroll record not found"
+        }), 404
+
+    return jsonify({
+        "payslip": payroll
+    }), 200
+
+
+# --------------------------------------------------
+# 10. GET EMPLOYEE PAYSLIPS
+# Flow: Read employee ID -> Find payroll history
+#       -> Return employee payslips
+# --------------------------------------------------
+@app.route("/api/employees/<int:employee_id>/payslips", methods=["GET"])
+def employee_payslips(employee_id):
+
+    employee = find_employee(employee_id)
+
+    if employee is None:
+        return jsonify({
+            "error": "Employee not found"
+        }), 404
+
+    employee_payrolls = [
+        payroll for payroll in payrolls
+        if payroll["employee_id"] == employee_id
+    ]
+
+    return jsonify({
+        "employee_id": employee_id,
+        "employee_name": employee["name"],
+        "total_payslips": len(employee_payrolls),
+        "payslips": employee_payrolls
+    }), 200
+
+
+# --------------------------------------------------
+# 11. PAYROLL SUMMARY
+# Flow: Read year filter -> Calculate salary totals
+#       -> Count employees -> Return statistics
+# --------------------------------------------------
+@app.route("/api/payrolls/summary", methods=["GET"])
+def payroll_summary():
+
+    filtered_payrolls = payrolls
+
+    year = request.args.get("year")
+
+    if year is not None:
+
+        try:
+            year = int(year)
+        except ValueError:
+            return jsonify({
+                "error": "Year must be an integer"
+            }), 400
+
+        filtered_payrolls = [
+            payroll for payroll in filtered_payrolls
+            if payroll["year"] == year
+        ]
+
+    total_gross_salary = sum(
+        payroll["gross_salary"] for payroll in filtered_payrolls
+    )
+
+    total_deductions = sum(
+        payroll["total_deductions"] for payroll in filtered_payrolls
+    )
+
+    total_net_salary = sum(
+        payroll["net_salary"] for payroll in filtered_payrolls
+    )
+
+    employee_ids = set(
+        payroll["employee_id"] for payroll in filtered_payrolls
+    )
+
+    return jsonify({
+        "total_payroll_records": len(filtered_payrolls),
+        "employees_paid": len(employee_ids),
+        "total_gross_salary": round(total_gross_salary, 2),
+        "total_deductions": round(total_deductions, 2),
+        "total_net_salary": round(total_net_salary, 2)
+    }), 200
+
+
+# --------------------------------------------------
+# 12. START FLASK SERVER
+# Flow: Start server -> Wait for API requests
+# --------------------------------------------------
+if __name__ == "__main__":
+    app.run(debug=True)

@@ -1,0 +1,752 @@
+
+from flask import Flask, request, jsonify
+from datetime import date
+import math
+
+app = Flask(__name__)
+
+
+# --------------------------------------------------
+# SAMPLE COURSE RECORDS
+# --------------------------------------------------
+
+courses = [
+    {
+        "id": 301,
+        "title": "Python REST API Development",
+        "instructor": "Papun",
+        "category": "Programming",
+        "course_fee": 2500,
+        "capacity": 30,
+        "lessons": [
+            {"id": 1, "title": "Python Basics"},
+            {"id": 2, "title": "Flask Introduction"},
+            {"id": 3, "title": "REST API Development"},
+            {"id": 4, "title": "Database Integration"}
+        ]
+    },
+    {
+        "id": 302,
+        "title": "SQL Server Fundamentals",
+        "instructor": "Rahul",
+        "category": "Database",
+        "course_fee": 1800,
+        "capacity": 25,
+        "lessons": [
+            {"id": 1, "title": "SQL Introduction"},
+            {"id": 2, "title": "SELECT Queries"},
+            {"id": 3, "title": "Joins and Subqueries"},
+            {"id": 4, "title": "Stored Procedures"}
+        ]
+    },
+    {
+        "id": 303,
+        "title": "Flask Web Development",
+        "instructor": "Amit",
+        "category": "Web Development",
+        "course_fee": 3000,
+        "capacity": 20,
+        "lessons": [
+            {"id": 1, "title": "Flask Setup"},
+            {"id": 2, "title": "Flask Routing"},
+            {"id": 3, "title": "Templates"},
+            {"id": 4, "title": "Flask Project"}
+        ]
+    }
+]
+
+
+# Store student enrollment records
+enrollments = []
+
+
+# Allowed enrollment statuses
+ENROLLMENT_STATUSES = [
+    "Active",
+    "Completed",
+    "Cancelled"
+]
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: FIND COURSE
+# Flow: Receive course ID -> Search course list
+#       -> Return matching course
+# --------------------------------------------------
+def find_course(course_id):
+
+    for course in courses:
+
+        if course["id"] == course_id:
+            return course
+
+    return None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: FIND ENROLLMENT
+# Flow: Receive enrollment ID -> Search records
+#       -> Return matching enrollment
+# --------------------------------------------------
+def find_enrollment(enrollment_id):
+
+    for enrollment in enrollments:
+
+        if enrollment["id"] == enrollment_id:
+            return enrollment
+
+    return None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: COUNT ACTIVE ENROLLMENTS
+# Flow: Read course ID -> Count non-cancelled enrollments
+#       -> Return current seat usage
+# --------------------------------------------------
+def count_enrolled_students(course_id):
+
+    count = 0
+
+    for enrollment in enrollments:
+
+        if (
+            enrollment["course_id"] == course_id
+            and enrollment["status"] != "Cancelled"
+        ):
+            count += 1
+
+    return count
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE COURSE DATA
+# Flow: Read JSON -> Check fields -> Validate values
+#       -> Validate lessons -> Return course data
+# --------------------------------------------------
+def validate_course(data):
+
+    if not isinstance(data, dict):
+        return None, "A valid JSON object is required"
+
+    required_fields = [
+        "title",
+        "instructor",
+        "category",
+        "course_fee",
+        "capacity",
+        "lessons"
+    ]
+
+    for field in required_fields:
+
+        if field not in data:
+            return None, f"{field} is required"
+
+    title = data["title"]
+    instructor = data["instructor"]
+    category = data["category"]
+    course_fee = data["course_fee"]
+    capacity = data["capacity"]
+    lesson_titles = data["lessons"]
+
+    # Validate text fields
+    if not all(
+        isinstance(value, str)
+        for value in [title, instructor, category]
+    ):
+        return None, "Course details must contain text"
+
+    title = title.strip()
+    instructor = instructor.strip()
+    category = category.strip().title()
+
+    if not all([title, instructor, category]):
+        return None, "Course details cannot be empty"
+
+    # Validate course fee
+    if isinstance(course_fee, bool) or not isinstance(course_fee, (int, float)):
+        return None, "Course fee must be a number"
+
+    if not math.isfinite(course_fee) or course_fee < 0:
+        return None, "Course fee must be non-negative and finite"
+
+    # Validate capacity
+    if isinstance(capacity, bool) or not isinstance(capacity, int):
+        return None, "Capacity must be a whole number"
+
+    if capacity <= 0:
+        return None, "Capacity must be greater than zero"
+
+    # Validate lesson list
+    if not isinstance(lesson_titles, list) or not lesson_titles:
+        return None, "At least one lesson is required"
+
+    lessons = []
+    lesson_names = set()
+
+    for index, lesson_title in enumerate(lesson_titles, start=1):
+
+        if not isinstance(lesson_title, str):
+            return None, "Every lesson title must be text"
+
+        lesson_title = lesson_title.strip()
+
+        if not lesson_title:
+            return None, "Lesson title cannot be empty"
+
+        if lesson_title.lower() in lesson_names:
+            return None, "Duplicate lesson titles are not allowed"
+
+        lesson_names.add(lesson_title.lower())
+
+        lessons.append({
+            "id": index,
+            "title": lesson_title
+        })
+
+    course_data = {
+        "title": title,
+        "instructor": instructor,
+        "category": category,
+        "course_fee": course_fee,
+        "capacity": capacity,
+        "lessons": lessons
+    }
+
+    return course_data, None
+
+
+# --------------------------------------------------
+# HELPER FUNCTION: VALIDATE ENROLLMENT DATA
+# Flow: Read JSON -> Validate student details
+#       -> Check course -> Return enrollment data
+# --------------------------------------------------
+def validate_enrollment(data):
+
+    if not isinstance(data, dict):
+        return None, "A valid JSON object is required"
+
+    required_fields = [
+        "course_id",
+        "student_name",
+        "email"
+    ]
+
+    for field in required_fields:
+
+        if field not in data:
+            return None, f"{field} is required"
+
+    course_id = data["course_id"]
+    student_name = data["student_name"]
+    email = data["email"]
+
+    # Validate course ID
+    if isinstance(course_id, bool) or not isinstance(course_id, int):
+        return None, "Course ID must be an integer"
+
+    if course_id <= 0:
+        return None, "Course ID must be greater than zero"
+
+    # Validate student name
+    if not isinstance(student_name, str):
+        return None, "Student name must be text"
+
+    student_name = student_name.strip()
+
+    if not student_name:
+        return None, "Student name cannot be empty"
+
+    # Validate email
+    if not isinstance(email, str):
+        return None, "Email must be text"
+
+    email = email.strip().lower()
+
+    if "@" not in email or "." not in email.split("@")[-1]:
+        return None, "Enter a valid email address"
+
+    # Check course existence
+    course = find_course(course_id)
+
+    if course is None:
+        return None, "Course not found"
+
+    enrollment_data = {
+        "course_id": course_id,
+        "student_name": student_name,
+        "email": email
+    }
+
+    return enrollment_data, None
+
+
+# --------------------------------------------------
+# 1. HOME ROUTE
+# Flow: Receive request -> Return welcome message
+# --------------------------------------------------
+@app.route("/")
+def home():
+
+    return jsonify({
+        "message": "Online Learning Management API is running"
+    }), 200
+
+
+# --------------------------------------------------
+# 2. GET ALL COURSES
+# Flow: Read course list -> Calculate available seats
+#       -> Return course information
+# --------------------------------------------------
+@app.route("/api/courses", methods=["GET"])
+def get_courses():
+
+    course_list = []
+
+    for course in courses:
+
+        enrolled_count = count_enrolled_students(course["id"])
+
+        course_data = course.copy()
+
+        course_data["enrolled_students"] = enrolled_count
+
+        course_data["available_seats"] = (
+            course["capacity"] - enrolled_count
+        )
+
+        course_list.append(course_data)
+
+    return jsonify({
+        "total_courses": len(course_list),
+        "courses": course_list
+    }), 200
+
+
+# --------------------------------------------------
+# 3. GET ONE COURSE
+# Flow: Read course ID -> Search -> Calculate seats
+#       -> Return course details
+# --------------------------------------------------
+@app.route("/api/courses/<int:course_id>", methods=["GET"])
+def get_course(course_id):
+
+    course = find_course(course_id)
+
+    if course is None:
+        return jsonify({
+            "error": "Course not found"
+        }), 404
+
+    enrolled_count = count_enrolled_students(course_id)
+
+    course_data = course.copy()
+
+    course_data["enrolled_students"] = enrolled_count
+
+    course_data["available_seats"] = (
+        course["capacity"] - enrolled_count
+    )
+
+    return jsonify(course_data), 200
+
+
+# --------------------------------------------------
+# 4. CREATE A NEW COURSE
+# Flow: Read JSON -> Validate -> Generate ID
+#       -> Save course -> Return response
+# --------------------------------------------------
+@app.route("/api/courses", methods=["POST"])
+def create_course():
+
+    data = request.get_json(silent=True)
+
+    course_data, error = validate_course(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    # Generate next available course ID
+    if courses:
+        new_id = max(course["id"] for course in courses) + 1
+    else:
+        new_id = 301
+
+    new_course = {
+        "id": new_id,
+        **course_data
+    }
+
+    courses.append(new_course)
+
+    return jsonify({
+        "message": "Course created successfully",
+        "course": new_course
+    }), 201
+
+
+# --------------------------------------------------
+# 5. GET ALL ENROLLMENTS
+# Flow: Read filters -> Filter student records
+#       -> Return matching enrollments
+# --------------------------------------------------
+@app.route("/api/enrollments", methods=["GET"])
+def get_enrollments():
+
+    filtered_enrollments = enrollments
+
+    status = request.args.get("status")
+
+    if status:
+
+        status = status.strip().title()
+
+        if status not in ENROLLMENT_STATUSES:
+            return jsonify({
+                "error": "Invalid enrollment status"
+            }), 400
+
+        filtered_enrollments = [
+            enrollment for enrollment in filtered_enrollments
+            if enrollment["status"] == status
+        ]
+
+    course_id = request.args.get("course_id")
+
+    if course_id is not None:
+
+        try:
+            course_id = int(course_id)
+        except ValueError:
+            return jsonify({
+                "error": "Course ID must be an integer"
+            }), 400
+
+        filtered_enrollments = [
+            enrollment for enrollment in filtered_enrollments
+            if enrollment["course_id"] == course_id
+        ]
+
+    student_name = request.args.get("student")
+
+    if student_name is not None:
+
+        student_name = student_name.strip().lower()
+
+        if not student_name:
+            return jsonify({
+                "error": "Student name cannot be empty"
+            }), 400
+
+        filtered_enrollments = [
+            enrollment for enrollment in filtered_enrollments
+            if student_name in enrollment["student_name"].lower()
+        ]
+
+    return jsonify({
+        "total_enrollments": len(filtered_enrollments),
+        "enrollments": filtered_enrollments
+    }), 200
+
+
+# --------------------------------------------------
+# 6. GET ONE ENROLLMENT
+# Flow: Read enrollment ID -> Search -> Return details
+# --------------------------------------------------
+@app.route("/api/enrollments/<int:enrollment_id>", methods=["GET"])
+def get_enrollment(enrollment_id):
+
+    enrollment = find_enrollment(enrollment_id)
+
+    if enrollment is None:
+        return jsonify({
+            "error": "Enrollment not found"
+        }), 404
+
+    return jsonify(enrollment), 200
+
+
+# --------------------------------------------------
+# 7. ENROLL A STUDENT
+# Flow: Read JSON -> Validate -> Check duplicate
+#       -> Check seats -> Generate ID
+#       -> Save enrollment -> Return response
+# --------------------------------------------------
+@app.route("/api/enrollments", methods=["POST"])
+def enroll_student():
+
+    data = request.get_json(silent=True)
+
+    enrollment_data, error = validate_enrollment(data)
+
+    if error:
+        return jsonify({
+            "error": error
+        }), 400
+
+    course = find_course(enrollment_data["course_id"])
+
+    # Prevent duplicate active or completed enrollment
+    for enrollment in enrollments:
+
+        if (
+            enrollment["course_id"] == enrollment_data["course_id"]
+            and enrollment["email"] == enrollment_data["email"]
+            and enrollment["status"] != "Cancelled"
+        ):
+            return jsonify({
+                "error": "Student is already enrolled in this course"
+            }), 409
+
+    # Check course capacity
+    enrolled_count = count_enrolled_students(course["id"])
+
+    if enrolled_count >= course["capacity"]:
+        return jsonify({
+            "error": "Course is fully booked"
+        }), 409
+
+    # Generate enrollment ID
+    if enrollments:
+        new_id = max(
+            enrollment["id"] for enrollment in enrollments
+        ) + 1
+    else:
+        new_id = 501
+
+    new_enrollment = {
+        "id": new_id,
+        **enrollment_data,
+        "course_title": course["title"],
+        "enrolled_date": date.today().isoformat(),
+        "amount_paid": course["course_fee"],
+        "completed_lesson_ids": [],
+        "progress_percentage": 0,
+        "status": "Active"
+    }
+
+    enrollments.append(new_enrollment)
+
+    return jsonify({
+        "message": "Student enrolled successfully",
+        "enrollment": new_enrollment
+    }), 201
+
+
+# --------------------------------------------------
+# 8. MARK A LESSON AS COMPLETED
+# Flow: Find enrollment -> Find lesson -> Check status
+#       -> Update completed lessons -> Calculate progress
+#       -> Complete course if all lessons are done
+# --------------------------------------------------
+@app.route(
+    "/api/enrollments/<int:enrollment_id>/lessons/<int:lesson_id>/complete",
+    methods=["POST"]
+)
+def complete_lesson(enrollment_id, lesson_id):
+
+    enrollment = find_enrollment(enrollment_id)
+
+    if enrollment is None:
+        return jsonify({
+            "error": "Enrollment not found"
+        }), 404
+
+    if enrollment["status"] != "Active":
+        return jsonify({
+            "error": "Only active enrollments can complete lessons"
+        }), 409
+
+    course = find_course(enrollment["course_id"])
+
+    # Find the requested lesson
+    lesson = None
+
+    for item in course["lessons"]:
+
+        if item["id"] == lesson_id:
+            lesson = item
+            break
+
+    if lesson is None:
+        return jsonify({
+            "error": "Lesson not found in this course"
+        }), 404
+
+    # Prevent duplicate lesson completion
+    if lesson_id in enrollment["completed_lesson_ids"]:
+        return jsonify({
+            "error": "Lesson is already completed"
+        }), 409
+
+    # Record completed lesson
+    enrollment["completed_lesson_ids"].append(lesson_id)
+
+    total_lessons = len(course["lessons"])
+
+    completed_lessons = len(
+        enrollment["completed_lesson_ids"]
+    )
+
+    # Calculate course progress percentage
+    progress = round(
+        (completed_lessons / total_lessons) * 100, 2
+    )
+
+    enrollment["progress_percentage"] = progress
+
+    # Automatically complete the course
+    if progress == 100:
+        enrollment["status"] = "Completed"
+
+    return jsonify({
+        "message": "Lesson completed successfully",
+        "lesson": lesson,
+        "completed_lessons": completed_lessons,
+        "total_lessons": total_lessons,
+        "progress_percentage": progress,
+        "enrollment_status": enrollment["status"]
+    }), 200
+
+
+# --------------------------------------------------
+# 9. GET STUDENT LEARNING PROGRESS
+# Flow: Find enrollment -> Find course
+#       -> Identify completed and pending lessons
+#       -> Return progress report
+# --------------------------------------------------
+@app.route(
+    "/api/enrollments/<int:enrollment_id>/progress",
+    methods=["GET"]
+)
+def get_learning_progress(enrollment_id):
+
+    enrollment = find_enrollment(enrollment_id)
+
+    if enrollment is None:
+        return jsonify({
+            "error": "Enrollment not found"
+        }), 404
+
+    course = find_course(enrollment["course_id"])
+
+    completed_ids = enrollment["completed_lesson_ids"]
+
+    completed_lessons = []
+    pending_lessons = []
+
+    for lesson in course["lessons"]:
+
+        if lesson["id"] in completed_ids:
+            completed_lessons.append(lesson)
+        else:
+            pending_lessons.append(lesson)
+
+    return jsonify({
+        "student_name": enrollment["student_name"],
+        "course_title": course["title"],
+        "total_lessons": len(course["lessons"]),
+        "completed_lessons": len(completed_lessons),
+        "pending_lessons": len(pending_lessons),
+        "progress_percentage": enrollment["progress_percentage"],
+        "enrollment_status": enrollment["status"],
+        "completed_lesson_details": completed_lessons,
+        "pending_lesson_details": pending_lessons
+    }), 200
+
+
+# --------------------------------------------------
+# 10. CANCEL ENROLLMENT
+# Flow: Find enrollment -> Check status
+#       -> Update status -> Release course seat
+#       -> Return response
+# --------------------------------------------------
+@app.route(
+    "/api/enrollments/<int:enrollment_id>/cancel",
+    methods=["POST"]
+)
+def cancel_enrollment(enrollment_id):
+
+    enrollment = find_enrollment(enrollment_id)
+
+    if enrollment is None:
+        return jsonify({
+            "error": "Enrollment not found"
+        }), 404
+
+    if enrollment["status"] != "Active":
+        return jsonify({
+            "error": "Only active enrollments can be cancelled"
+        }), 409
+
+    enrollment["status"] = "Cancelled"
+
+    return jsonify({
+        "message": "Enrollment cancelled successfully",
+        "enrollment": enrollment
+    }), 200
+
+
+# --------------------------------------------------
+# 11. LEARNING MANAGEMENT SUMMARY
+# Flow: Count courses and enrollments
+#       -> Calculate progress and enrollment value
+#       -> Return statistics
+# --------------------------------------------------
+@app.route("/api/reports/summary", methods=["GET"])
+def learning_summary():
+
+    active = 0
+    completed = 0
+    cancelled = 0
+
+    total_enrollment_value = 0
+
+    for enrollment in enrollments:
+
+        if enrollment["status"] == "Active":
+            active += 1
+
+        elif enrollment["status"] == "Completed":
+            completed += 1
+
+        elif enrollment["status"] == "Cancelled":
+            cancelled += 1
+
+        if enrollment["status"] != "Cancelled":
+            total_enrollment_value += enrollment["amount_paid"]
+
+    total_progress = sum(
+        enrollment["progress_percentage"]
+        for enrollment in enrollments
+        if enrollment["status"] != "Cancelled"
+    )
+
+    active_enrollments = active + completed
+
+    if active_enrollments > 0:
+        average_progress = round(
+            total_progress / active_enrollments, 2
+        )
+    else:
+        average_progress = 0
+
+    return jsonify({
+        "total_courses": len(courses),
+        "total_enrollments": len(enrollments),
+        "active_enrollments": active,
+        "completed_enrollments": completed,
+        "cancelled_enrollments": cancelled,
+        "average_learning_progress": average_progress,
+        "total_enrollment_value": total_enrollment_value
+    }), 200
+
+
+# --------------------------------------------------
+# 12. START FLASK SERVER
+# Flow: Start server -> Wait for API requests
+# --------------------------------------------------
+if __name__ == "__main__":
+    app.run(debug=True)
